@@ -73,25 +73,52 @@ var elem = document.querySelector('#app');
 var app = new Reef(elem);
 ```
 
-**Provide a Template**
+#### Provide a Template
 
 The second argument is an object of options. It requires a template property, as either a string or a function that returns a string, to render into the DOM.
 
 ```js
 // Your template can be a string
-var app1 = new Component('#app', {
+var app = new Reef('#app', {
     template: 'Hello, world!'
 });
 
 // It can also be a function that returns a string
-// Your template can be a string
-var app2 = new Component('#app2', {
+var app = new Reef('#app', {
     template: function () {
         return 'Hello, world!'
     }
 });
 ```
 
+*__Note:__ You can use old-school strings, or if you'd prefer, ES6 template literals.*
+
+#### Add State
+
+As an optional property of the options argument, you can include state for the component with the `data` property.
+
+The `data` is automatically passed into your template function, so that you can use it customize the template.
+
+```js
+// Some data
+var app = new Reef('#app', {
+    data: {
+        greeting: 'Hello',
+        name: 'world'
+    },
+    template: function (props) {
+        return props.greeting + ', ' + props.name + '!';
+    }
+});
+```
+
+### 4. Render your component
+
+You can render your component by calling the `.render()` method on it.
+
+```js
+app.render();
+```
 
 ## ES6 Modules
 
