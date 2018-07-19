@@ -3,7 +3,7 @@ A lightweight, Vanilla JS alternative to React, Vue, and other bloated framework
 
 **Features:**
 
-- Weighs under 2kb (minified and gzipped*, with zero dependencies.
+- Weighs under 2kb (minified and gzipped), with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
 - Work with native JavaScript method and browser APIs instead of flavor-of-the-month framework methods.
