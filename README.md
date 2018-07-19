@@ -80,20 +80,20 @@ The second argument is an object of options. It requires a template property, as
 ```js
 // Your template can be a string
 var app = new Reef('#app', {
-    template: 'Hello, world!'
+    template: '<h1>Hello, world!</h1>'
 });
 
 // It can also be a function that returns a string
 var app = new Reef('#app', {
     template: function () {
-        return 'Hello, world!'
+        return '<h1>Hello, world!</h1>'
     }
 });
 ```
 
 *__Note:__ You can use old-school strings, or if you'd prefer, ES6 template literals.*
 
-#### Add State
+#### [Optional] Add State/Data
 
 As an optional property of the options argument, you can include state for the component with the `data` property.
 
@@ -107,7 +107,7 @@ var app = new Reef('#app', {
         name: 'world'
     },
     template: function (props) {
-        return props.greeting + ', ' + props.name + '!';
+        return '<h1>' + props.greeting + ', ' + props.name + '!</h1>';
     }
 });
 ```
@@ -119,6 +119,8 @@ You can render your component by calling the `.render()` method on it.
 ```js
 app.render();
 ```
+
+**[Try it Out!](http://jsfiddle.net/cferdinandi/1r0wyhfg/1/)**
 
 ## ES6 Modules
 
