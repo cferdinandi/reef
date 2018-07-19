@@ -97,7 +97,7 @@ var app = new Reef('#app', {
 
 As an optional property of the options argument, you can include state for the component with the `data` property.
 
-The `data` is automatically passed into your template function, so that you can use it customize the template.
+The state data is automatically passed into your template function, so that you can use it to customize your template.
 
 ```js
 // Some data
