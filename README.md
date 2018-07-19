@@ -10,15 +10,6 @@ A lightweight, Vanilla JS alternative to React, Vue, and other bloated framework
 
 Ditch that bloated framework, and make web development fun and simple again!
 
-**Table of Contents:**
-
-0. []()
-0. []()
-0. []()
-0. []()
-0. []()
-0. []()
-
 <hr>
 
 ### Want to learn how to write your own vanilla JS plugins? Check out my [Vanilla JS Pocket Guides](https://vanillajsguides.com/) or join the [Vanilla JS Academy](https://vanillajsacademy.com) and level-up as a web developer. 🚀
