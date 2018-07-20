@@ -1,6 +1,8 @@
 # Reef [![Build Status](https://travis-ci.org/cferdinandi/reef.svg)](https://travis-ci.org/cferdinandi/reef)
 A simple, lightweight alternative to React, Vue, and other bloated frameworks.
 
+[Getting Started](#getting-started) | [Demos](#demos) | [Browser Compatibility](#browser-compatibility) | [License](https://github.com/cferdinandi/reef/blob/master/LICENSE.md)
+
 **Features:**
 
 - Weighs under 2kb (minified and gzipped), with zero dependencies.
