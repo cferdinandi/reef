@@ -9,7 +9,7 @@ A simple, lightweight alternative to React, Vue, and other bloated frameworks.
 - Simple templating with JavaScript strings or template literals.
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
-- Work with native JavaScript method and browser APIs instead of flavor-of-the-month framework methods.
+- Work with native JavaScript methods and browser APIs instead of flavor-of-the-month framework methods.
 
 Ditch that bloated framework, and make web development fun and simple again!
 
@@ -55,7 +55,7 @@ You can [download the files directly from GitHub](https://github.com/cferdinandi
 
 **CDN**
 
-You can also use the [jsDelivr CDN](https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/). I recommend linking to a specific version number or version range to prevent major updates from breaking your site. Reef uses semantic versioning.
+You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdinandi/reef?path=dist). I recommend linking to a specific version number or version range to prevent major updates from breaking your site. Reef uses semantic versioning.
 
 ```html
 <!-- Always get the latest version -->
