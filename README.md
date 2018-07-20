@@ -180,7 +180,8 @@ document.addEventListener('render', function (event) {
 ## Demos
 
 - [Clock](http://jsfiddle.net/cferdinandi/7o5zydvL/3/)
-- [Update as the user types](http://jsfiddle.net/cferdinandi/c1v6fq4a/8/)
+- [Mirror Typing](http://jsfiddle.net/cferdinandi/c1v6fq4a/8/)
+- [Pomodoro Timer](http://jsfiddle.net/cferdinandi/xnf83tmw/)
 
 
 
