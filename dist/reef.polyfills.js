@@ -186,6 +186,17 @@ if (!Array.from) {
 	};
 
 	/**
+	 * Sanitize and encode all HTML in a user-submitted string
+	 * @param  {String} str  The user-submitted string
+	 * @return {String} str  The sanitized string
+	 */
+	var sanitize = function (str) {
+		var temp = document.createElement('div');
+		temp.textContent = str;
+		return temp.innerHTML;
+	};
+
+	/**
 	 * Add attributes to an element
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
@@ -193,11 +204,14 @@ if (!Array.from) {
 	var addAttributes = function (elem, atts) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
-			// Otherwise, use setAttribute()
+			// Else if it starts with `data-`, use setAttribute()
+			// Otherwise, set is as a property of the element
 			if (attribute.att === 'class') {
 				elem.className = attribute.value;
-			} else {
+			} else if (attribute.att.slice(0, 5) === 'data-') {
 				elem.setAttribute(attribute.att, attribute.value || '');
+			} else {
+				elem[attribute.att] = attribute.value || '';
 			}
 		}));
 	};
@@ -372,9 +386,9 @@ if (!Array.from) {
 	 * @param  {String} template The template string
 	 * @return {Object}          A sanitized, mapped version of the template
 	 */
-	var sanitize = function (template) {
-		return createDOMMap(stringToHTML(template));
-	};
+	// var sanitize = function (template) {
+	// 	return createDOMMap(stringToHTML(template));
+	// };
 
 	/**
 	 * Render a template into the DOM
@@ -398,7 +412,8 @@ if (!Array.from) {
 		if (['string', 'number'].indexOf(typeof template) === -1) return;
 
 		// Create DOM maps of the template and target element
-		var templateMap = sanitize(template);
+		// var templateMap = sanitize(template);
+		var templateMap = createDOMMap(stringToHTML(template));
 		var domMap = createDOMMap(elem);
 
 		// Diff and update the DOM

@@ -128,6 +128,8 @@ label {
 
 <h1>Todo</h1>
 
+<img id="testimg" src="#">
+
 <form id="todo-form">
 	<label for="todo-item">What do you need to do?</label>
 	<input type="text" name="todo-item" id="todo-item">
@@ -137,7 +139,10 @@ label {
 <div id="app"></div>
 
 
-	<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@0.0.3/dist/reef.polyfills.min.js"></script>
+	<script>
+		/*! reef v0.0.4 | (c) 2018 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+		!(function(t,e){"function"==typeof define&&define.amd?define([],(function(){return e(t)})):"object"==typeof exports?module.exports=e(t):t.Reef=e(t)})("undefined"!=typeof global?global:"undefined"!=typeof window?window:this,(function(t){"use strict";var e=function(e,n){if(!("DOMParser"in t))throw"Reef.js is not supported by this browser.";if(!e)throw"Reef.js: You did not provide an element to make into a component.";if(!n||!n.template)throw"Reef.js: You did not provide a template for this component.";this.elem=e,this.data=n.data,this.template=n.template},n=function(t,e){e.forEach((function(e){"class"===e.att?t.className=e.value:"data-"===e.att.slice(0,5)?t.setAttribute(e.att,e.value||""):t[e.att]=e.value||""}))},o=function(t,e){e.forEach((function(e){"class"===e.att?t.className="":t.removeAttribute(e.att)}))},r=function(t){return Array.from(t).map((function(t){return{att:t.name,value:t.value}}))},i=function(t){return(new DOMParser).parseFromString(t,"text/html").body},a=function(t){var e="text"===t.type?document.createTextNode(t.content):document.createElement(t.type);return n(e,t.atts),t.children.length>0?t.children.forEach((function(t){e.appendChild(a(t))})):"text"!==t.type&&(e.textContent=t.content),e},d=function(t,e){var r=e.atts.filter((function(e){return void 0===t.atts.find((function(t){return e.att===t.att}))})),i=t.atts.filter((function(t){var n=e.atts.find((function(e){return t.att===e.att}));return void 0===n||n.value!==t.value}));n(e.node,i),o(e.node,r)},f=function(t,e,n){var o=e.length-t.length;if(o>0)for(;o>0;o--)e[e.length-o].node.remove();t.forEach((function(o,r){return e[r]?t[r].type!==e[r].type?void e[r].node.parentNode.replaceChild(a(t[r]),e[r].node):(d(t[r],e[r],e[r].node),t[r].content!==e[r].content&&(e[r].node.textContent=t[r].content),void(o.children.length>0&&f(o.children,e[r].children||[],e[r].node))):void n.appendChild(a(t[r]))}))},u=function(t){var e=[];return Array.from(t.childNodes).forEach((function(t){e.push({content:t.childNodes&&t.childNodes.length>0?null:t.textContent,atts:3===t.nodeType?[]:r(t.attributes),type:3===t.nodeType?"text":t.tagName.toLowerCase(),children:u(t),node:t})})),e};return e.prototype.render=function(){if(!("DOMParser"in t))throw"Reef.js is not supported by this browser.";if(!this.template)throw"Reef.js: No template was provided.";var e="string"==typeof this.elem?document.querySelector(this.elem):this.elem;if(e){var n="function"==typeof this.template?this.template(this.data):this.template;if(-1!==["string","number"].indexOf(typeof n)){var o=u(i(n)),r=u(e);if(f(o,r,e),"function"==typeof t.CustomEvent){var a=new CustomEvent("render",{bubbles:!0});e.dispatchEvent(a)}return e}}},e}));
+	</script>
 	<script>
 //
 // Variables
