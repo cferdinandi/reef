@@ -182,6 +182,7 @@ document.addEventListener('render', function (event) {
 - [Clock](http://jsfiddle.net/cferdinandi/7o5zydvL/3/)
 - [Mirror Typing](http://jsfiddle.net/cferdinandi/c1v6fq4a/8/)
 - [Pomodoro Timer](http://jsfiddle.net/cferdinandi/xnf83tmw/)
+- [Todo List](http://jsfiddle.net/cferdinandi/cm0qLyzu/1/)
 
 
 
