@@ -27,7 +27,7 @@ Compiled and production-ready code can be found in the `dist` directory. The `sr
 
 There are two versions of Reef: the standalone version, and one that comes preloaded with polyfills for `Array.find()`, `Array.from()`, and `Element.remove()`, which are only supported in newer browsers.
 
-If you're including your own polyfills or don't want to enable this feature for older browsers, use the standalone version. Otherwise, use the version with polyfills.
+If you're including your own polyfills or don't want to support older browsers (you monster!), use the standalone version. Otherwise, use the version with polyfills.
 
 **Direct Download**
 
@@ -128,7 +128,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Try it Out!](http://jsfiddle.net/cferdinandi/1r0wyhfg/1/)**
+**[Try it Out!](http://jsfiddle.net/cferdinandi/1r0wyhfg/4/)**
 
 
 
@@ -142,7 +142,7 @@ app.data.name = 'universe';
 app.render();
 ```
 
-**[Try updating the state.](http://jsfiddle.net/cferdinandi/cxbLru32/)**
+**[Try updating the state.](http://jsfiddle.net/cferdinandi/cxbLru32/3/)**
 
 
 
@@ -160,13 +160,13 @@ document.addEventListener('render', function (event) {
 }, false);
 ```
 
-**[Explore the `render` event.](http://jsfiddle.net/cferdinandi/cx8fe42g/2/)**
+**[Explore the `render` event.](http://jsfiddle.net/cferdinandi/cx8fe42g/4/)**
 
 
 ## Demos
 
-- [Clock](http://jsfiddle.net/cferdinandi/7o5zydvL/)
-- [Update as the user types](http://jsfiddle.net/cferdinandi/c1v6fq4a/1/)
+- [Clock](http://jsfiddle.net/cferdinandi/7o5zydvL/3/)
+- [Update as the user types](http://jsfiddle.net/cferdinandi/c1v6fq4a/8/)
 
 
 

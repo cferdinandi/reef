@@ -11,7 +11,7 @@ Report bugs, ask questions, and request features using [GitHub Issues](https://g
 	- Clearly demonstrate the bug or issue.
 	- Include the bare minimum HTML, CSS, and JavaScript required to demonstrate the bug.
 	- A link to your production site is **not** a reduced test case.
-	- You can create one by [forking this JSFiddle](http://jsfiddle.net/cferdinandi/5qhbvs3j/).
+	- You can create one by [forking this JSFiddle](http://jsfiddle.net/cferdinandi/5qhbvs3j/2/).
 3. The browser and OS that you're using.
 
 Duplicates and issues without a reduced test case may be closed without comment.
