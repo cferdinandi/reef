@@ -1,5 +1,5 @@
 /*!
- * reef v0.0.3: A vanilla JS helper for creating state-based components and UI
+ * reef v0.0.4: A vanilla JS helper for creating state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
