@@ -1,5 +1,5 @@
 # Reef [![Build Status](https://travis-ci.org/cferdinandi/reef.svg)](https://travis-ci.org/cferdinandi/reef)
-A lightweight, Vanilla JS alternative to React, Vue, and other bloated frameworks.
+A fast, lightweight alternative to React, Vue, and other bloated frameworks.
 
 **Features:**
 
