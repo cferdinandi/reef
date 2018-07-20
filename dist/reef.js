@@ -1,5 +1,5 @@
 /*!
- * reef v0.0.2: A vanilla JS helper for creating state-based components and UI
+ * reef v0.0.3: A vanilla JS helper for creating state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
@@ -109,7 +109,7 @@
 	var makeElem = function (elem) {
 
 		// Create the element
-		var node = document.createElement(elem.type);
+		var node = elem.type === 'text' ? document.createTextNode(elem.content) : document.createElement(elem.type);
 
 		// Add attributes
 		addAttributes(node, elem.atts);
@@ -120,7 +120,7 @@
 			elem.children.forEach((function (childElem) {
 				node.appendChild(makeElem(childElem));
 			}));
-		} else {
+		} else if (elem.type !== 'text') {
 			node.textContent = elem.content;
 		}
 
@@ -169,7 +169,7 @@
 		var count = domMap.length - templateMap.length;
 		if (count > 0) {
 			for (; count > 0; count--) {
-				domMap[count].node.remove();
+				domMap[domMap.length - count].node.remove();
 			}
 		}
 
@@ -198,7 +198,7 @@
 
 			// Repeat for child elements
 			if (node.children.length > 0) {
-				diff(node.children, domMap[index].children || [], node);
+				diff(node.children, domMap[index].children || [], domMap[index].node);
 			}
 
 		}));
@@ -212,11 +212,11 @@
 	 */
 	var createDOMMap = function (element) {
 		var map = [];
-		Array.from(element.children).forEach((function (node) {
+		Array.from(element.childNodes).forEach((function (node) {
 			map.push({
-				content: node.children.length > 0 ? null : node.textContent,
-				atts: getAttributes(node.attributes),
-				type: node.tagName.toLowerCase(),
+				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
+				atts: node.nodeType === 3 ? [] : getAttributes(node.attributes),
+				type: node.nodeType === 3 ? 'text' : node.tagName.toLowerCase(),
 				children: createDOMMap(node),
 				node: node
 			});
