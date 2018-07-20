@@ -196,24 +196,6 @@ Use the included polyfills version of Reef, or include your own.
 
 
 
-## Known Issues
-
-Reef won't render template text that's not wrapped in an element.
-
-```js
-// This works
-var app = new Reef('#app', {
-	template: '<span>Hello, world</span>'
-});
-
-// This does NOT
-var app = new Reef('#app', {
-	template: 'Hello, world'
-});
-```
-
-
-
 ## License
 
 The code is available under the [MIT License](LICENSE.md).
