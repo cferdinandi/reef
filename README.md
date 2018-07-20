@@ -6,6 +6,7 @@ A fast, lightweight alternative to React, Vue, and other bloated frameworks.
 - Weighs under 2kb (minified and gzipped), with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
+- Updates only the parts of the DOM that have changed. Keep those form fields in focus!
 - Work with native JavaScript method and browser APIs instead of flavor-of-the-month framework methods.
 
 Ditch that bloated framework, and make web development fun and simple again!
