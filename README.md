@@ -1,5 +1,5 @@
 # Reef [![Build Status](https://travis-ci.org/cferdinandi/reef.svg)](https://travis-ci.org/cferdinandi/reef)
-A fast, lightweight alternative to React, Vue, and other bloated frameworks.
+A simple, lightweight alternative to React, Vue, and other bloated frameworks.
 
 **Features:**
 
@@ -16,6 +16,20 @@ Ditch that bloated framework, and make web development fun and simple again!
 ### Want to learn how to write your own vanilla JS plugins? Check out my [Vanilla JS Pocket Guides](https://vanillajsguides.com/) or join the [Vanilla JS Academy](https://vanillajsacademy.com) and level-up as a web developer. 🚀
 
 <hr>
+
+## Why use Reef?
+
+Reef is an anti-framework.
+
+It does a lot less than the big guys like React and Vue. It doesn't have a Virtual DOM. It doesn't automagically update the UI when state changes. It doesn't provide a bunch of custom methods.
+
+Reef does just one thing: render UI.
+
+Couldn't you just use some template strings and `innerHTML`? Sure. But Reef sanitizes your data before rendering to minimize the risk of XSS scripting attacks. It also only updates things that have changed instead clobbering the DOM and removing focus from your form fields.
+
+If you're craving a more simple, back-to-basics web development experience, Reef is for you.
+
+(*And if not, that's cool too! Carry on.*)
 
 
 
