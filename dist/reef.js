@@ -1,5 +1,5 @@
 /*!
- * reef v0.0.4: A vanilla JS helper for creating state-based components and UI
+ * reef v0.0.6: A vanilla JS helper for creating state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
@@ -43,17 +43,6 @@
 	};
 
 	/**
-	 * Sanitize and encode all HTML in a user-submitted string
-	 * @param  {String} str  The user-submitted string
-	 * @return {String} str  The sanitized string
-	 */
-	var sanitize = function (str) {
-		var temp = document.createElement('div');
-		temp.textContent = str;
-		return temp.innerHTML;
-	};
-
-	/**
 	 * Add attributes to an element
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
@@ -78,7 +67,7 @@
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to remove
 	 */
-	var removeAttribute = function (elem, atts) {
+	var removeAttributes = function (elem, atts) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
 			// Otherwise, use removeAttribute()
@@ -102,17 +91,6 @@
 				value: attribute.value
 			};
 		}));
-	};
-
-	/**
-	 * Convert a template string into HTML DOM nodes
-	 * @param  {String} str The template string
-	 * @return {Node}       The template HTML
-	 */
-	var stringToHTML = function (str) {
-		var parser = new DOMParser();
-		var doc = parser.parseFromString(str, 'text/html');
-		return doc.body;
 	};
 
 	/**
@@ -167,7 +145,7 @@
 
 		// Add/remove any required attributes
 		addAttributes(existing.node, change);
-		removeAttribute(existing.node, remove);
+		removeAttributes(existing.node, remove);
 
 	};
 
@@ -239,17 +217,19 @@
 	};
 
 	/**
-	 * Sanitize the template string
-	 * @param  {String} template The template string
-	 * @return {Object}          A sanitized, mapped version of the template
+	 * Convert a template string into HTML DOM nodes
+	 * @param  {String} str The template string
+	 * @return {Node}       The template HTML
 	 */
-	// var sanitize = function (template) {
-	// 	return createDOMMap(stringToHTML(template));
-	// };
+	var stringToHTML = function (str) {
+		var parser = new DOMParser();
+		var doc = parser.parseFromString(str, 'text/html');
+		return doc.body;
+	};
 
 	/**
 	 * Render a template into the DOM
-	 * @return {[type]}                   The element
+	 * @return {Node}                   The element
 	 */
 	Component.prototype.render = function () {
 
@@ -262,14 +242,13 @@
 		// If elem is an element, use it.
 		// If it's a selector, get it.
 		var elem = typeof this.elem === 'string' ? document.querySelector(this.elem) : this.elem;
-		if (!elem) return;
+		if (!elem) throw 'Reef.js: The DOM element to render your template into was not found.';
 
 		// Get the template
 		var template = (typeof this.template === 'function' ? this.template(this.data) : this.template);
 		if (['string', 'number'].indexOf(typeof template) === -1) return;
 
 		// Create DOM maps of the template and target element
-		// var templateMap = sanitize(template);
 		var templateMap = createDOMMap(stringToHTML(template));
 		var domMap = createDOMMap(elem);
 
