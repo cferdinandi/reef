@@ -144,7 +144,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Try it Out!](http://jsfiddle.net/cferdinandi/1r0wyhfg/6/)**
+**[Try it Out!](https://codepen.io/cferdinandi/pen/NLKWdO)**
 
 
 
@@ -158,7 +158,7 @@ app.data.name = 'universe';
 app.render();
 ```
 
-**[Try updating the state.](http://jsfiddle.net/cferdinandi/cxbLru32/4/)**
+**[Try updating the state.](https://codepen.io/cferdinandi/pen/MqgWJM)**
 
 
 
@@ -176,15 +176,15 @@ document.addEventListener('render', function (event) {
 }, false);
 ```
 
-**[Explore the `render` event.](http://jsfiddle.net/cferdinandi/cx8fe42g/5/)**
+**[Explore the `render` event.](https://codepen.io/cferdinandi/pen/wEwvJx)**
 
 
 ## Demos
 
-- [Clock](http://jsfiddle.net/cferdinandi/7o5zydvL/4/)
-- [Mirror Typing](http://jsfiddle.net/cferdinandi/c1v6fq4a/9/)
-- [Pomodoro Timer](http://jsfiddle.net/cferdinandi/xnf83tmw/2/)
-- [Todo List](http://jsfiddle.net/cferdinandi/cm0qLyzu/2/)
+- [Clock](https://codepen.io/cferdinandi/pen/OoLJbv)
+- [Mirror Typing](https://codepen.io/cferdinandi/pen/QVLWGJ)
+- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/ZMzEBg)
+- [Todo List](https://codepen.io/cferdinandi/pen/ZMzEBg)
 
 
 
