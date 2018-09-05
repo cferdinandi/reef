@@ -12,6 +12,23 @@
 
 	'use strict';
 
+	// Setup parser variable
+	var parser;
+
+	/**
+	 * Check feature support
+	 */
+	var supports = function () {
+		if (!Array.from || !window.DOMParser) return false;
+		parser = parser || new DOMParser();
+		try {
+			parser.parseFromString('x', 'text/html');
+		} catch(err) {
+			return false;
+		}
+		return true;
+	};
+
 	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
@@ -20,13 +37,13 @@
 	var Component = function (elem, options) {
 
 		// Check browser support
-		if (!('DOMParser' in window)) throw 'Reef.js is not supported by this browser.';
+		if (!supports()) throw new Error('Reef.js is not supported by this browser.');
 
 		// Make sure an element is provided
-		if (!elem) throw 'Reef.js: You did not provide an element to make into a component.';
+		if (!elem) throw new Error('Reef.js: You did not provide an element to make into a component.');
 
 		// Make sure a template is provided
-		if (!options || !options.template) throw 'Reef.js: You did not provide a template for this component.';
+		if (!options || !options.template) throw new Error('Reef.js: You did not provide a template for this component.');
 
 		// Set the component properties
 		this.elem = elem;
@@ -215,7 +232,7 @@
 	 * @return {Node}       The template HTML
 	 */
 	var stringToHTML = function (str) {
-		var parser = new DOMParser();
+		parser = parser || new DOMParser();
 		var doc = parser.parseFromString(str, 'text/html');
 		return doc.body;
 	};
@@ -227,15 +244,15 @@
 	Component.prototype.render = function () {
 
 		// Check browser support
-		if (!('DOMParser' in window)) throw 'Reef.js is not supported by this browser.';
+		if (!supports()) throw new Error('Reef.js is not supported by this browser.');
 
 		// Make sure there's a template
-		if (!this.template) throw 'Reef.js: No template was provided.';
+		if (!this.template) throw new Error('Reef.js: No template was provided.');
 
 		// If elem is an element, use it.
 		// If it's a selector, get it.
 		var elem = typeof this.elem === 'string' ? document.querySelector(this.elem) : this.elem;
-		if (!elem) throw 'Reef.js: The DOM element to render your template into was not found.';
+		if (!elem) throw new Error('Reef.js: The DOM element to render your template into was not found.');
 
 		// Get the template
 		var template = (typeof this.template === 'function' ? this.template(this.data) : this.template);
