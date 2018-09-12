@@ -180,6 +180,15 @@ if (!Array.from) {
 	};
 
 	/**
+	 * More accurately check the type of a JavaScript object
+	 * @param  {Object} obj The object
+	 * @return {String}     The object type
+	 */
+	var trueTypeOf = function (obj) {
+		return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+	};
+
+	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
@@ -203,6 +212,15 @@ if (!Array.from) {
 	};
 
 	/**
+	 * Check if setAttribute() should be used for this attribute
+	 * @param  {String} att The attribute type
+	 * @return {Boolean}    Returns true if setAttribute() should be used
+	 */
+	var useSetAttribute = function (att) {
+		return att.slice(0, 5) === 'data-' || att === 'for';
+	};
+
+	/**
 	 * Add attributes to an element
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
@@ -214,10 +232,10 @@ if (!Array.from) {
 			// Otherwise, set is as a property of the element
 			if (attribute.att === 'class') {
 				elem.className = attribute.value;
-			} else if (attribute.att.slice(0, 5) === 'data-') {
-				elem.setAttribute(attribute.att, attribute.value || '');
+			} else if (useSetAttribute(attribute.att)) {
+				elem.setAttribute(attribute.att, attribute.value);
 			} else {
-				elem[attribute.att] = attribute.value || '';
+				elem[attribute.att] = attribute.value;
 			}
 		}));
 	};
@@ -393,9 +411,6 @@ if (!Array.from) {
 	 */
 	Component.prototype.render = function () {
 
-		// Check browser support
-		if (!supports()) throw new Error('Reef.js is not supported by this browser.');
-
 		// Make sure there's a template
 		if (!this.template) throw new Error('Reef.js: No template was provided.');
 
@@ -426,6 +441,26 @@ if (!Array.from) {
 		// Return the elem for use elsewhere
 		return elem;
 
+	};
+
+	/**
+	 * Get a clone of the Component.data property
+	 * @return {Object} A clone of the Component.data property
+	 */
+	Object.prototype.getData = function () {
+		return JSON.parse(JSON.stringify(this.data));
+	};
+
+	/**
+	 * Update the data property and re-render
+	 * @param {Object} obj The data to merge into the existing state
+	 */
+	Object.prototype.setData = function (obj) {
+		if (trueTypeOf(obj) !== 'object') throw new Error('ReefJS: The provided data is not an object.');
+		for (var key in obj) {
+			this.data[key] = obj[key];
+		}
+		this.render();
 	};
 
 	// Export public methods
