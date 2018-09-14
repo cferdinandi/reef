@@ -144,7 +144,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Try it out on CodePen!](https://codepen.io/cferdinandi/pen/NLKWdO)**
+**[Try it out on CodePen &rarr;](https://codepen.io/cferdinandi/pen/NLKWdO)**
 
 
 
@@ -178,7 +178,7 @@ app.setData({
 app.setData({greeting: 'Hi there'});
 ```
 
-**[Try data reactivity on CodePen.](https://codepen.io/cferdinandi/pen/XPBRpN)**
+**[Try data reactivity on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XPBRpN)**
 
 ### Manual State
 
@@ -192,7 +192,7 @@ app.data.name = 'universe';
 app.render();
 ```
 
-**[Try manual state management on CodePen.](https://codepen.io/cferdinandi/pen/MqgWJM)**
+**[Try manual state management on CodePen &rarr;](https://codepen.io/cferdinandi/pen/MqgWJM)**
 
 
 ## Advanced Components
