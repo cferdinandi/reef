@@ -402,6 +402,8 @@ Reef.removeAttributes('onerror');
 Reef.removeAttributes(['onerror', 'sandwich']);
 ```
 
+**[Try adding custom attributes on CodePen &rarr;](https://codepen.io/cferdinandi/pen/zJLzxR)**
+
 ### Custom Events
 
 Whenever Reef updates the DOM, it emits a custom `render` event that you can listen for with `addEventListener()`.
@@ -416,7 +418,7 @@ document.addEventListener('render', function (event) {
 }, false);
 ```
 
-**[Explore the `render` event.](https://codepen.io/cferdinandi/pen/wEwvJx)**
+**[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/wEwvJx)**
 
 
 ## Demos
