@@ -243,6 +243,8 @@ var todos = new Reef('#todos', {
 app.render();
 ```
 
+**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/RYBVMq)**
+
 ### Attached and Detaching Nested Components
 
 You can attach or detach nested components at any time using the `attach()` and `detach()` methods. Both methods accept both individual components or arrays of components as arguments.
