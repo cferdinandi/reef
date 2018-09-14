@@ -243,7 +243,7 @@ var todos = new Reef('#todos', {
 app.render();
 ```
 
-**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/RYBVMq)**
+**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/yxqbZV)**
 
 ### Attached and Detaching Nested Components
 
@@ -258,6 +258,8 @@ app.attach([todos]);
 app.detach(todos);
 app.detach([todos]);
 ```
+
+**[Try attaching nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/RYBVMq)**
 
 ### Shared State
 
@@ -308,7 +310,7 @@ var todos = new Reef('#todos', {
 app.render();
 
 // Update the state
-sourceOfTruth.heading = 'Hello, universe';
+sourceOfTruth.heading = 'Hi, universe';
 
 // Re-render the DOM
 app.render();
