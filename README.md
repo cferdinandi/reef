@@ -310,11 +310,13 @@ var todos = new Reef('#todos', {
 app.render();
 
 // Update the state
-sourceOfTruth.heading = 'Hi, universe';
+sourceOfTruth.greeting = 'Hi, universe';
 
 // Re-render the DOM
 app.render();
 ```
+
+**[Try working with a single source of truth on CodePen &rarr;](https://codepen.io/cferdinandi/pen/yxqbwV)**
 
 #### Create a Lagoon
 
@@ -339,7 +341,7 @@ var sourceOfTruth = new Reef(null, {
 
 // Parent component
 var app = new Reef('#app', {
-	data: sourceOfTruth,
+	data: sourceOfTruth.data,
 	template: function (props) {
 		var html =
 			'<h1>' + props.greeting + '</h1>' +
@@ -351,7 +353,7 @@ var app = new Reef('#app', {
 
 // Nested component
 var todos = new Reef('#todos', {
-	data: sourceOfTruth,
+	data: sourceOfTruth.data,
 	template: function (props) {
 		var html = '<h2>Todo List</h2><ul>';
 		props.todos.forEach(function (todo) {
@@ -367,8 +369,10 @@ var todos = new Reef('#todos', {
 app.render();
 
 // Reactively update state
-sourceOfTruth.setData({heading: 'Hello, universe'});
+sourceOfTruth.setData({greeting: 'Hi, universe'});
 ```
+
+**[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XPBRwe)**
 
 ### Allowed Attributes
 
