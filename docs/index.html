@@ -59,4 +59,67 @@
 						</nav>
 					</header>
 
-				<main class="grid-three-fourths padding-top sticky-body tabindex" tabindex="-1" data-toc-content>
+				<main class="grid-three-fourths padding-top sticky-body tabindex" tabindex="-1" data-toc-content><h1 id="reef-js">Reef.js</h1>
+<p>Reef if a simple, lightweight alternative to React, Vue, and other bloated frameworks.</p>
+<p><a class="btn" href="setup.html">Getting Started</a></p>
+<h2 id="features">Features</h2>
+<ul>
+<li>Weighs under 2kb (minified and gzipped), with zero dependencies.</li>
+<li>Simple templating with JavaScript strings or template literals.</li>
+<li>Load it with a simple <code>&lt;script&gt;</code> tag&mdash;no command line or transpiling required.</li>
+<li>Updates only the parts of the DOM that have changed. Keep those form fields in focus!</li>
+<li>Work with native JavaScript method and browser APIs instead of flavor-of-the-month framework methods.</li>
+</ul>
+<p>Ditch that bloated framework, and make web development fun and simple again!</p>
+<h2 id="why-use-reef-">Why use Reef?</h2>
+<p>Reef is an anti-framework.</p>
+<p>It does a lot less than the big guys like React and Vue. It doesn&#39;t have a Virtual DOM. It doesn&#39;t automagically update the UI when state changes. It doesn&#39;t provide a bunch of custom methods.</p>
+<p>Reef does just one thing: render UI.</p>
+<p>Couldn&#39;t you just use some template strings and <code>innerHTML</code>? Sure. But Reef sanitizes your data before rendering to minimize the risk of XSS scripting attacks. It also only updates things that have changed instead clobbering the DOM and removing focus from your form fields.</p>
+<p>If you&#39;re craving a more simple, back-to-basics web development experience, Reef is for you.</p>
+<p>(<em>And if not, that&#39;s cool too! Carry on.</em>)</p>
+					</section><!-- /.container -->
+
+					<footer class="bg-muted padding-top padding-bottom">
+
+							<hr>
+
+							<p class="text-small text-muted margin-bottom-small">Built by <a href="http://gomakethings.com">Chris Ferdinandi</a>. The code is available under the <a href="https://github.com/cferdinandi/reef/blob/master/LICENSE.md">MIT License</a>.</p>
+
+							<p class="text-small text-muted">Kraken logo by <a href="http://thenounproject.com/term/squid/30310/">Joe Shelton from the Noun Project</a>.</p>
+
+					</footer>
+				</main>
+			</div><!-- /.row -->
+		</div><!-- /.container -->
+
+		<!-- Javascript -->
+		<script src="assets/js/toc.js"></script>
+		<script src="assets/js/highlight-active-nav.js"></script>
+		<script src="assets/js/smooth-scroll.min.js"></script>
+		<script src="assets/js/gumshoe.min.js"></script>
+		<script src="assets/js/prism.js"></script>
+		<script>
+			tableOfContents.init({
+				heading: 'In This Section',
+				headingClass: 'h3',
+				navClass: 'list-unstyled',
+				linkClass: 'js-smooth-scroll',
+				callback: function () {
+					var links = document.querySelectorAll( '.js-smooth-scroll' );
+					for (var i = 0, len = links.length; i < len; i++) {
+						links[i].setAttribute( 'data-scroll', true );
+					}
+					smoothScroll.init();
+				}
+			});
+			gumshoe.init({
+				offset: 5
+			});
+			highlightActiveNav.init({
+				urlPrefix: '/kraken/'
+			});
+		</script>
+
+	</body>
+</html>

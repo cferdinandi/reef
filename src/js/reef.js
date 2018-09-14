@@ -12,8 +12,20 @@
 
 	'use strict';
 
+	//
+	// Variables
+	//
+
+	// Attribute exceptions for use with setAttribute()
+	var attributeExceptions = ['for'];
+
 	// Setup parser variable
 	var parser;
+
+
+	//
+	// Methods
+	//
 
 	/**
 	 * Check feature support
@@ -39,6 +51,16 @@
 	};
 
 	/**
+	 * Return a clone of an object or array
+	 * @param  {Object|Array} obj The object or array to clone
+	 * @return {Object|Array}     An exact copy of the object or array
+	 */
+	var clone = function (obj) {
+		if (!obj) return;
+		return JSON.parse(JSON.stringify(obj));
+	};
+
+	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
@@ -49,15 +71,27 @@
 		if (!supports()) throw new Error('Reef.js is not supported by this browser.');
 
 		// Make sure an element is provided
-		if (!elem) throw new Error('Reef.js: You did not provide an element to make into a component.');
+		if (!elem && (!options || !options.lagoon)) throw new Error('Reef.js: You did not provide an element to make into a component.');
 
 		// Make sure a template is provided
-		if (!options || !options.template) throw new Error('Reef.js: You did not provide a template for this component.');
+		if (!options || !options.template && (!options || !options.lagoon)) throw new Error('Reef.js: You did not provide a template for this component.');
 
 		// Set the component properties
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
+		this.attached = [];
+		this.lagoon = options.lagoon;
+
+		// Attach linked components
+		if (options.attachTo) {
+			var _this = this;
+			options.attachTo.forEach(function (coral) {
+				if ('attach' in coral) {
+					coral.attach(_this);
+				}
+			});
+		}
 
 	};
 
@@ -67,7 +101,7 @@
 	 * @return {Boolean}    Returns true if setAttribute() should be used
 	 */
 	var useSetAttribute = function (att) {
-		return att.slice(0, 5) === 'data-' || att === 'for';
+		return att.slice(0, 5) === 'data-' || attributeExceptions.indexOf(att) > -1;
 	};
 
 	/**
@@ -182,8 +216,9 @@
 	 * @param  {Array} templateMap A DOM tree map of the template content
 	 * @param  {Array} domMap      A DOM tree map of the existing DOM node
 	 * @param  {Node}  elem        The element to render content into
+	 * @param  {Array} polyps      Attached components for this element
 	 */
-	var diff = function (templateMap, domMap, elem) {
+	var diff = function (templateMap, domMap, elem, polyps) {
 
 		// If extra elements in domMap, remove them
 		var count = domMap.length - templateMap.length;
@@ -211,6 +246,12 @@
 			// If attributes are different, update them
 			diffAtts(templateMap[index], domMap[index], domMap[index].node);
 
+			// If element is an attached component, skip it
+			var isPolyp = polyps.filter(function (polyp) {
+				return node.node.nodeType !== 3 && node.node.matches(polyp);
+			});
+			if (isPolyp.length > 0) return;
+
 			// If content is different, update it
 			if (templateMap[index].content !== domMap[index].content) {
 				domMap[index].node.textContent = templateMap[index].content;
@@ -218,7 +259,7 @@
 
 			// Repeat for child elements
 			if (node.children.length > 0) {
-				diff(node.children, domMap[index].children || [], domMap[index].node);
+				diff(node.children, domMap[index].children || [], domMap[index].node, polyps);
 			}
 
 		});
@@ -240,6 +281,7 @@
 				children: createDOMMap(node),
 				node: node
 			});
+
 		});
 		return map;
 	};
@@ -256,10 +298,27 @@
 	};
 
 	/**
+	 * If there are linked Reefs, render them, too
+	 * @param  {Array} polyps Attached Reef components
+	 */
+	var renderPolyps = function (polyps) {
+		if (!polyps) return;
+		polyps.forEach(function (coral) {
+			if ('render' in coral) coral.render();
+		});
+	};
+
+	/**
 	 * Render a template into the DOM
-	 * @return {Node}                   The element
+	 * @return {Node}  The element
 	 */
 	Component.prototype.render = function () {
+
+		// If this is used only for data, render attached and bail
+		if (this.lagoon) {
+			renderPolyps(this.attached);
+			return;
+		}
 
 		// Make sure there's a template
 		if (!this.template) throw new Error('Reef.js: No template was provided.');
@@ -267,18 +326,20 @@
 		// If elem is an element, use it.
 		// If it's a selector, get it.
 		var elem = typeof this.elem === 'string' ? document.querySelector(this.elem) : this.elem;
+
 		if (!elem) throw new Error('Reef.js: The DOM element to render your template into was not found.');
 
 		// Get the template
-		var template = (typeof this.template === 'function' ? this.template(this.data) : this.template);
+		var template = (typeof this.template === 'function' ? this.template(clone(this.data)) : this.template);
 		if (['string', 'number'].indexOf(typeof template) === -1) return;
 
 		// Create DOM maps of the template and target element
-		var templateMap = createDOMMap(stringToHTML(template));
-		var domMap = createDOMMap(elem);
+		var templateMap = createDOMMap(stringToHTML(template), polyps);
+		var domMap = createDOMMap(elem, polyps);
 
 		// Diff and update the DOM
-		diff(templateMap, domMap, elem);
+		var polyps = this.attached.map(function (polyp) { return polyp.elem; });
+		diff(templateMap, domMap, elem, polyps);
 
 		// Dispatch a render event
 		if (typeof window.CustomEvent === 'function') {
@@ -287,6 +348,9 @@
 			});
 			elem.dispatchEvent(event);
 		}
+
+		// If there are linked Reefs, render them, too
+		renderPolyps(this.attached);
 
 		// Return the elem for use elsewhere
 		return elem;
@@ -298,7 +362,7 @@
 	 * @return {Object} A clone of the Component.data property
 	 */
 	Object.prototype.getData = function () {
-		return JSON.parse(JSON.stringify(this.data));
+		return clone(this.data);
 	};
 
 	/**
@@ -313,7 +377,65 @@
 		this.render();
 	};
 
+	/**
+	 * Add attribute exceptions
+	 * @param {String|Array} att The attribute(s) to add
+	 */
+	Component.addAttributes = function (atts) {
+		if (trueTypeOf(atts) === 'array') {
+			Array.prototype.push.apply(attributeExceptions, atts);
+		} else {
+			attributeExceptions.push(atts);
+		}
+	};
+
+	/**
+	 * Remove attribute exceptions
+	 * @param {String|Array} att The attribute(s) to remove
+	 */
+	Component.removeAttributes = function (atts) {
+		var isArray = trueTypeOf(atts) === 'array';
+		attributeExceptions = attributeExceptions.filter(function (att) {
+			if (isArray) {
+				return atts.indexOf(att) === -1;
+			} else {
+				return att !== atts;
+			}
+		});
+	};
+
+	/**
+	 * Attach a component to this one
+	 * @param  {Function|Array} coral The component(s) to attach
+	 */
+	Object.prototype.attach = function (coral) {
+		if (trueTypeOf(coral) === 'array') {
+			Array.prototype.push.apply(this.attached, coral);
+		} else {
+			this.attached.push(coral);
+		}
+	};
+
+	/**
+	 * Detach a linked component to this one
+	 * @param  {Function|Array} coral The linked component(s) to detach
+	 */
+	Object.prototype.detach = function (coral) {
+		var isArray = trueTypeOf(coral) === 'array';
+		this.attached = this.attached.filter(function (polyp) {
+			if (isArray) {
+				return coral.indexOf(polyp) === -1;
+			} else {
+				return polyp !== coral;
+			}
+		});
+	};
+
+
+	//
 	// Export public methods
+	//
+
 	return Component;
 
 });

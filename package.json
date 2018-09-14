@@ -1,7 +1,7 @@
 {
 	"name": "reef",
-	"version": "0.1.0",
-	"description": "A vanilla JS helper for creating state-based components and UI",
+	"version": "0.2.0",
+	"description": "A lightweight helper function for creating reactive, state-based components and UI",
 	"main": "./dist/reef.polyfills.min.js",
 	"author": {
 		"name": "Chris Ferdinandi",

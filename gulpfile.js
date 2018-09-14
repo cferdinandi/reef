@@ -9,7 +9,7 @@ var settings = {
 	svgs: false,		// Turn on/off SVG tasks
 	images: false,		// Turn on/off image tasks
 	static: false,		// Turn on/off static file copying
-	docs: false, 		// Turn on/off documentation generation
+	docs: true, 		// Turn on/off documentation generation
 	deploy: true,		// Turn on/off all deployment tasks
 	cacheBust: false,	// Turn on/off cache busting (adds a version number to minified files)
 };

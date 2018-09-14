@@ -43,32 +43,48 @@
 
 	<script src="js/reef.js"></script>
 	<script>
-		var wrapper = new Reef('#app', {
+		var sourceOfTruth = new Reef(null, {
 			data: {
-				heading: 'Hello, world!'
+				heading: 'Hello, world!',
+				todos: [
+					'Buy milk',
+					'Bake a birthday cake',
+					'Go apple picking'
+				]
 			},
+			lagoon: true
+		});
+
+		var wrapper = new Reef('#app', {
+			data: sourceOfTruth.data,
 			template: function (props) {
-				return '<h1>' + props.heading + '</h1><div id="content"></div>';
-			}
+				return '<h1 sandwich="tuna">' + (props.heading.length > 0 ? props.heading : 'Hello, world!') + '</h1><div id="content"></div>';
+			},
+			attachTo: [sourceOfTruth]
 		});
 
 		var app = new Reef('#content', {
-			data: {
-				todos: ['Thing 1', 'item 2', 'job 3']
-			},
+			data: sourceOfTruth.data,
 			template: function (props) {
-				var html = '<h1>Todos</h1><ul>';
+				var html = '<h1>Todos</h1><ul sandwich="tuna">';
 				props.todos.forEach(function (todo) {
 					html += '<li>' + todo + '</li>';
 				});
+				html += '<input type="text" id="heading"><br>';
+				html += '<strong>The title is:</strong> ' + (props.heading.length > 0 ? props.heading : 'Hello, world!');
 				html += '</ul>';
 				return html;
 			},
-			attachTo: [wrapper]
+			attachTo: [sourceOfTruth, wrapper]
 		});
 
 		wrapper.render();
-		app.render();
+
+		// Update state on input change
+		document.addEventListener('input', function (event) {
+			if (!event.target.matches('#heading')) return;
+			sourceOfTruth.setData({heading: event.target.value});
+		}, false);
 	</script>
 
 </body>
