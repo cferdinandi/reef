@@ -425,7 +425,8 @@ document.addEventListener('render', function (event) {
 
 - [Clock](https://codepen.io/cferdinandi/pen/OoLJbv)
 - [Mirror Typing](https://codepen.io/cferdinandi/pen/QVLWGJ)
-- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/ZMzEBg)
+- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/wExqar)
+- [Stopwatch](https://codepen.io/cferdinandi/pen/oPMejX)
 - [Todo List](https://codepen.io/cferdinandi/pen/ZMzEBg)
 
 
