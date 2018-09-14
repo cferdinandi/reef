@@ -9,7 +9,7 @@ A lightweight helper function for creating reactive, state-based components and 
 - Simple templating with JavaScript strings or template literals.
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
-- Work with native JavaScript methods and browser APIs instead of flavor-of-the-month framework methods.
+- Work with native JavaScript methods and browser APIs instead of custom methods and pseudo-languages.
 
 Ditch that bloated framework, and make web development fun and simple again!
 
@@ -144,7 +144,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Try it Out!](https://codepen.io/cferdinandi/pen/NLKWdO)**
+**[Try it out!](https://codepen.io/cferdinandi/pen/NLKWdO)**
 
 
 
@@ -178,6 +178,8 @@ app.setData({
 app.setData({greeting: 'Hi there'});
 ```
 
+**[Play with data reactivity.](https://codepen.io/cferdinandi/pen/XPBRpN)**
+
 ### Manual State
 
 Sometimes, you want more manual control over when your UI renders again.
@@ -190,7 +192,7 @@ app.data.name = 'universe';
 app.render();
 ```
 
-**[Try updating the state.](https://codepen.io/cferdinandi/pen/MqgWJM)**
+**[Play with manual state management.](https://codepen.io/cferdinandi/pen/MqgWJM)**
 
 
 ## Advanced Components
@@ -314,7 +316,7 @@ app.render();
 
 A *lagoon* is a Reef instance that's only purpose is to store shared data.
 
-It doesn't render any UI in the DOM, but can allows reactively update state using the `setData()` method. You can also automatically trigger renders in other components by attaching them to your lagoon.
+It doesn't render any UI in the DOM, but allows you to reactively update state using the `setData()` method. Automatically trigger renders in other components by attaching them to your lagoon.
 
 Create a lagoon by setting the `lagoon` option to `true` when creating your Reef instance.
 
@@ -368,7 +370,7 @@ sourceOfTruth.setData({heading: 'Hello, universe'});
 
 One of the most important things Reef does is sanitize your templates to help reduce the risk of cross-site scripting attacks.
 
-As a result, by default certain attributes and properties cannot be applied to your element. This includes things like `onerror` events and custom element attributes (like `<div sandwich="tuna"></div>`).
+As a result, by default certain attributes and properties cannot be applied to your element. This includes things like `onerror` events and custom element attributes (like `sandwich="tuna"`).
 
 You can add exceptions to these rules using the `addAttributes()` method. It accepts individual attribute names, or an array of attributes.
 
