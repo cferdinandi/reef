@@ -1,5 +1,5 @@
 /*!
- * reef v0.2.0: A lightweight helper function for creating reactive, state-based components and UI
+ * reef v0.2.1: A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
@@ -451,9 +451,10 @@ if (!Array.from) {
 	 * If there are linked Reefs, render them, too
 	 * @param  {Array} polyps Attached Reef components
 	 */
-	var renderPolyps = function (polyps) {
+	var renderPolyps = function (polyps, reef) {
 		if (!polyps) return;
 		polyps.forEach((function (coral) {
+			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 			if ('render' in coral) coral.render();
 		}));
 	};
@@ -466,7 +467,7 @@ if (!Array.from) {
 
 		// If this is used only for data, render attached and bail
 		if (this.lagoon) {
-			renderPolyps(this.attached);
+			renderPolyps(this.attached, this);
 			return;
 		}
 
@@ -500,7 +501,7 @@ if (!Array.from) {
 		}
 
 		// If there are linked Reefs, render them, too
-		renderPolyps(this.attached);
+		renderPolyps(this.attached, this);
 
 		// Return the elem for use elsewhere
 		return elem;

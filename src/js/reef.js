@@ -301,9 +301,10 @@
 	 * If there are linked Reefs, render them, too
 	 * @param  {Array} polyps Attached Reef components
 	 */
-	var renderPolyps = function (polyps) {
+	var renderPolyps = function (polyps, reef) {
 		if (!polyps) return;
 		polyps.forEach(function (coral) {
+			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 			if ('render' in coral) coral.render();
 		});
 	};
@@ -316,7 +317,7 @@
 
 		// If this is used only for data, render attached and bail
 		if (this.lagoon) {
-			renderPolyps(this.attached);
+			renderPolyps(this.attached, this);
 			return;
 		}
 
@@ -350,7 +351,7 @@
 		}
 
 		// If there are linked Reefs, render them, too
-		renderPolyps(this.attached);
+		renderPolyps(this.attached, this);
 
 		// Return the elem for use elsewhere
 		return elem;
