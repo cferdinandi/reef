@@ -1,5 +1,5 @@
 /*!
- * reef v0.2.1: A lightweight helper function for creating reactive, state-based components and UI
+ * reef v0.2.2: A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
@@ -369,7 +369,7 @@
 	 * Get a clone of the Component.data property
 	 * @return {Object} A clone of the Component.data property
 	 */
-	Object.prototype.getData = function () {
+	Component.prototype.getData = function () {
 		return clone(this.data);
 	};
 
@@ -377,10 +377,12 @@
 	 * Update the data property and re-render
 	 * @param {Object} obj The data to merge into the existing state
 	 */
-	Object.prototype.setData = function (obj) {
+	Component.prototype.setData = function (obj) {
 		if (trueTypeOf(obj) !== 'object') throw new Error('ReefJS: The provided data is not an object.');
 		for (var key in obj) {
-			this.data[key] = obj[key];
+			if (obj.hasOwnProperty(key)) {
+				this.data[key] = obj[key];
+			}
 		}
 		this.render();
 	};
@@ -416,7 +418,7 @@
 	 * Attach a component to this one
 	 * @param  {Function|Array} coral The component(s) to attach
 	 */
-	Object.prototype.attach = function (coral) {
+	Component.prototype.attach = function (coral) {
 		if (trueTypeOf(coral) === 'array') {
 			Array.prototype.push.apply(this.attached, coral);
 		} else {
@@ -428,7 +430,7 @@
 	 * Detach a linked component to this one
 	 * @param  {Function|Array} coral The linked component(s) to detach
 	 */
-	Object.prototype.detach = function (coral) {
+	Component.prototype.detach = function (coral) {
 		var isArray = trueTypeOf(coral) === 'array';
 		this.attached = this.attached.filter((function (polyp) {
 			if (isArray) {
