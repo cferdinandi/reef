@@ -10,6 +10,7 @@ A lightweight helper function for creating reactive, state-based components and 
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
 - Work with native JavaScript methods and browser APIs instead of custom methods and pseudo-languages.
+- Supported all the way back to IE10.
 
 Ditch that bloated framework, and make web development fun and simple again!
 
