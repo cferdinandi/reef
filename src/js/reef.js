@@ -31,7 +31,7 @@
 	 * Check feature support
 	 */
 	var supports = function () {
-		if (!Array.from || !window.DOMParser) return false;
+		if (!Array.prototype.find || !Array.from || !window.DOMParser) return false;
 		parser = parser || new DOMParser();
 		try {
 			parser.parseFromString('x', 'text/html');
@@ -74,7 +74,7 @@
 		if (!elem && (!options || !options.lagoon)) throw new Error('Reef.js: You did not provide an element to make into a component.');
 
 		// Make sure a template is provided
-		if (!options || !options.template && (!options || !options.lagoon)) throw new Error('Reef.js: You did not provide a template for this component.');
+		if (!options || (!options.template && !options.lagoon)) throw new Error('Reef.js: You did not provide a template for this component.');
 
 		// Set the component properties
 		this.elem = elem;
@@ -147,7 +147,7 @@
 	 * @return {Array}                   The attributes on an element as an array of key/value pairs
 	 */
 	var getAttributes = function (attributes) {
-		return Array.from(attributes).map(function (attribute) {
+		return Array.prototype.map.call(attributes, function (attribute) {
 			return {
 				att: attribute.name,
 				value: attribute.value
@@ -273,7 +273,7 @@
 	 */
 	var createDOMMap = function (element) {
 		var map = [];
-		Array.from(element.childNodes).forEach(function (node) {
+		Array.prototype.forEach.call(element.childNodes, function (node) {
 			map.push({
 				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
 				atts: node.nodeType === 3 ? [] : getAttributes(node.attributes),

@@ -1,29 +1,50 @@
-# Reef.js
+<div id="app"></div>
 
-Reef if a simple, lightweight alternative to React, Vue, and other bloated frameworks.
+<script>
+	var sourceOfTruth = new Reef(null, {
+		data: {
+			heading: 'Hello, world!',
+			items: {
+				todos: [
+					'Buy milk',
+					'Bake a birthday cake',
+					'Go apple picking'
+				],
+				heading: 'Things'
+			}
+		},
+		lagoon: true
+	});
 
-<a class="btn" href="setup.html">Getting Started</a>
+	var wrapper = new Reef('#app', {
+		data: sourceOfTruth.data,
+		template: function (props) {
+			return '<h1 sandwich="tuna">' + (props.items.heading.length > 0 ? props.items.heading : 'Hello, world!') + '</h1><div id="content"></div>';
+		},
+		attachTo: [sourceOfTruth]
+	});
 
-## Features
+	var app = new Reef('#content', {
+		data: sourceOfTruth.data,
+		template: function (props) {
+			var html = '<h1>Todos</h1><ul sandwich="tuna">';
+			props.items.todos.forEach(function (todo) {
+				html += '<li>' + todo + '</li>';
+			});
+			html += '<input type="text" id="heading"><br>';
+			html += '<strong>The title is:</strong> ' + (props.heading.length > 0 ? props.heading : 'Hello, world!');
+			html += '</ul>';
+			return html;
+		},
+		attachTo: [wrapper]
+	});
 
-- Weighs under 2kb (minified and gzipped), with zero dependencies.
-- Simple templating with JavaScript strings or template literals.
-- Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
-- Updates only the parts of the DOM that have changed. Keep those form fields in focus!
-- Work with native JavaScript method and browser APIs instead of flavor-of-the-month framework methods.
+	// app.attach(wrapper);
+	wrapper.render();
 
-Ditch that bloated framework, and make web development fun and simple again!
-
-## Why use Reef?
-
-Reef is an anti-framework.
-
-It does a lot less than the big guys like React and Vue. It doesn't have a Virtual DOM. It doesn't automagically update the UI when state changes. It doesn't provide a bunch of custom methods.
-
-Reef does just one thing: render UI.
-
-Couldn't you just use some template strings and `innerHTML`? Sure. But Reef sanitizes your data before rendering to minimize the risk of XSS scripting attacks. It also only updates things that have changed instead clobbering the DOM and removing focus from your form fields.
-
-If you're craving a more simple, back-to-basics web development experience, Reef is for you.
-
-(*And if not, that's cool too! Carry on.*)
+	// Update state on input change
+	document.addEventListener('input', function (event) {
+		if (!event.target.matches('#heading')) return;
+		sourceOfTruth.setData({heading: event.target.value});
+	}, false);
+</script>

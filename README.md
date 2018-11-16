@@ -39,7 +39,7 @@ If you're craving a more simple, back-to-basics web development experience, Reef
 
 ### 1. Include Reef on your site.
 
-There are two versions of Reef: the standalone version, and one that comes preloaded with polyfills for `Array.find()`, `Array.from()`, and `Element.remove()`, which are only supported in newer browsers.
+There are two versions of Reef: the standalone version, and one that comes preloaded with polyfills for `Array.find()` and `Element.remove()`, which are only supported in newer browsers.
 
 If you're including your own polyfills or don't want to support older browsers (you monster!), use the standalone version. Otherwise, use the version with polyfills.
 
@@ -144,7 +144,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Try it out on CodePen &rarr;](https://codepen.io/cferdinandi/pen/NLKWdO)**
+**[Here's a demo.](https://codepen.io/cferdinandi/pen/NLKWdO)**
 
 
 
@@ -448,7 +448,7 @@ Reef works in all modern browsers, and IE 10 and above.
 
 ### Polyfills
 
-Support back to IE9 requires polyfills for `Array.find()`, `Array.from()`, and `Element.remove()`. Without them, support starts with Edge.
+Support back to IE9 requires polyfills for `Array.find()` and `Element.remove()`. Without them, support starts with Edge.
 
 Use the included polyfills version of Reef, or include your own.
 
