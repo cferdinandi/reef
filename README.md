@@ -39,10 +39,6 @@ If you're craving a more simple, back-to-basics web development experience, Reef
 
 ### 1. Include Reef on your site.
 
-There are two versions of Reef: the standalone version, and one that comes preloaded with polyfills for `Array.find()` and `Element.remove()`, which are only supported in newer browsers.
-
-If you're including your own polyfills or don't want to support older browsers (you monster!), use the standalone version. Otherwise, use the version with polyfills.
-
 **Direct Download**
 
 You can [download the files directly from GitHub](https://github.com/cferdinandi/reef/archive/master.zip).
@@ -50,7 +46,7 @@ You can [download the files directly from GitHub](https://github.com/cferdinandi
 Compiled and production-ready code can be found in the `dist` directory. The `src` directory contains development code.
 
 ```html
-<script src="path/to/reef.polyfills.min.js"></script>
+<script src="path/to/reef.min.js"></script>
 ```
 
 **CDN**
@@ -60,16 +56,16 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 ```html
 <!-- Always get the latest version -->
 <!-- Not recommended for production sites! -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.polyfills.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
 
 <!-- Get minor updates and patch fixes within a major version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1/dist/reef.polyfills.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1/dist/reef.min.js"></script>
 
 <!-- Get patch fixes within a minor version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1.0/dist/reef.polyfills.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1.0/dist/reef.min.js"></script>
 
 <!-- Get a specific version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1.0.0/dist/reef.polyfills.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1.0.0/dist/reef.min.js"></script>
 ```
 
 ### 2. Add an element to render your component/UI into.
@@ -245,7 +241,7 @@ app.render();
 
 **[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/yxqbZV)**
 
-### Attached and Detaching Nested Components
+### Attaching and Detaching Nested Components
 
 You can attach or detach nested components at any time using the `attach()` and `detach()` methods. Both methods accept both individual components or arrays of components as arguments.
 
@@ -322,7 +318,7 @@ app.render();
 
 A *lagoon* is a Reef instance that's only purpose is to store shared data.
 
-It doesn't render any UI in the DOM, but allows you to reactively update state using the `setData()` method. Automatically trigger renders in other components by attaching them to your lagoon.
+It doesn't render any UI in the DOM, but allows you to reactively update state using the `setData()` method. You can automatically trigger renders in other components by attaching them to your lagoon.
 
 Create a lagoon by setting the `lagoon` option to `true` when creating your Reef instance.
 
@@ -433,7 +429,11 @@ document.addEventListener('render', function (event) {
 
 ## What's new?
 
-Version 0.2.0 introduced some big new features:
+**Version 1.0.0 removed polyfill dependencies:**
+
+- All polyfills have been removed and are no longer needed. This is a breaking change, as the `.polyfill` versions of scripts no longer exist.
+
+**Version 0.2.0 introduced some big new features:**
 
 - Data reactivity and automatically updating UI
 - Support for nested components
@@ -445,12 +445,6 @@ Version 0.2.0 introduced some big new features:
 ## Browser Compatibility
 
 Reef works in all modern browsers, and IE 10 and above.
-
-### Polyfills
-
-Support back to IE9 requires polyfills for `Array.find()` and `Element.remove()`. Without them, support starts with Edge.
-
-Use the included polyfills version of Reef, or include your own.
 
 
 

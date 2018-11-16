@@ -4,7 +4,7 @@
 
 var settings = {
 	scripts: true,		// Turn on/off script tasks
-	polyfills: true,	// Turn on/off polyfill tasks
+	polyfills: false,	// Turn on/off polyfill tasks
 	styles: false,		// Turn on/off style tasks
 	svgs: false,		// Turn on/off SVG tasks
 	images: false,		// Turn on/off image tasks

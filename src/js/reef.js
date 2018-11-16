@@ -61,6 +61,18 @@
 	};
 
 	/**
+	 * Find the first matching item in an array
+	 * @param  {Array}    arr      The array to search in
+	 * @param  {Function} callback The callback to run to find a match
+	 * @return {*}                 The matching item
+	 */
+	var find = function (arr, callback) {
+		var matches = arr.filter(callback);
+		if (matches.length < 1) return null;
+		return matches[0];
+	};
+
+	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
@@ -191,18 +203,18 @@
 
 		// Get attributes to remove
 		var remove = existing.atts.filter(function (att) {
-			var getAtt = template.atts.find(function (newAtt) {
+			var getAtt = find(template.atts, function (newAtt) {
 				return att.att === newAtt.att;
 			});
-			return getAtt === undefined;
+			return getAtt === null;
 		});
 
 		// Get attributes to change
 		var change = template.atts.filter(function (att) {
-			var getAtt = existing.atts.find(function (existingAtt) {
+			var getAtt = find(existing.atts, function (existingAtt) {
 				return att.att === existingAtt.att;
 			});
-			return getAtt === undefined || getAtt.value !== att.value;
+			return getAtt === null || getAtt.value !== att.value;
 		});
 
 		// Add/remove any required attributes
@@ -224,7 +236,7 @@
 		var count = domMap.length - templateMap.length;
 		if (count > 0) {
 			for (; count > 0; count--) {
-				domMap[domMap.length - count].node.remove();
+				domMap[domMap.length - count].node.parentNode.removeChild(domMap[domMap.length - count].node);
 			}
 		}
 

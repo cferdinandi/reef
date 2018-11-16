@@ -1,6 +1,6 @@
 {
 	"name": "reef",
-	"version": "0.3.0",
+	"version": "1.0.0",
 	"description": "A lightweight helper function for creating reactive, state-based components and UI",
 	"main": "./dist/reef.polyfills.min.js",
 	"author": {
