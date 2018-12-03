@@ -1,10 +1,18 @@
 /*!
- * reef v1.0.0: A lightweight helper function for creating reactive, state-based components and UI
+ * reef v1.0.1
+ * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
  */
 
+/**
+ * Element.matches() polyfill (simple version)
+ * https://developer.mozilla.org/en-US/docs/Web/API/Element/matches#Polyfill
+ */
+if (!Element.prototype.matches) {
+	Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+}
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
 		define([], (function () {
@@ -38,7 +46,7 @@
 	 * Check feature support
 	 */
 	var supports = function () {
-		if (!Array.prototype.find || !Array.from || !window.DOMParser) return false;
+		if (!window.DOMParser) return false;
 		parser = parser || new DOMParser();
 		try {
 			parser.parseFromString('x', 'text/html');
@@ -124,6 +132,69 @@
 	};
 
 	/**
+	 * Create an array map of style names and values
+	 * @param  {String} styles The styles
+	 * @return {Array}         The styles
+	 */
+	var getStyleMap = function (styles) {
+		return styles.split(';').filter((function (style) {
+				return style.indexOf(':') > 0;
+			})).map((function (style) {
+				var styleArr = style.split(':');
+				return {
+					name: styleArr[0] ? styleArr[0].trim() : '',
+					value: styleArr[1] ? styleArr[1].trim() : ''
+				};
+			}));
+	};
+
+	/**
+	 * Remove styles from an element
+	 * @param  {Node}  elem   The element
+	 * @param  {Array} styles The styles to remove
+	 */
+	var removeStyles = function (elem, styles) {
+		styles.forEach((function (style) {
+			elem.style[style] = '';
+		}));
+	};
+
+	/**
+	 * Add or updates styles on an element
+	 * @param  {Node}  elem   The element
+	 * @param  {Array} styles The styles to add or update
+	 */
+	var changeStyles = function (elem, styles) {
+		styles.forEach((function (style) {
+			elem.style[style.name] = style.value;
+		}));
+	};
+
+	/**
+	 * Diff existing styles from new ones
+	 * @param  {Node}   elem   The element
+	 * @param  {String} styles The styles the element should have
+	 */
+	var diffStyles = function (elem, styles) {
+
+		// Get style map
+		var styleMap = getStyleMap(styles);
+
+		// Get styles to remove
+		var remove = Array.prototype.filter.call(elem.style, (function (style) {
+			var findStyle = find(styleMap, (function (newStyle) {
+				return newStyle.name === style && newStyle.value === elem.style[style];
+			}));
+			return findStyle === null;
+		}));
+
+		// Add and remove styles
+		removeStyles(elem, remove);
+		changeStyles(elem, styleMap);
+
+	};
+
+	/**
 	 * Add attributes to an element
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
@@ -131,10 +202,13 @@
 	var addAttributes = function (elem, atts) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
+			// Else if it's style, diff and update styles
 			// Else if it starts with `data-`, use setAttribute()
 			// Otherwise, set is as a property of the element
 			if (attribute.att === 'class') {
 				elem.className = attribute.value;
+			} else if (attribute.att === 'style') {
+				diffStyles(elem, attribute.value);
 			} else if (useSetAttribute(attribute.att)) {
 				elem.setAttribute(attribute.att, attribute.value);
 			} else {
@@ -151,9 +225,12 @@
 	var removeAttributes = function (elem, atts) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
+			// Else if it's style, remove all styles
 			// Otherwise, use removeAttribute()
 			if (attribute.att === 'class') {
 				elem.className = '';
+			} else if (attribute.att === 'style') {
+				removeStyles(elem, Array.prototype.slice.call(elem.style));
 			} else {
 				elem.removeAttribute(attribute.att);
 			}
