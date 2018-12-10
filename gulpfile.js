@@ -6,7 +6,7 @@
 var settings = {
 	clean: true,
 	scripts: true,
-	polyfills: false,
+	polyfills: true,
 	styles: false,
 	svgs: false,
 	copy: true,
@@ -23,7 +23,7 @@ var paths = {
 	output: 'dist/',
 	scripts: {
 		input: 'src/js/*',
-		polyfills: '.polyfill.js',
+		polyfills: '.helper.js',
 		output: 'dist/'
 	},
 	styles: {
@@ -147,20 +147,16 @@ var buildScripts = function (done) {
 				// If separate polyfill files enabled
 				if (settings.polyfills) {
 
-					// Update the suffix
-					suffix = '.polyfills';
-
 					// Grab files that aren't polyfills, concatenate them, and process them
 					src([file.path + '/*.js', '!' + file.path + '/*' + paths.scripts.polyfills])
-						.pipe(concat(file.relative + '.js'))
+						.pipe(concat(file.relative + '.unsafe' + '.js'))
 						.pipe(jsTasks());
 
 				}
 
 				// Grab all files and concatenate them
-				// If separate polyfills enabled, this will have .polyfills in the filename
 				src(file.path + '/*.js')
-					.pipe(concat(file.relative + suffix + '.js'))
+					.pipe(concat(file.relative + '.js'))
 					.pipe(jsTasks());
 
 				return stream;

@@ -1,10 +1,18 @@
 /*!
- * reef v1.0.0: A lightweight helper function for creating reactive, state-based components and UI
+ * reef v1.0.1
+ * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
  */
 
+/**
+ * Element.matches() polyfill (simple version)
+ * https://developer.mozilla.org/en-US/docs/Web/API/Element/matches#Polyfill
+ */
+if (!Element.prototype.matches) {
+	Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+}
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
 		define([], (function () {
@@ -23,9 +31,6 @@
 	// Variables
 	//
 
-	// Attribute exceptions for use with setAttribute()
-	var attributeExceptions = ['for'];
-
 	// Setup parser variable
 	var parser;
 
@@ -38,7 +43,7 @@
 	 * Check feature support
 	 */
 	var supports = function () {
-		if (!Array.prototype.find || !Array.from || !window.DOMParser) return false;
+		if (!window.DOMParser) return false;
 		parser = parser || new DOMParser();
 		try {
 			parser.parseFromString('x', 'text/html');
@@ -99,6 +104,8 @@
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
+		this.sanitize = typeof options.sanitize === undefined ? true : options.sanitize;
+		this.sanitizeOptions = options.sanitizeOptions || {};
 		this.attached = [];
 		this.lagoon = options.lagoon;
 
@@ -115,12 +122,66 @@
 	};
 
 	/**
-	 * Check if setAttribute() should be used for this attribute
-	 * @param  {String} att The attribute type
-	 * @return {Boolean}    Returns true if setAttribute() should be used
+	 * Create an array map of style names and values
+	 * @param  {String} styles The styles
+	 * @return {Array}         The styles
 	 */
-	var useSetAttribute = function (att) {
-		return att.slice(0, 5) === 'data-' || attributeExceptions.indexOf(att) > -1;
+	var getStyleMap = function (styles) {
+		return styles.split(';').filter((function (style) {
+				return style.indexOf(':') > 0;
+			})).map((function (style) {
+				var styleArr = style.split(':');
+				return {
+					name: styleArr[0] ? styleArr[0].trim() : '',
+					value: styleArr[1] ? styleArr[1].trim() : ''
+				};
+			}));
+	};
+
+	/**
+	 * Remove styles from an element
+	 * @param  {Node}  elem   The element
+	 * @param  {Array} styles The styles to remove
+	 */
+	var removeStyles = function (elem, styles) {
+		styles.forEach((function (style) {
+			elem.style[style] = '';
+		}));
+	};
+
+	/**
+	 * Add or updates styles on an element
+	 * @param  {Node}  elem   The element
+	 * @param  {Array} styles The styles to add or update
+	 */
+	var changeStyles = function (elem, styles) {
+		styles.forEach((function (style) {
+			elem.style[style.name] = style.value;
+		}));
+	};
+
+	/**
+	 * Diff existing styles from new ones
+	 * @param  {Node}   elem   The element
+	 * @param  {String} styles The styles the element should have
+	 */
+	var diffStyles = function (elem, styles) {
+
+		// Get style map
+		var styleMap = getStyleMap(styles);
+
+		// Get styles to remove
+		var remove = Array.prototype.filter.call(elem.style, (function (style) {
+			var findStyle = find(styleMap, (function (newStyle) {
+				return newStyle.name === style && newStyle.value === elem.style[style];
+			}));
+			return findStyle === null;
+		}));
+
+		// Add and remove styles
+		removeStyles(elem, remove);
+		changeStyles(elem, styleMap);
+
 	};
 
 	/**
@@ -131,14 +192,15 @@
 	var addAttributes = function (elem, atts) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
+			// Else if it's style, diff and update styles
 			// Else if it starts with `data-`, use setAttribute()
 			// Otherwise, set is as a property of the element
 			if (attribute.att === 'class') {
 				elem.className = attribute.value;
-			} else if (useSetAttribute(attribute.att)) {
-				elem.setAttribute(attribute.att, attribute.value);
+			} else if (attribute.att === 'style') {
+				diffStyles(elem, attribute.value);
 			} else {
-				elem[attribute.att] = attribute.value;
+				elem.setAttribute(attribute.att, attribute.value);
 			}
 		}));
 	};
@@ -151,9 +213,12 @@
 	var removeAttributes = function (elem, atts) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
+			// Else if it's style, remove all styles
 			// Otherwise, use removeAttribute()
 			if (attribute.att === 'class') {
 				elem.className = '';
+			} else if (attribute.att === 'style') {
+				removeStyles(elem, Array.prototype.slice.call(elem.style));
 			} else {
 				elem.removeAttribute(attribute.att);
 			}
@@ -169,7 +234,7 @@
 		return Array.prototype.map.call(attributes, (function (attribute) {
 			return {
 				att: attribute.name,
-				value: attribute.value
+				value: attribute.value || true
 			};
 		}));
 	};
@@ -182,7 +247,17 @@
 	var makeElem = function (elem) {
 
 		// Create the element
-		var node = elem.type === 'text' ? document.createTextNode(elem.content) : document.createElement(elem.type);
+		// var node = elem.type === 'text' ? document.createTextNode(elem.content) : (elem.type === 'comment' ? document.createComment(elem.content) : document.createElement(elem.type));
+		var node;
+		if (elem.type === 'text') {
+			node = document.createTextNode(elem.content);
+		} else if (elem.type === 'comment') {
+			node = document.createComment(elem.content);
+		} else if (elem.isSVG) {
+			node = document.createElementNS('http://www.w3.org/2000/svg', elem.type);
+		} else {
+			node = document.createElement(elem.type);
+		}
 
 		// Add attributes
 		addAttributes(node, elem.atts);
@@ -263,7 +338,7 @@
 			}
 
 			// If attributes are different, update them
-			diffAtts(templateMap[index], domMap[index], domMap[index].node);
+			diffAtts(templateMap[index], domMap[index]);
 
 			// If element is an attached component, skip it
 			var isPolyp = polyps.filter((function (polyp) {
@@ -290,19 +365,30 @@
 	 * @param  {Node}   element The element to map
 	 * @return {Array}          A DOM tree map
 	 */
-	var createDOMMap = function (element) {
-		var map = [];
-		Array.prototype.forEach.call(element.childNodes, (function (node) {
-			map.push({
+	var createDOMMap = function (element, isSVG) {
+		return Array.prototype.map.call(element.childNodes, (function (node) {
+			var details = {
 				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
-				atts: node.nodeType === 3 ? [] : getAttributes(node.attributes),
-				type: node.nodeType === 3 ? 'text' : node.tagName.toLowerCase(),
-				children: createDOMMap(node),
+				atts: node.nodeType !== 1 ? [] : getAttributes(node.attributes),
+				type: node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase()),
 				node: node
-			});
-
+			};
+			details.isSVG = isSVG || details.type === 'svg';
+			details.children = createDOMMap(node, details.isSVG);
+			return details;
 		}));
-		return map;
+	};
+
+	/**
+	 * If there are linked Reefs, render them, too
+	 * @param  {Array} polyps Attached Reef components
+	 */
+	var renderPolyps = function (polyps, reef) {
+		if (!polyps) return;
+		polyps.forEach((function (coral) {
+			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+			if ('render' in coral) coral.render();
+		}));
 	};
 
 	/**
@@ -316,16 +402,9 @@
 		return doc.body;
 	};
 
-	/**
-	 * If there are linked Reefs, render them, too
-	 * @param  {Array} polyps Attached Reef components
-	 */
-	var renderPolyps = function (polyps, reef) {
-		if (!polyps) return;
-		polyps.forEach((function (coral) {
-			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
-			if ('render' in coral) coral.render();
-		}));
+	var sanitize = function (str, options) {
+		if (!window.DOMPurify) throw new Error('You are using the unsafe version of Reef. Please use the full version to sanitize your templates.');
+		return DOMPurify.sanitize(str, options);
 	};
 
 	/**
@@ -354,8 +433,9 @@
 		if (['string', 'number'].indexOf(typeof template) === -1) return;
 
 		// Create DOM maps of the template and target element
-		var templateMap = createDOMMap(stringToHTML(template), polyps);
-		var domMap = createDOMMap(elem, polyps);
+		template = this.sanitize ? sanitize(template, this.sanitizeOptions) : template;
+		var templateMap = createDOMMap(stringToHTML(template));
+		var domMap = createDOMMap(elem);
 
 		// Diff and update the DOM
 		var polyps = this.attached.map((function (polyp) { return polyp.elem; }));
@@ -397,33 +477,6 @@
 			}
 		}
 		this.render();
-	};
-
-	/**
-	 * Add attribute exceptions
-	 * @param {String|Array} att The attribute(s) to add
-	 */
-	Component.addAttributes = function (atts) {
-		if (trueTypeOf(atts) === 'array') {
-			Array.prototype.push.apply(attributeExceptions, atts);
-		} else {
-			attributeExceptions.push(atts);
-		}
-	};
-
-	/**
-	 * Remove attribute exceptions
-	 * @param {String|Array} att The attribute(s) to remove
-	 */
-	Component.removeAttributes = function (atts) {
-		var isArray = trueTypeOf(atts) === 'array';
-		attributeExceptions = attributeExceptions.filter((function (att) {
-			if (isArray) {
-				return atts.indexOf(att) === -1;
-			} else {
-				return att !== atts;
-			}
-		}));
 	};
 
 	/**

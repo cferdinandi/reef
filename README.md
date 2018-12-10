@@ -5,8 +5,9 @@ A lightweight helper function for creating reactive, state-based components and 
 
 **Features:**
 
-- Weighs under 2kb (minified and gzipped), with zero dependencies.
+- Weighs under 8kb (minified and gzipped), with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
+- Automatically sanitizes your templates to protect you from cross-site scripting attacks.
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
 - Work with native JavaScript methods and browser APIs instead of custom methods and pseudo-languages.
@@ -40,6 +41,12 @@ If you're craving a more simple, back-to-basics web development experience, Reef
 
 ### 1. Include Reef on your site.
 
+Reef comes in two flavors: *regular* and *unsafe*.
+
+The *full* version includes [DOMPurify](https://github.com/cure53/DOMPurify), an HTML sanitizers that protects you from cross-site scripting attacks when including third-party and user-provided content in your templates.
+
+The *unsafe* version is only 2kb, but doesn't sanitize your templates. Only use this version if you're *not* using any third-party or user-supplied data in your templates.
+
 **Direct Download**
 
 You can [download the files directly from GitHub](https://github.com/cferdinandi/reef/archive/master.zip).
@@ -60,13 +67,13 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
 
 <!-- Get minor updates and patch fixes within a major version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@2/dist/reef.min.js"></script>
 
 <!-- Get patch fixes within a minor version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@2.0/dist/reef.min.js"></script>
 
 <!-- Get a specific version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@1.0.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@2.0.0/dist/reef.min.js"></script>
 ```
 
 ### 2. Add an element to render your component/UI into.
@@ -371,35 +378,29 @@ sourceOfTruth.setData({greeting: 'Hi, universe'});
 
 **[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XPBRwe)**
 
-### Allowed Attributes
+### Sanitizing Templates
 
 One of the most important things Reef does is sanitize your templates to help reduce the risk of cross-site scripting attacks.
 
-As a result, by default certain attributes and properties cannot be applied to your element. This includes things like `onerror` events and custom element attributes (like `sandwich="tuna"`).
-
-You can add exceptions to these rules using the `addAttributes()` method. It accepts individual attribute names, or an array of attributes.
+If you're using the *unsafe* version of Reef, you need to set the `sanitize` option to `false` or it will throw an error and not run. Only do this if you're *not* using any third-party or user-provided data.
 
 ```js
-// This works
-Reef.addAttributes('onerror');
-
-// This does, too
-Reef.addAttributes(['onerror', 'sandwich']);
+var app = new Reef('#app', {
+	sanitize: false
+});
 ```
 
-*__Heads up!__ This can expose you to more risk of a cross-site scripting attack. Use with caution.*
+Reef uses [DOMPurify](https://github.com/cure53/DOMPurify) to sanitize your templates. It's fast, lightweight, and good.
 
-You can also remove an attribute or attributes using the `removeAttributes()` method.
+DOMPurify is configurable. You can pass in an object of options with the `sanitizeOptions` property. Consult the DOMPurify documentation for available options.
 
 ```js
-// This works
-Reef.removeAttributes('onerror');
-
-// This does, too
-Reef.removeAttributes(['onerror', 'sandwich']);
+var app = new Reef('#app', {
+	sanitizeOptions: {}
+});
 ```
 
-**[Try adding custom attributes on CodePen &rarr;](https://codepen.io/cferdinandi/pen/zJLzxR)**
+**[See Reef's template sanitizing in action on CodePen &rarr;](https://codepen.io/cferdinandi/pen/qLEbQY)**
 
 ### Custom Events
 
@@ -429,6 +430,13 @@ document.addEventListener('render', function (event) {
 
 
 ## What's new?
+
+**Version 2.0.0 adds a better sanitizing engine and markup support:**
+
+- [DOMPurify](https://github.com/cure53/DOMPurify) is now the template sanitizing engine.
+- The *attribute exceptions* feature has been removed in favor of DOMPurify's configuration options. The `addAttributes()` and `removeAttributes()` methods no longer exist.
+- Reef now offers a smaller *unsafe* version for UIs that don't use any third-party or user-provided content. It does *not* sanitize templates before rendering, so use with caution.
+- SVGs are now properly supported and will render correctly.
 
 **Version 1.0.0 removed polyfill dependencies:**
 

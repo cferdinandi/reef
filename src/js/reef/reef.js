@@ -16,9 +16,6 @@
 	// Variables
 	//
 
-	// Attribute exceptions for use with setAttribute()
-	var attributeExceptions = ['for'];
-
 	// Setup parser variable
 	var parser;
 
@@ -92,6 +89,8 @@
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
+		this.sanitize = typeof options.sanitize === undefined ? true : options.sanitize;
+		this.sanitizeOptions = options.sanitizeOptions || {};
 		this.attached = [];
 		this.lagoon = options.lagoon;
 
@@ -105,15 +104,6 @@
 			});
 		}
 
-	};
-
-	/**
-	 * Check if setAttribute() should be used for this attribute
-	 * @param  {String} att The attribute type
-	 * @return {Boolean}    Returns true if setAttribute() should be used
-	 */
-	var useSetAttribute = function (att) {
-		return att.slice(0, 5) === 'data-' || attributeExceptions.indexOf(att) > -1;
 	};
 
 	/**
@@ -194,10 +184,8 @@
 				elem.className = attribute.value;
 			} else if (attribute.att === 'style') {
 				diffStyles(elem, attribute.value);
-			} else if (useSetAttribute(attribute.att)) {
-				elem.setAttribute(attribute.att, attribute.value);
 			} else {
-				elem[attribute.att] = attribute.value;
+				elem.setAttribute(attribute.att, attribute.value);
 			}
 		});
 	};
@@ -231,7 +219,7 @@
 		return Array.prototype.map.call(attributes, function (attribute) {
 			return {
 				att: attribute.name,
-				value: attribute.value
+				value: attribute.value || true
 			};
 		});
 	};
@@ -244,7 +232,17 @@
 	var makeElem = function (elem) {
 
 		// Create the element
-		var node = elem.type === 'text' ? document.createTextNode(elem.content) : document.createElement(elem.type);
+		// var node = elem.type === 'text' ? document.createTextNode(elem.content) : (elem.type === 'comment' ? document.createComment(elem.content) : document.createElement(elem.type));
+		var node;
+		if (elem.type === 'text') {
+			node = document.createTextNode(elem.content);
+		} else if (elem.type === 'comment') {
+			node = document.createComment(elem.content);
+		} else if (elem.isSVG) {
+			node = document.createElementNS('http://www.w3.org/2000/svg', elem.type);
+		} else {
+			node = document.createElement(elem.type);
+		}
 
 		// Add attributes
 		addAttributes(node, elem.atts);
@@ -325,7 +323,7 @@
 			}
 
 			// If attributes are different, update them
-			diffAtts(templateMap[index], domMap[index], domMap[index].node);
+			diffAtts(templateMap[index], domMap[index]);
 
 			// If element is an attached component, skip it
 			var isPolyp = polyps.filter(function (polyp) {
@@ -352,19 +350,30 @@
 	 * @param  {Node}   element The element to map
 	 * @return {Array}          A DOM tree map
 	 */
-	var createDOMMap = function (element) {
-		var map = [];
-		Array.prototype.forEach.call(element.childNodes, function (node) {
-			map.push({
+	var createDOMMap = function (element, isSVG) {
+		return Array.prototype.map.call(element.childNodes, (function (node) {
+			var details = {
 				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
-				atts: node.nodeType === 3 ? [] : getAttributes(node.attributes),
-				type: node.nodeType === 3 ? 'text' : node.tagName.toLowerCase(),
-				children: createDOMMap(node),
+				atts: node.nodeType !== 1 ? [] : getAttributes(node.attributes),
+				type: node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase()),
 				node: node
-			});
+			};
+			details.isSVG = isSVG || details.type === 'svg';
+			details.children = createDOMMap(node, details.isSVG);
+			return details;
+		}));
+	};
 
+	/**
+	 * If there are linked Reefs, render them, too
+	 * @param  {Array} polyps Attached Reef components
+	 */
+	var renderPolyps = function (polyps, reef) {
+		if (!polyps) return;
+		polyps.forEach(function (coral) {
+			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+			if ('render' in coral) coral.render();
 		});
-		return map;
 	};
 
 	/**
@@ -378,16 +387,9 @@
 		return doc.body;
 	};
 
-	/**
-	 * If there are linked Reefs, render them, too
-	 * @param  {Array} polyps Attached Reef components
-	 */
-	var renderPolyps = function (polyps, reef) {
-		if (!polyps) return;
-		polyps.forEach(function (coral) {
-			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
-			if ('render' in coral) coral.render();
-		});
+	var sanitize = function (str, options) {
+		if (!window.DOMPurify) throw new Error('You are using the unsafe version of Reef. Please use the full version to sanitize your templates.');
+		return DOMPurify.sanitize(str, options);
 	};
 
 	/**
@@ -416,8 +418,9 @@
 		if (['string', 'number'].indexOf(typeof template) === -1) return;
 
 		// Create DOM maps of the template and target element
-		var templateMap = createDOMMap(stringToHTML(template), polyps);
-		var domMap = createDOMMap(elem, polyps);
+		template = this.sanitize ? sanitize(template, this.sanitizeOptions) : template;
+		var templateMap = createDOMMap(stringToHTML(template));
+		var domMap = createDOMMap(elem);
 
 		// Diff and update the DOM
 		var polyps = this.attached.map(function (polyp) { return polyp.elem; });
@@ -459,33 +462,6 @@
 			}
 		}
 		this.render();
-	};
-
-	/**
-	 * Add attribute exceptions
-	 * @param {String|Array} att The attribute(s) to add
-	 */
-	Component.addAttributes = function (atts) {
-		if (trueTypeOf(atts) === 'array') {
-			Array.prototype.push.apply(attributeExceptions, atts);
-		} else {
-			attributeExceptions.push(atts);
-		}
-	};
-
-	/**
-	 * Remove attribute exceptions
-	 * @param {String|Array} att The attribute(s) to remove
-	 */
-	Component.removeAttributes = function (atts) {
-		var isArray = trueTypeOf(atts) === 'array';
-		attributeExceptions = attributeExceptions.filter(function (att) {
-			if (isArray) {
-				return atts.indexOf(att) === -1;
-			} else {
-				return att !== atts;
-			}
-		});
 	};
 
 	/**
