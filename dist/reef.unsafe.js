@@ -1,5 +1,5 @@
 /*!
- * reef v1.0.1
+ * reef v2.0.1
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2018 Chris Ferdinandi
  * MIT License
@@ -193,14 +193,13 @@ if (!Element.prototype.matches) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, diff and update styles
-			// Else if it starts with `data-`, use setAttribute()
 			// Otherwise, set is as a property of the element
 			if (attribute.att === 'class') {
 				elem.className = attribute.value;
 			} else if (attribute.att === 'style') {
 				diffStyles(elem, attribute.value);
 			} else {
-				elem.setAttribute(attribute.att, attribute.value);
+				elem.setAttribute(attribute.att, attribute.value || true);
 			}
 		}));
 	};
@@ -234,7 +233,7 @@ if (!Element.prototype.matches) {
 		return Array.prototype.map.call(attributes, (function (attribute) {
 			return {
 				att: attribute.name,
-				value: attribute.value || true
+				value: attribute.value
 			};
 		}));
 	};
