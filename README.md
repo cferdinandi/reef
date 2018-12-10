@@ -459,4 +459,4 @@ Reef works in all modern browsers, and IE 10 and above.
 
 ## License
 
-The code is available under the [MIT License](LICENSE.md).
+The code is available under the [MIT License](LICENSE.md). DOMPurify is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
