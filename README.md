@@ -209,6 +209,8 @@ There are two ways to add a sanitizer:
 1. Globally for all components.
 2. On a component-by-component basis.
 
+I recommend [DOMPurify](https://github.com/cure53/DOMPurify), but you can use whatever you prefer.
+
 *__Note:__ If user-provided or third-party data shouldn't contain any HTML, you can instead strip all HTML from your data while passing it into your component using [a helper function like `sanitizeHTML()`](https://vanillajstoolkit.com/helpers/sanitizehtml/).*
 
 #### Adding a global sanitizer
@@ -217,7 +219,7 @@ Add a sanitizer to all components with the `Reef.setSanitizer()` method.
 
 Pass in a callback function that accepts the HTML to be sanitized as an argument. Run your sanitizer, then return the sanitized markup string.
 
-Here's an example using [DOMPurify](https://github.com/cure53/DOMPurify).
+Here's an example using DOMPurify.
 
 ```js
 // Sanitize all components
@@ -234,7 +236,7 @@ You can also sanitize individual components, or sanitize a component using a dif
 
 Pass in a callback function that accepts the HTML to be sanitized as an argument. Run your sanitizer, then return the sanitized markup string.
 
-Here's an example using [DOMPurify](https://github.com/cure53/DOMPurify).
+Here's an example using DOMPurify.
 
 ```js
 // Sanitize an individual component
