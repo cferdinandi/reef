@@ -20,6 +20,7 @@ Ditch that bloated framework, and make web development fun and simple again!
 
 <hr>
 
+
 ## Why use Reef?
 
 Reef is an anti-framework.
@@ -98,6 +99,8 @@ var app = new Reef(elem);
 
 The second argument is an object of options. It requires a template property, as either a string or a function that returns a string, to render into the DOM.
 
+You can use old-school strings, or if you'd prefer, ES6 template literals.
+
 ```js
 // Your template can be a string
 var app = new Reef('#app', {
@@ -112,7 +115,7 @@ var app = new Reef('#app', {
 });
 ```
 
-*__Note:__ You can use old-school strings, or if you'd prefer, ES6 template literals.*
+*__Important!__ Reef does NOT sanitize templates by default, but provides [simple hooks to add this feature](#sanitizing-templates). ALWAYS sanitize templates that include user-provided or third-party data to minimize the risk of cross-site scripting (XSS) attacks.*
 
 #### [Optional] Add State/Data
 
@@ -132,8 +135,6 @@ var app = new Reef('#app', {
 	}
 });
 ```
-
-*__Important!__ Reef does NOT sanitize data by default, but provides simple hooks to add this feature. ALWAYS sanitize user-provided and third-party data to minimize the risk of cross-site scripting (XSS) attacks.*
 
 ### 4. Render your component
 
@@ -192,6 +193,53 @@ app.render();
 ```
 
 **[Try manual state management on CodePen &rarr;](https://codepen.io/cferdinandi/pen/MqgWJM)**
+
+
+
+## Sanitizing Templates
+
+Reef does not sanitize templates by default, but provides simple hooks to add this feature.
+
+This keeps Reef as tiny as possible, lets you only add sanitization if you need it, and gives you the flexibility to use your preferred sanitizer instead of one I chose for you.
+
+There are two ways to add a sanitizer:
+
+1. Globally for all components.
+2. On a component-by-component basis.
+
+*__Note:__ If user-provided or third-party data shouldn't contain any HTML, you can instead strip all HTML from your data while passing it into your component using [a helper function like `sanitizeHTML()`](https://vanillajstoolkit.com/helpers/sanitizehtml/).*
+
+### Adding a global sanitizer
+
+Add a sanitizer to all components with the `Reef.setSanitizer()` method.
+
+Pass in a callback function that accepts the HTML to be sanitized as an argument. Run your sanitizer, then return the sanitized markup string.
+
+Here's an example using [DOMPurify](https://github.com/cure53/DOMPurify).
+
+```js
+// Sanitize all components
+Reef.setSanitizer(function (html) {
+	return DOMPurify.sanitize(html);
+});
+```
+
+### Sanitizing individual components
+
+You can also sanitize individual components, or sanitize a component using a different approach than you use globally, with the `sanitize` option.
+
+Pass in a callback function that accepts the HTML to be sanitized as an argument. Run your sanitizer, then return the sanitized markup string.
+
+Here's an example using [DOMPurify](https://github.com/cure53/DOMPurify).
+
+```js
+// Sanitize an individual component
+var app = new Reef('#app', {
+	sanitize: function (html) {
+		return DOMPurify.sanitize(html);
+	}
+});
+```
 
 
 ## Advanced Components
@@ -373,30 +421,6 @@ sourceOfTruth.setData({greeting: 'Hi, universe'});
 
 **[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XPBRwe)**
 
-### Sanitizing Templates
-
-One of the most important things Reef does is sanitize your templates to help reduce the risk of cross-site scripting attacks.
-
-If you're using the *unsafe* version of Reef, you need to set the `sanitize` option to `false` or it will throw an error and not run. Only do this if you're *not* using any third-party or user-provided data.
-
-```js
-var app = new Reef('#app', {
-	sanitize: false
-});
-```
-
-Reef uses [DOMPurify](https://github.com/cure53/DOMPurify) to sanitize your templates. It's fast, lightweight, and good.
-
-DOMPurify is configurable. You can pass in an object of options with the `sanitizeOptions` property. Consult the DOMPurify documentation for available options.
-
-```js
-var app = new Reef('#app', {
-	sanitizeOptions: {}
-});
-```
-
-**[See Reef's template sanitizing in action on CodePen &rarr;](https://codepen.io/cferdinandi/pen/qLEbQY)**
-
 ### Custom Events
 
 Whenever Reef updates the DOM, it emits a custom `render` event that you can listen for with `addEventListener()`.
@@ -412,6 +436,7 @@ document.addEventListener('render', function (event) {
 ```
 
 **[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/wEwvJx)**
+
 
 
 ## Demos
@@ -454,4 +479,4 @@ Reef works in all modern browsers, and IE 10 and above.
 
 ## License
 
-The code is available under the [MIT License](LICENSE.md). DOMPurify is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+The code is available under the [MIT License](LICENSE.md).
