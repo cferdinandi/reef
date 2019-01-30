@@ -144,7 +144,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Here's a demo.](https://codepen.io/cferdinandi/pen/NLKWdO)**
+**[Here's a demo.](https://codepen.io/cferdinandi/pen/bzgbbK)**
 
 
 
@@ -178,7 +178,7 @@ app.setData({
 app.setData({greeting: 'Hi there'});
 ```
 
-**[Try data reactivity on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XPBRpN)**
+**[Try data reactivity on CodePen &rarr;](https://codepen.io/cferdinandi/pen/aXpoOv)**
 
 ### Manual State
 
@@ -192,7 +192,7 @@ app.data.name = 'universe';
 app.render();
 ```
 
-**[Try manual state management on CodePen &rarr;](https://codepen.io/cferdinandi/pen/MqgWJM)**
+**[Try manual state management on CodePen &rarr;](https://codepen.io/cferdinandi/pen/YBNKXV)**
 
 
 
@@ -226,6 +226,8 @@ Reef.setSanitizer(function (html) {
 });
 ```
 
+**[Try global template sanitization on CodePent &rarr;](https://codepen.io/cferdinandi/pen/jdyNbX)**
+
 #### Sanitizing individual components
 
 You can also sanitize individual components, or sanitize a component using a different approach than you use globally, with the `sanitize` option.
@@ -242,6 +244,8 @@ var app = new Reef('#app', {
 	}
 });
 ```
+
+**[Try individual component sanitization on CodePent &rarr;](https://codepen.io/cferdinandi/pen/wNgwzE)**
 
 ### Nested Components
 
@@ -289,7 +293,7 @@ var todos = new Reef('#todos', {
 app.render();
 ```
 
-**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/yxqbZV)**
+**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/NodKdE)**
 
 ### Attaching and Detaching Nested Components
 
@@ -305,7 +309,7 @@ app.detach(todos);
 app.detach([todos]);
 ```
 
-**[Try attaching nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/RYBVMq)**
+**[Try attaching nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/JxEPWb)**
 
 ### Shared State
 
@@ -362,7 +366,7 @@ sourceOfTruth.greeting = 'Hi, universe';
 app.render();
 ```
 
-**[Try working with a single source of truth on CodePen &rarr;](https://codepen.io/cferdinandi/pen/yxqbwV)**
+**[Try working with a single source of truth on CodePen &rarr;](https://codepen.io/cferdinandi/pen/MLJgmg)**
 
 #### Create a Lagoon
 
@@ -418,7 +422,7 @@ app.render();
 sourceOfTruth.setData({greeting: 'Hi, universe'});
 ```
 
-**[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XPBRwe)**
+**[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/daNbWR)**
 
 ### Custom Events
 
@@ -434,16 +438,16 @@ document.addEventListener('render', function (event) {
 }, false);
 ```
 
-**[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/wEwvJx)**
+**[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/NodKje)**
 
 
 
 ## Demos
 
-- [Clock](https://codepen.io/cferdinandi/pen/OoLJbv)
-- [Mirror Typing](https://codepen.io/cferdinandi/pen/QVLWGJ)
-- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/wExqar)
-- [Stopwatch](https://codepen.io/cferdinandi/pen/oPMejX)
+- [Clock](https://codepen.io/cferdinandi/pen/XOprgm)
+- [Mirror Typing](https://codepen.io/cferdinandi/pen/jdyNLo)
+- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/RvKbLQ)
+- [Stopwatch](https://codepen.io/cferdinandi/pen/pGRzWM)
 - [Todo List](https://codepen.io/cferdinandi/pen/ZMzEBg)
 
 
