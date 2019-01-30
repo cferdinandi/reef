@@ -1,7 +1,7 @@
 /*!
- * reef v2.0.1
+ * reef v2.0.2
  * A lightweight helper function for creating reactive, state-based components and UI
- * (c) 2018 Chris Ferdinandi
+ * (c) 2019 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
  */
@@ -104,7 +104,7 @@ if (!Element.prototype.matches) {
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
-		this.sanitize = typeof options.sanitize === undefined ? true : options.sanitize;
+		this.sanitize = typeof options.sanitize === 'undefined' ? true : options.sanitize;
 		this.sanitizeOptions = options.sanitizeOptions || {};
 		this.attached = [];
 		this.lagoon = options.lagoon;

@@ -89,7 +89,7 @@
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
-		this.sanitize = typeof options.sanitize === undefined ? true : options.sanitize;
+		this.sanitize = typeof options.sanitize === 'undefined' ? true : options.sanitize;
 		this.sanitizeOptions = options.sanitizeOptions || {};
 		this.attached = [];
 		this.lagoon = options.lagoon;
