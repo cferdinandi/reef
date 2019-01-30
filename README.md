@@ -450,18 +450,23 @@ document.addEventListener('render', function (event) {
 
 ## What's new?
 
-**Version 2.0.0 adds a better sanitizing engine and markup support:**
+**Version 3.0 removes built-in sanitization:**
+
+- Automatic sanitization has been removed. *HTML templates are unsanitized by default.*
+- Two new hooks to add sanitization to your components have been added. This provides more developer flexibility and keeps Reef as lightweight as possible.
+
+**Version 2.0 adds a better sanitizing engine and markup support:**
 
 - [DOMPurify](https://github.com/cure53/DOMPurify) is now the template sanitizing engine.
 - The *attribute exceptions* feature has been removed in favor of DOMPurify's configuration options. The `addAttributes()` and `removeAttributes()` methods no longer exist.
 - Reef now offers a smaller *unsafe* version for UIs that don't use any third-party or user-provided content. It does *not* sanitize templates before rendering, so use with caution.
 - SVGs are now properly supported and will render correctly.
 
-**Version 1.0.0 removed polyfill dependencies:**
+**Version 1.0 removed polyfill dependencies:**
 
 - All polyfills have been removed and are no longer needed. This is a breaking change, as the `.polyfill` versions of scripts no longer exist.
 
-**Version 0.2.0 introduced some big new features:**
+**Version 0.2 introduced some big new features:**
 
 - Data reactivity and automatically updating UI
 - Support for nested components
