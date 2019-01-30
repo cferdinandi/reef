@@ -202,14 +202,12 @@ app.render();
 
 Reef does not sanitize templates by default, but provides simple hooks to add this feature.
 
-This keeps Reef as tiny as possible, lets you only add sanitization if you need it, and gives you the flexibility to use your preferred sanitizer instead of one I chose for you.
+This keeps Reef as tiny as possible, lets you only add sanitization if you need it, and gives you the flexibility to use your preferred sanitizer instead of one I chose for you. I recommend [DOMPurify](https://github.com/cure53/DOMPurify), but you can use whatever you prefer.
 
 There are two ways to add a sanitizer:
 
 1. Globally for all components.
 2. On a component-by-component basis.
-
-I recommend [DOMPurify](https://github.com/cure53/DOMPurify), but you can use whatever you prefer.
 
 *__Note:__ If user-provided or third-party data shouldn't contain any HTML, you can instead strip all HTML from your data while passing it into your component using [a helper function like `sanitizeHTML()`](https://vanillajstoolkit.com/helpers/sanitizehtml/).*
 
