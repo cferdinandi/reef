@@ -1,7 +1,7 @@
 # Reef [![Build Status](https://travis-ci.org/cferdinandi/reef.svg)](https://travis-ci.org/cferdinandi/reef)
 A lightweight helper function for creating reactive, state-based components and UI. Reef is a simpler alternative to React, Vue, and other large frameworks.
 
-[Getting Started](#getting-started) | [State Management](#state-management) | [Sanitizing Templates](#sanitizing-templates) | [Advanced Components](#advanced-components) | [Demos](#demos) | [What's New?](#whats-new) | [Browser Compatibility](#browser-compatibility) | [License](#license)
+[Getting Started](#getting-started) | [State Management](#state-management) | [Advanced Components](#advanced-components) | [Demos](#demos) | [What's New?](#whats-new) | [Browser Compatibility](#browser-compatibility) | [License](#license)
 
 **Features:**
 
@@ -196,7 +196,9 @@ app.render();
 
 
 
-## Sanitizing Templates
+## Advanced Components
+
+### Sanitizing Templates
 
 Reef does not sanitize templates by default, but provides simple hooks to add this feature.
 
@@ -209,7 +211,7 @@ There are two ways to add a sanitizer:
 
 *__Note:__ If user-provided or third-party data shouldn't contain any HTML, you can instead strip all HTML from your data while passing it into your component using [a helper function like `sanitizeHTML()`](https://vanillajstoolkit.com/helpers/sanitizehtml/).*
 
-### Adding a global sanitizer
+#### Adding a global sanitizer
 
 Add a sanitizer to all components with the `Reef.setSanitizer()` method.
 
@@ -224,7 +226,7 @@ Reef.setSanitizer(function (html) {
 });
 ```
 
-### Sanitizing individual components
+#### Sanitizing individual components
 
 You can also sanitize individual components, or sanitize a component using a different approach than you use globally, with the `sanitize` option.
 
@@ -240,9 +242,6 @@ var app = new Reef('#app', {
 	}
 });
 ```
-
-
-## Advanced Components
 
 ### Nested Components
 
