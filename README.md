@@ -5,9 +5,8 @@ A lightweight helper function for creating reactive, state-based components and 
 
 **Features:**
 
-- Weighs under 8kb (minified and gzipped), with zero dependencies.
+- Weighs under 3kb (minified and gzipped), with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
-- Automatically sanitizes your templates to protect you from cross-site scripting attacks.
 - Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
 - Work with native JavaScript methods and browser APIs instead of custom methods and pseudo-languages.
@@ -29,7 +28,7 @@ It does a lot less than the big guys like React and Vue. It doesn't have a Virtu
 
 Reef does just one thing: render UI.
 
-Couldn't you just use some template strings and `innerHTML`? Sure. But Reef sanitizes your data before rendering to minimize the risk of XSS scripting attacks. It also only updates things that have changed instead clobbering the DOM and removing focus from your form fields.
+Couldn't you just use some template strings and `innerHTML`? Sure. But Reef only updates things that have changed instead clobbering the DOM and removing focus from your form fields.
 
 If you're craving a more simple, back-to-basics web development experience, Reef is for you.
 
@@ -40,12 +39,6 @@ If you're craving a more simple, back-to-basics web development experience, Reef
 ## Getting Started
 
 ### 1. Include Reef on your site.
-
-Reef comes in two flavors: *regular* and *unsafe*.
-
-The *full* version includes [DOMPurify](https://github.com/cure53/DOMPurify), an HTML sanitizers that protects you from cross-site scripting attacks when including third-party and user-provided content in your templates.
-
-The *unsafe* version is only 2kb, but doesn't sanitize your templates. Only use this version if you're *not* using any third-party or user-supplied data in your templates.
 
 **Direct Download**
 
@@ -67,13 +60,13 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
 
 <!-- Get minor updates and patch fixes within a major version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@2/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3/dist/reef.min.js"></script>
 
 <!-- Get patch fixes within a minor version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@2.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3.0/dist/reef.min.js"></script>
 
 <!-- Get a specific version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@2.0.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3.0.0/dist/reef.min.js"></script>
 ```
 
 ### 2. Add an element to render your component/UI into.
@@ -139,6 +132,8 @@ var app = new Reef('#app', {
 	}
 });
 ```
+
+*__Important!__ Reef does NOT sanitize data by default, but provides simple hooks to add this feature. ALWAYS sanitize user-provided and third-party data to minimize the risk of cross-site scripting (XSS) attacks.*
 
 ### 4. Render your component
 

@@ -70,6 +70,29 @@
 	};
 
 	/**
+	 * Placeholder function to sanitize HTML string
+	 * This can be replaced by a user defined function, but defaults to passing content through
+	 * @param  {String} html The HTML to sanitize
+	 * @return {String}      The HTML (unsanitized by default)
+	 */
+	var sanitize = function (html) {
+		return html;
+	};
+
+	/**
+	 * Run sanitization on HTML string
+	 * @param  {String}   html      The HTML string to sanitize
+	 * @param  {Function} sanitizer The sanitizer method to run
+	 * @return {String}             The sanitized HTML
+	 */
+	var doSanitize = function (html, sanitizer) {
+		if (sanitizer && typeof sanitizer === 'function') {
+			return sanitizer(html);
+		}
+		return sanitize(html);
+	}
+
+	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
@@ -89,8 +112,7 @@
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
-		this.sanitize = typeof options.sanitize === 'undefined' ? true : options.sanitize;
-		this.sanitizeOptions = options.sanitizeOptions || {};
+		this.sanitize = options.sanitize;
 		this.attached = [];
 		this.lagoon = options.lagoon;
 
@@ -104,6 +126,14 @@
 			});
 		}
 
+	};
+
+	/**
+	 * Set a default sanitizer for all components
+	 * @param {Function} callback The sanitizer function to run
+	 */
+	Component.setSanitizer = function (callback) {
+		sanitize = callback;
 	};
 
 	/**
@@ -386,11 +416,6 @@
 		return doc.body;
 	};
 
-	var sanitize = function (str, options) {
-		if (!window.DOMPurify) throw new Error('You are using the unsafe version of Reef. Please use the full version to sanitize your templates.');
-		return DOMPurify.sanitize(str, options);
-	};
-
 	/**
 	 * Render a template into the DOM
 	 * @return {Node}  The element
@@ -417,8 +442,7 @@
 		if (['string', 'number'].indexOf(typeof template) === -1) return;
 
 		// Create DOM maps of the template and target element
-		template = this.sanitize ? sanitize(template, this.sanitizeOptions) : template;
-		var templateMap = createDOMMap(stringToHTML(template));
+		var templateMap = createDOMMap(stringToHTML(doSanitize(template, this.sanitize)));
 		var domMap = createDOMMap(elem);
 
 		// Diff and update the DOM
