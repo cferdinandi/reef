@@ -2,7 +2,7 @@
 	"name": "reef",
 	"version": "3.0.0",
 	"description": "A lightweight helper function for creating reactive, state-based components and UI",
-	"main": "./dist/reef.polyfills.min.js",
+	"main": "./dist/reef.min.js",
 	"author": {
 		"name": "Chris Ferdinandi",
 		"url": "http://gomakethings.com"
