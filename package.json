@@ -1,5 +1,5 @@
 {
-	"name": "reef",
+	"name": "reefjs",
 	"version": "3.0.0",
 	"description": "A lightweight helper function for creating reactive, state-based components and UI",
 	"main": "./dist/reef.min.js",

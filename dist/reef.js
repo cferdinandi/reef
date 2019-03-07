@@ -1,5 +1,5 @@
 /*!
- * reef v3.0.0
+ * reefjs v3.0.0
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
