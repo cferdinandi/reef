@@ -70,6 +70,14 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3.0.0/dist/reef.min.js"></script>
 ```
 
+**NPM**
+
+You can also use NPM (or your favorite package manager).
+
+```bash
+npm install reefjs
+```
+
 ### 2. Add an element to render your component/UI into.
 
 This is typically an empty `div` with a targetable selector.
