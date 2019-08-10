@@ -5,12 +5,13 @@ A lightweight library for creating reactive, state-based components and UI. Reef
 
 **Features:**
 
-- Weighs under 3kb (minified and gzipped), with zero dependencies.
+- Weighs just 2kb (minified and gzipped) with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
-- Load it with a simple `<script>` tag&mdash;no command line or transpiling required.
+- Load it with a `<script>` element&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
+- Automatically encodes markup in your data to protect you from cross-site scripting (XSS) attacks.
 - Work with native JavaScript methods and browser APIs instead of custom methods and pseudo-languages.
-- Supported all the way back to IE10.
+- Supported all the way back to IE9.
 
 Ditch that bloated framework, and make web development fun and simple again!
 
@@ -27,11 +28,11 @@ Reef is an anti-framework.
 
 It does a lot less than the big guys like React and Vue. It doesn't have a Virtual DOM. It doesn't require you to learn a custom templating syntax. It doesn't provide a bunch of custom methods.
 
-Reef does just one thing: render UI.
+**Reef does just one thing: render UI.**
 
-Couldn't you just use some template strings and `innerHTML`? Sure. But Reef only updates things that have changed instead clobbering the DOM and removing focus from your form fields.
+Couldn't you just use some template strings and `innerHTML`? Sure. But Reef only updates things that have changed instead clobbering the DOM and removing focus from your form fields. It also automatically renders a new UI when your data updates, and helps protect you from XSS attacks.
 
-If you're craving a more simple, back-to-basics web development experience, Reef is for you.
+If you're craving a simpler, back-to-basics web development experience, Reef is for you.
 
 (*And if not, that's cool too! Carry on.*)
 
@@ -61,13 +62,13 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
 
 <!-- Get minor updates and patch fixes within a major version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@4/dist/reef.min.js"></script>
 
 <!-- Get patch fixes within a minor version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@4.0/dist/reef.min.js"></script>
 
 <!-- Get a specific version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@3.0.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@4.0.0/dist/reef.min.js"></script>
 ```
 
 **NPM**
@@ -118,18 +119,16 @@ var app = new Reef('#app', {
 // It can also be a function that returns a string
 var app = new Reef('#app', {
 	template: function () {
-		return '<h1>Hello, world!</h1>'
+		return '<h1>Hello, world!</h1>';
 	}
 });
 ```
-
-*__Important!__ Reef does NOT sanitize templates by default, but provides [simple hooks to add this feature](#sanitizing-templates). ALWAYS sanitize templates that include user-provided or third-party data to minimize the risk of cross-site scripting (XSS) attacks.*
 
 #### [Optional] Add State/Data
 
 As an optional property of the options argument, you can include state for your component with the `data` property.
 
-The state data is automatically passed into your template function, so that you can use it to customize your template.
+The state data is automatically passed into your template function, so that you can use it to customize your template. Reef also encodes any markup in your data before passing it into your template to reduce your risk of cross-site scripting (XSS) attacks.
 
 ```js
 // Some data
@@ -152,7 +151,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Here's a demo.](https://codepen.io/cferdinandi/pen/bzgbbK)**
+**[Here's a demo.](https://codepen.io/cferdinandi/pen/qeJZro)**
 
 
 
@@ -186,7 +185,7 @@ app.setData({
 app.setData({greeting: 'Hi there'});
 ```
 
-**[Try data reactivity on CodePen &rarr;](https://codepen.io/cferdinandi/pen/aXpoOv)**
+**[Try data reactivity on CodePen &rarr;](https://codepen.io/cferdinandi/pen/RXeapE)**
 
 ### Manual State
 
@@ -200,60 +199,35 @@ app.data.name = 'universe';
 app.render();
 ```
 
-**[Try manual state management on CodePen &rarr;](https://codepen.io/cferdinandi/pen/YBNKXV)**
+**[Try manual state management on CodePen &rarr;](https://codepen.io/cferdinandi/pen/GVYZWe)**
 
 
 
 ## Advanced Components
 
-### Sanitizing Templates
+### HTML in your data
 
-Reef does not sanitize templates by default, but provides simple hooks to add this feature.
+Reef automatically encodes any markup in your data before passing it into your template to reduce your risk of cross-site scripting (XSS) attacks.
 
-This keeps Reef as tiny as possible, lets you only add sanitization if you need it, and gives you the flexibility to use your preferred sanitizer instead of one I chose for you. I recommend [DOMPurify](https://github.com/cure53/DOMPurify), but you can use whatever you prefer.
+You can disable this feature by setting the `allowHTML` option to `true`.
 
-There are two ways to add a sanitizer:
-
-1. Globally for all components.
-2. On a component-by-component basis.
-
-*__Note:__ If user-provided or third-party data shouldn't contain any HTML, you can instead strip all HTML from your data while passing it into your component using [a helper function like `sanitizeHTML()`](https://vanillajstoolkit.com/helpers/sanitizehtml/).*
-
-#### Adding a global sanitizer
-
-Add a sanitizer to all components with the `Reef.setSanitizer()` method.
-
-Pass in a callback function that accepts the HTML to be sanitized as an argument. Run your sanitizer, then return the sanitized markup string.
-
-Here's an example using DOMPurify.
+*__Important!__ Do NOT do this with third-party or user-provided data. This exposes you to the risk of cross-site scripting (XSS) attacks.*
 
 ```js
-// Sanitize all components
-Reef.setSanitizer(function (html) {
-	return DOMPurify.sanitize(html);
-});
-```
-
-**[Try global template sanitization on CodePent &rarr;](https://codepen.io/cferdinandi/pen/jdyNbX)**
-
-#### Sanitizing individual components
-
-You can also sanitize individual components, or sanitize a component using a different approach than you use globally, with the `sanitize` option.
-
-Pass in a callback function that accepts the HTML to be sanitized as an argument. Run your sanitizer, then return the sanitized markup string.
-
-Here's an example using DOMPurify.
-
-```js
-// Sanitize an individual component
 var app = new Reef('#app', {
-	sanitize: function (html) {
-		return DOMPurify.sanitize(html);
-	}
+	data: {
+		greeting: '<strong>Hello</strong>',
+		name: 'world'
+	},
+	template: function (props) {
+		return '<h1>' + props.greeting + ', ' + props.name + '!</h1>';
+	},
+	allowHTML: true // Do NOT use with third-party/user-supplied data
 });
 ```
 
-**[Try individual component sanitization on CodePent &rarr;](https://codepen.io/cferdinandi/pen/wNgwzE)**
+**[Try allowing HTML in your data on CodePen &rarr;](https://codepen.io/cferdinandi/pen/LwgNyr)**
+
 
 ### Nested Components
 
@@ -301,7 +275,7 @@ var todos = new Reef('#todos', {
 app.render();
 ```
 
-**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/NodKdE)**
+**[Try nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/BXqKWX)**
 
 ### Attaching and Detaching Nested Components
 
@@ -317,7 +291,7 @@ app.detach(todos);
 app.detach([todos]);
 ```
 
-**[Try attaching nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/JxEPWb)**
+**[Try attaching nested components on CodePen &rarr;](https://codepen.io/cferdinandi/pen/KOGzmz)**
 
 ### Shared State
 
@@ -374,7 +348,7 @@ sourceOfTruth.greeting = 'Hi, universe';
 app.render();
 ```
 
-**[Try working with a single source of truth on CodePen &rarr;](https://codepen.io/cferdinandi/pen/MLJgmg)**
+**[Try working with a single source of truth on CodePen &rarr;](https://codepen.io/cferdinandi/pen/pMxyPb)**
 
 #### Create a Lagoon
 
@@ -430,7 +404,7 @@ app.render();
 sourceOfTruth.setData({greeting: 'Hi, universe'});
 ```
 
-**[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/daNbWR)**
+**[Try creating a lagoon on CodePen &rarr;](https://codepen.io/cferdinandi/pen/MNPymb)**
 
 ### Custom Events
 
@@ -446,7 +420,21 @@ document.addEventListener('render', function (event) {
 }, false);
 ```
 
-**[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/NodKje)**
+**[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XvxdRa)**
+
+### Debugging
+
+By default, Reef fails silently. You can put Reef into debugging mode to expose helpful error message in the Console tab of your browser's Developer Tools.
+
+Turn debugging mode on or off with the `Reef.debug()` method. Pass in `true` to turn it on, and `false` to turn it off.
+
+```js
+// Turns debugging mode on
+Reef.debug(true);
+
+// Turns debugging mode off
+Reef.debug(false);
+```
 
 
 
@@ -461,6 +449,13 @@ document.addEventListener('render', function (event) {
 
 
 ## What's new?
+
+**Version 4.0 adds better performance and XSS protection:**
+
+- Data is once again automatically encoded to help protect you from cross-site scripting (XSS) attacks.
+- Changes to diffing and rendering reduce reflows and improve performance.
+- Support pushed back even further to IE9.
+- *Deprecated:* Custom sanitizer methods were removed in favor of built-in, automated HTML encoding. You can still add custom sanitization within template functions.
 
 **Version 3.0 removes built-in sanitization:**
 
@@ -489,7 +484,7 @@ document.addEventListener('render', function (event) {
 
 ## Browser Compatibility
 
-Reef works in all modern browsers, and IE 10 and above.
+Reef works in all modern browsers, and IE 9 and above.
 
 
 

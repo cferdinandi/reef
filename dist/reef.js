@@ -1,5 +1,5 @@
 /*!
- * reefjs v3.0.0
+ * reefjs v4.0.0
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -31,8 +31,11 @@ if (!Element.prototype.matches) {
 	// Variables
 	//
 
-	// Setup parser variable
-	var parser;
+	// If true, debug mode is enabled
+	var debug = false;
+
+	// Create global support variable
+	var support;
 
 
 	//
@@ -42,9 +45,9 @@ if (!Element.prototype.matches) {
 	/**
 	 * Check feature support
 	 */
-	var supports = function () {
+	var checkSupport = function () {
 		if (!window.DOMParser) return false;
-		parser = parser || new DOMParser();
+		var parser = new DOMParser();
 		try {
 			parser.parseFromString('x', 'text/html');
 		} catch(err) {
@@ -63,13 +66,54 @@ if (!Element.prototype.matches) {
 	};
 
 	/**
-	 * Return a clone of an object or array
-	 * @param  {Object|Array} obj The object or array to clone
-	 * @return {Object|Array}     An exact copy of the object or array
+	 * Throw an error message
+	 * @param  {String} msg The error message
 	 */
-	var clone = function (obj) {
-		if (!obj) return;
-		return JSON.parse(JSON.stringify(obj));
+	var err = function (msg) {
+		if (debug) {
+			throw new Error(msg);
+		}
+	};
+
+	/**
+	 * Create an immutable copy of an object and recursively encode all of its data
+	 * @param  {*}       obj       The object to clone
+	 * @param  {Boolean} allowHTML If true, allow HTML in data strings
+	 * @return {*}                 The immutable, encoded object
+	 */
+	var clone = function (obj, allowHTML) {
+
+		// Get the object type
+		var type = trueTypeOf(obj);
+
+		// If an object, loop through and recursively encode
+		if (type === 'object') {
+			var cloned = {};
+			for (var key in obj) {
+				if (obj.hasOwnProperty(key)) {
+					cloned[key] = clone(obj[key], allowHTML);
+				}
+			}
+			return cloned;
+		}
+
+		// If an array, create a new array and recursively encode
+		if (type === 'array') {
+			return obj.map((function (item) {
+				return clone(item, allowHTML);
+			}));
+		}
+
+		// If the data is a string, encode it
+		if (type === 'string' && !allowHTML) {
+			var temp = document.createElement('div');
+			temp.textContent = obj;
+			return temp.innerHTML;
+		}
+
+		// Otherwise, return object as is
+		return obj;
+
 	};
 
 	/**
@@ -85,49 +129,23 @@ if (!Element.prototype.matches) {
 	};
 
 	/**
-	 * Placeholder function to sanitize HTML string
-	 * This can be replaced by a user defined function, but defaults to passing content through
-	 * @param  {String} html The HTML to sanitize
-	 * @return {String}      The HTML (unsanitized by default)
-	 */
-	var sanitize = function (html) {
-		return html;
-	};
-
-	/**
-	 * Run sanitization on HTML string
-	 * @param  {String}   html      The HTML string to sanitize
-	 * @param  {Function} sanitizer The sanitizer method to run
-	 * @return {String}             The sanitized HTML
-	 */
-	var doSanitize = function (html, sanitizer) {
-		if (sanitizer && typeof sanitizer === 'function') {
-			return sanitizer(html);
-		}
-		return sanitize(html);
-	}
-
-	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
 	 */
 	var Component = function (elem, options) {
 
-		// Check browser support
-		if (!supports()) throw new Error('Reef.js is not supported by this browser.');
-
 		// Make sure an element is provided
-		if (!elem && (!options || !options.lagoon)) throw new Error('Reef.js: You did not provide an element to make into a component.');
+		if (!elem && (!options || !options.lagoon)) return err('Reef.js: You did not provide an element to make into a component.');
 
 		// Make sure a template is provided
-		if (!options || (!options.template && !options.lagoon)) throw new Error('Reef.js: You did not provide a template for this component.');
+		if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
 
 		// Set the component properties
 		this.elem = elem;
 		this.data = options.data;
 		this.template = options.template;
-		this.sanitize = options.sanitize;
+		this.allowHTML = options.allowHTML;
 		this.attached = [];
 		this.lagoon = options.lagoon;
 
@@ -141,14 +159,6 @@ if (!Element.prototype.matches) {
 			}));
 		}
 
-	};
-
-	/**
-	 * Set a default sanitizer for all components
-	 * @param {Function} callback The sanitizer function to run
-	 */
-	Component.setSanitizer = function (callback) {
-		sanitize = callback;
 	};
 
 	/**
@@ -380,9 +390,24 @@ if (!Element.prototype.matches) {
 				domMap[index].node.textContent = templateMap[index].content;
 			}
 
-			// Repeat for child elements
+			// If target element should be empty, wipe it
+			if (domMap[index].children.length > 0 && node.children.length < 1) {
+				domMap[index].node.innerHTML = '';
+				return;
+			}
+
+			// If element is empty and shouldn't be, build it up
+			// This uses a document fragment to minimize reflows
+			if (domMap[index].children.length < 1 && node.children.length > 0) {
+				var fragment = document.createDocumentFragment();
+				diff(node.children, domMap[index].children, fragment, polyps);
+				elem.appendChild(fragment);
+				return;
+			}
+
+			// If there are existing child elements that need to be modified, diff them
 			if (node.children.length > 0) {
-				diff(node.children, domMap[index].children || [], domMap[index].node, polyps);
+				diff(node.children, domMap[index].children, domMap[index].node, polyps);
 			}
 
 		}));
@@ -415,7 +440,7 @@ if (!Element.prototype.matches) {
 	var renderPolyps = function (polyps, reef) {
 		if (!polyps) return;
 		polyps.forEach((function (coral) {
-			if (coral.attached.indexOf(reef) > -1) throw new Error('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+			if (coral.attached.indexOf(reef) > -1) return err('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 			if ('render' in coral) coral.render();
 		}));
 	};
@@ -426,14 +451,24 @@ if (!Element.prototype.matches) {
 	 * @return {Node}       The template HTML
 	 */
 	var stringToHTML = function (str) {
-		parser = parser || new DOMParser();
-		var doc = parser.parseFromString(str, 'text/html');
-		return doc.body;
+
+		// If DOMParser is supported, use it
+		if (support) {
+			var parser = new DOMParser();
+			var doc = parser.parseFromString(str, 'text/html');
+			return doc.body;
+		}
+
+		// Otherwise, fallback to old-school method
+		var dom = document.createElement('div');
+		dom.innerHTML = str;
+		return dom;
+
 	};
 
 	/**
 	 * Render a template into the DOM
-	 * @return {Node}  The element
+	 * @return {Node}  The elemenft
 	 */
 	Component.prototype.render = function () {
 
@@ -444,33 +479,51 @@ if (!Element.prototype.matches) {
 		}
 
 		// Make sure there's a template
-		if (!this.template) throw new Error('Reef.js: No template was provided.');
+		if (!this.template) return err('Reef.js: No template was provided.');
 
 		// If elem is an element, use it.
 		// If it's a selector, get it.
-		var elem = typeof this.elem === 'string' ? document.querySelector(this.elem) : this.elem;
+		var elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
+		if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
 
-		if (!elem) throw new Error('Reef.js: The DOM element to render your template into was not found.');
+		// Encode the data
+		// var data = this.allowHTML ? clone(this.data) : encode(this.data || {});
+		var data = clone(this.data || {}, this.allowHTML);
 
 		// Get the template
-		var template = (typeof this.template === 'function' ? this.template(clone(this.data)) : this.template);
-		if (['string', 'number'].indexOf(typeof template) === -1) return;
+		var template = (trueTypeOf(this.template) === 'function' ? this.template(data) : this.template);
+		if (['string', 'number'].indexOf(trueTypeOf(template)) === -1) return;
 
-		// Create DOM maps of the template and target element
-		var templateMap = createDOMMap(stringToHTML(doSanitize(template, this.sanitize)));
-		var domMap = createDOMMap(elem);
+		// If UI is unchanged, do nothing
+		if (elem.innerHTML === template.innerHTML) return;
 
-		// Diff and update the DOM
-		var polyps = this.attached.map((function (polyp) { return polyp.elem; }));
-		diff(templateMap, domMap, elem, polyps);
+		// If target element or template are empty, inject the entire template
+		// Otherwise, diff and update
+		if (elem.innerHTML.length < 1 || template.length < 1) {
+			elem.innerHTML = template;
+		} else {
+
+			// Create DOM maps of the template and target element
+			var templateMap = createDOMMap(stringToHTML(template));
+			var domMap = createDOMMap(elem);
+
+			// Diff and update the DOM
+			var polyps = this.attached.map((function (polyp) { return polyp.elem; }));
+			diff(templateMap, domMap, elem, polyps);
+
+		}
 
 		// Dispatch a render event
-		if (typeof window.CustomEvent === 'function') {
-			var event = new CustomEvent('render', {
+		var event;
+		if (trueTypeOf(window.CustomEvent) === 'function') {
+			event = new CustomEvent('render', {
 				bubbles: true
 			});
-			elem.dispatchEvent(event);
+		} else {
+			event = document.createEvent('CustomEvent');
+			event.initCustomEvent('render', true, false, null);
 		}
+		elem.dispatchEvent(event);
 
 		// If there are linked Reefs, render them, too
 		renderPolyps(this.attached, this);
@@ -485,7 +538,7 @@ if (!Element.prototype.matches) {
 	 * @return {Object} A clone of the Component.data property
 	 */
 	Component.prototype.getData = function () {
-		return clone(this.data);
+		return clone(this.data, true);
 	};
 
 	/**
@@ -493,7 +546,7 @@ if (!Element.prototype.matches) {
 	 * @param {Object} obj The data to merge into the existing state
 	 */
 	Component.prototype.setData = function (obj) {
-		if (trueTypeOf(obj) !== 'object') throw new Error('ReefJS: The provided data is not an object.');
+		if (trueTypeOf(obj) !== 'object') return err('ReefJS: The provided data is not an object.');
 		for (var key in obj) {
 			if (obj.hasOwnProperty(key)) {
 				this.data[key] = obj[key];
@@ -528,6 +581,25 @@ if (!Element.prototype.matches) {
 			}
 		}));
 	};
+
+	/**
+	 * Turn debug mode on or off
+	 * @param  {Boolean} on If true, turn debug mode on
+	 */
+	Component.debug = function (on) {
+		if (on) {
+			debug = true;
+		} else {
+			debug = false;
+		}
+	};
+
+
+	//
+	// Set support
+	//
+
+	support = checkSupport();
 
 
 	//

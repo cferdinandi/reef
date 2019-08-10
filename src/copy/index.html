@@ -25,60 +25,83 @@
 	<body>
 
 		<main>
-<div id="app"></div>
 
-<script>
-    var sourceOfTruth = new Reef(null, {
-        data: {
-            heading: '',
-            items: {
-                todos: [
-                    'Buy milk',
-                    'Bake a birthday cake',
-                    'Go apple picking'
-                ],
-                heading: 'Things'
-            }
-        },
-        lagoon: true
-    });
+			<div id="test"></div>
 
-    var wrapper = new Reef('#app', {
-        data: sourceOfTruth.data,
-        template: function (props) {
-            return '<h1 sandwich="tuna">' + (props.items.heading.length > 0 ? props.items.heading : 'Hello, world!') + '</h1><div id="content"></div>';
-        },
-        attachTo: [sourceOfTruth]
-    });
+			<div id="app"></div>
 
-    var app = new Reef('#content', {
-        data: sourceOfTruth.data,
-        template: function (props) {
-            var html = '<h1>Todos</h1><ul sandwich="tuna">';
-            var styles = props.heading.length > 4 ? ' style="font-weight: bold; color: rebeccapurple; background-color: gainsboro;"' : '';
-            props.items.todos.forEach(function (todo) {
-                html += '<li' + styles + '>' + todo + '</li>';
-            });
-            html += '<input type="checkbox" checked>';
-            html += '<input type="text" id="heading"><br>';
-            html += '<strong>The title is:</strong> ' + (props.heading.length > 0 ? props.heading : 'Hello, world!');
-            html += '</ul>';
-            // html += '<img src="x" onerror="alert(\'XSS attack!\')">';
-            html += '<svg xmlns="http://www.w3.org/2000/svg" style="height:.8em;width:.8em" viewBox="0 0 16 16"><path fill="currentColor" d="M14 9v2.066c-1.258 1.285-3.016 2.526-5 2.852V8.001h3v-1L9 5.83A3.001 3.001 0 0 0 8 .001 3 3 0 0 0 7 5.83L4 7.001v1h3v5.917c-1.984-.326-3.742-1.567-5-2.852V9H0v1c0 2 4 6 8 6s8-4 8-6V9h-2zM9 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>';
-            return html;
-        },
-        attachTo: [wrapper]
-    });
+			<script>
+				// Turn on debug mode
+				Reef.debug(true);
 
-    // app.attach(wrapper);
-    wrapper.render();
+				var test = new Reef('#test', {
+					data: {
+						items: [1, 2, 3, 4]
+					},
+					template: function (props) {
+						var html =
+							'<ul>' +
+								props.items.map(function (item) {
+									return '<li>' + item + '</li>';
+								}).join('') +
+							'</ul>';
+						return html;
+					}
+				});
+				test.render();
 
-    // Update state on input change
-    document.addEventListener('input', function (event) {
-        if (!event.target.matches('#heading')) return;
-        sourceOfTruth.setData({heading: event.target.value});
-    }, false);
-</script>		</main>
+				var sourceOfTruth = new Reef(null, {
+					data: {
+						heading: '',
+						items: {
+							todos: [
+								'Buy milk',
+								'Bake a birthday cake',
+								'Go apple picking'
+							],
+							heading: 'Things'
+						}
+					},
+					lagoon: true
+				});
+
+				var wrapper = new Reef('#app', {
+					data: sourceOfTruth.data,
+					template: function (props) {
+						return '<h1 sandwich="tuna">' + (props.items.heading.length > 0 ? props.items.heading : 'Hello, world!') + '</h1><div id="content"></div>';
+					},
+					attachTo: [sourceOfTruth]
+				});
+
+				var app = new Reef('#content', {
+					data: sourceOfTruth.data,
+					template: function (props) {
+						var html = '<h1>Todos</h1><ul sandwich="tuna">';
+						var styles = props.heading.length > 4 ? ' style="font-weight: bold; color: rebeccapurple; background-color: gainsboro;"' : '';
+						props.items.todos.forEach(function (todo) {
+							html += '<li' + styles + '>' + todo + '</li>';
+						});
+						html += '<input type="checkbox" checked>';
+						html += '<input type="text" id="heading"><br>';
+						html += '<strong>The title is:</strong> ' + (props.heading.length > 0 ? props.heading : 'Hello, world!');
+						html += '</ul>';
+						// html += '<img src="x" onerror="alert(\'XSS attack!\')">';
+						html += '<svg xmlns="http://www.w3.org/2000/svg" style="height:.8em;width:.8em" viewBox="0 0 16 16"><path fill="currentColor" d="M14 9v2.066c-1.258 1.285-3.016 2.526-5 2.852V8.001h3v-1L9 5.83A3.001 3.001 0 0 0 8 .001 3 3 0 0 0 7 5.83L4 7.001v1h3v5.917c-1.984-.326-3.742-1.567-5-2.852V9H0v1c0 2 4 6 8 6s8-4 8-6V9h-2zM9 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>';
+						return html;
+					},
+					attachTo: [wrapper]
+				});
+
+				// app.attach(wrapper);
+				wrapper.render();
+
+				// Update state on input change
+				document.addEventListener('input', function (event) {
+					if (!event.target.matches('#heading')) return;
+					sourceOfTruth.setData({heading: event.target.value});
+				}, false);
+			</script>
+		</main>
 
 	</body>
 </html>
