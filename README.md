@@ -440,11 +440,11 @@ Reef.debug(false);
 
 ## Demos
 
-- [Clock](https://codepen.io/cferdinandi/pen/XOprgm)
-- [Mirror Typing](https://codepen.io/cferdinandi/pen/jdyNLo)
-- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/RvKbLQ)
+- [Clock](https://codepen.io/cferdinandi/pen/xvygVm)
+- [Mirror Typing](https://codepen.io/cferdinandi/pen/qeJRZv)
+- [Pomodoro Timer](https://codepen.io/cferdinandi/pen/dxgNMB)
 - [Stopwatch](https://codepen.io/cferdinandi/pen/pGRzWM)
-- [Todo List](https://codepen.io/cferdinandi/pen/ZMzEBg)
+- [Todo List](https://codepen.io/cferdinandi/pen/GVYrqp)
 
 
 
