@@ -151,7 +151,7 @@ You can render your component by calling the `.render()` method on it.
 app.render();
 ```
 
-**[Here's a demo.](https://codepen.io/cferdinandi/pen/qeJZro)**
+**[Try the demo on CodePen &rarr;](https://codepen.io/cferdinandi/pen/qeJZro)**
 
 
 
