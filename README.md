@@ -5,7 +5,7 @@ A lightweight library for creating reactive, state-based components and UI. Reef
 
 **Features:**
 
-- Weighs just 2kb (minified and gzipped) with zero dependencies.
+- Weighs just 2.5kb (minified and gzipped) with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
 - Load it with a `<script>` element&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
