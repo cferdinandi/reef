@@ -154,7 +154,7 @@
 	var getStyleMap = function (styles) {
 		return styles.split(';').reduce(function (arr, style) {
 			if (style.indexOf(':') > 0) {
-				var styleArr = style.split(':');
+				var styleArr = style.trim().split(':');
 				arr.push({
 					name: styleArr[0] ? styleArr[0].trim() : '',
 					value: styleArr[1] ? styleArr[1].trim() : ''

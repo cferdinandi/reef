@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.0
+ * reefjs v4.1.1
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -169,7 +169,7 @@ if (!Element.prototype.matches) {
 	var getStyleMap = function (styles) {
 		return styles.split(';').reduce((function (arr, style) {
 			if (style.indexOf(':') > 0) {
-				var styleArr = style.split(':');
+				var styleArr = style.trim().split(':');
 				arr.push({
 					name: styleArr[0] ? styleArr[0].trim() : '',
 					value: styleArr[1] ? styleArr[1].trim() : ''
