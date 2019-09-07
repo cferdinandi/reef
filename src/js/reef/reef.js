@@ -219,11 +219,14 @@
 		atts.forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, diff and update styles
+			// Else if it's a property of the element, set it
 			// Otherwise, set the attribute
 			if (attribute.att === 'class') {
 				elem.className = attribute.value;
 			} else if (attribute.att === 'style') {
 				diffStyles(elem, attribute.value);
+			} else if (attribute.att in elem) {
+				elem[attribute.att] = attribute.value;
 			} else {
 				elem.setAttribute(attribute.att, attribute.value || true);
 			}
@@ -239,11 +242,14 @@
 		atts.forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, remove all styles
+			// Else if it's a property of the element, remove it
 			// Otherwise, use removeAttribute()
 			if (attribute.att === 'class') {
 				elem.className = '';
 			} else if (attribute.att === 'style') {
 				removeStyles(elem, Array.prototype.slice.call(elem.style));
+			} else if (attribute.att in elem) {
+				elem[attribute.att] = '';
 			} else {
 				elem.removeAttribute(attribute.att);
 			}
