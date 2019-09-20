@@ -491,7 +491,7 @@
 
 		// If target element or template are empty, inject the entire template
 		// Otherwise, diff and update
-		if (elem.innerHTML.length < 1 || template.length < 1) {
+		if (elem.innerHTML.trim().length < 1 || template.trim().length < 1) {
 			elem.innerHTML = template;
 		} else {
 

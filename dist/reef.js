@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.2
+ * reefjs v4.1.3
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -506,7 +506,7 @@ if (!Element.prototype.matches) {
 
 		// If target element or template are empty, inject the entire template
 		// Otherwise, diff and update
-		if (elem.innerHTML.length < 1 || template.length < 1) {
+		if (elem.innerHTML.trim().length < 1 || template.trim().length < 1) {
 			elem.innerHTML = template;
 		} else {
 
