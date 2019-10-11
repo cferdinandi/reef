@@ -445,6 +445,7 @@ Reef.debug(false);
 - [Pomodoro Timer](https://codepen.io/cferdinandi/pen/dxgNMB)
 - [Stopwatch](https://codepen.io/cferdinandi/pen/pGRzWM)
 - [Todo List](https://codepen.io/cferdinandi/pen/GVYrqp)
+- [Whack-a-Mole Game](https://codepen.io/cferdinandi/pen/wvvMKwB)
 
 
 
