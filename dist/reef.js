@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.3
+ * reefjs v4.1.4
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -230,7 +230,7 @@ if (!Element.prototype.matches) {
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
 	 */
-	var addAttributes = function (elem, atts) {
+	var addAttributes = function (elem, atts, isSVG) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, diff and update styles
@@ -240,7 +240,7 @@ if (!Element.prototype.matches) {
 				elem.className = attribute.value;
 			} else if (attribute.att === 'style') {
 				diffStyles(elem, attribute.value);
-			} else if (attribute.att in elem) {
+			} else if (attribute.att in elem && !isSVG) {
 				elem[attribute.att] = attribute.value;
 			} else {
 				elem.setAttribute(attribute.att, attribute.value || true);
@@ -253,7 +253,7 @@ if (!Element.prototype.matches) {
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to remove
 	 */
-	var removeAttributes = function (elem, atts) {
+	var removeAttributes = function (elem, atts, isSVG) {
 		atts.forEach((function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, remove all styles
@@ -263,7 +263,7 @@ if (!Element.prototype.matches) {
 				elem.className = '';
 			} else if (attribute.att === 'style') {
 				removeStyles(elem, Array.prototype.slice.call(elem.style));
-			} else if (attribute.att in elem) {
+			} else if (attribute.att in elem && !isSVG) {
 				elem[attribute.att] = '';
 			} else {
 				elem.removeAttribute(attribute.att);
@@ -306,7 +306,7 @@ if (!Element.prototype.matches) {
 		}
 
 		// Add attributes
-		addAttributes(node, elem.atts);
+		addAttributes(node, elem.atts, elem.isSVG);
 
 		// If the element has child nodes, create them
 		// Otherwise, add textContent
@@ -346,8 +346,8 @@ if (!Element.prototype.matches) {
 		}));
 
 		// Add/remove any required attributes
-		addAttributes(existing.node, change);
-		removeAttributes(existing.node, remove);
+		addAttributes(existing.node, change, existing.isSVG);
+		removeAttributes(existing.node, remove, existing.isSVG);
 
 	};
 
