@@ -215,7 +215,7 @@
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
 	 */
-	var addAttributes = function (elem, atts, isSVG) {
+	var addAttributes = function (elem, atts) {
 		atts.forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, diff and update styles
@@ -225,8 +225,12 @@
 				elem.className = attribute.value;
 			} else if (attribute.att === 'style') {
 				diffStyles(elem, attribute.value);
-			} else if (attribute.att in elem && !isSVG) {
-				elem[attribute.att] = attribute.value;
+			} else if (attribute.att in elem) {
+				try {
+					elem[attribute.att] = attribute.value;
+				} catch(e) {
+					elem.setAttribute(attribute.att, attribute.value || true);
+				}
 			} else {
 				elem.setAttribute(attribute.att, attribute.value || true);
 			}
@@ -238,7 +242,7 @@
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to remove
 	 */
-	var removeAttributes = function (elem, atts, isSVG) {
+	var removeAttributes = function (elem, atts) {
 		atts.forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, remove all styles
@@ -248,8 +252,12 @@
 				elem.className = '';
 			} else if (attribute.att === 'style') {
 				removeStyles(elem, Array.prototype.slice.call(elem.style));
-			} else if (attribute.att in elem && !isSVG) {
-				elem[attribute.att] = '';
+			} else if (attribute.att in elem ) {
+				try {
+					elem[attribute.att] = '';
+				} catch(e) {
+					elem.removeAttribute(attribute.att);
+				}
 			} else {
 				elem.removeAttribute(attribute.att);
 			}
@@ -291,7 +299,7 @@
 		}
 
 		// Add attributes
-		addAttributes(node, elem.atts, elem.isSVG);
+		addAttributes(node, elem.atts);
 
 		// If the element has child nodes, create them
 		// Otherwise, add textContent
@@ -331,8 +339,8 @@
 		});
 
 		// Add/remove any required attributes
-		addAttributes(existing.node, change, existing.isSVG);
-		removeAttributes(existing.node, remove, existing.isSVG);
+		addAttributes(existing.node, change);
+		removeAttributes(existing.node, remove);
 
 	};
 
