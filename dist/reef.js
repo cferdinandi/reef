@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.7
+ * reefjs v4.1.8
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -387,7 +387,7 @@ if (!Element.prototype.matches) {
 			if (isPolyp.length > 0) return;
 
 			// If content is different, update it
-			if (templateMap[index].content !== domMap[index].content) {
+			if (templateMap[index].content && templateMap[index].content !== domMap[index].content) {
 				domMap[index].node.textContent = templateMap[index].content;
 			}
 

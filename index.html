@@ -40,7 +40,8 @@
 
 				var test = new Reef('#test', {
 					data: {
-						items: [1, 2, 3, 4]
+						items: [1, 2, 3, 4],
+						sub: true
 					},
 					template: function (props) {
 						var html =
@@ -49,6 +50,10 @@
 									return '<li>' + item + '</li>';
 								}).join('') +
 							'</ul>';
+						if (props.sub) {
+							html +=
+								'<div><div><div>Hello</div>World</div>!</div>';
+						}
 						return html;
 					}
 				});
@@ -65,7 +70,6 @@
 							],
 							heading: 'Things'
 						},
-						img: '<img onerror="alert(\'xss attack\')" src="x">'
 					},
 					lagoon: true
 				});
@@ -86,7 +90,6 @@
 						props.items.todos.forEach(function (todo) {
 							html += '<li' + styles + '>' + todo + '</li>';
 						});
-						html += props.img;
 						html += '<input type="checkbox" checked>';
 						html += '<input type="text" id="heading"><br>';
 						html += '<strong>The title is:</strong> ' + (props.heading.length > 0 ? props.heading : 'Hello, world!');

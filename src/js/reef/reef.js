@@ -372,7 +372,7 @@
 			if (isPolyp.length > 0) return;
 
 			// If content is different, update it
-			if (templateMap[index].content !== domMap[index].content) {
+			if (templateMap[index].content && templateMap[index].content !== domMap[index].content) {
 				domMap[index].node.textContent = templateMap[index].content;
 			}
 
