@@ -401,7 +401,7 @@
 			if (domMap[index].children.length < 1 && node.children.length > 0) {
 				var fragment = document.createDocumentFragment();
 				diff(node.children, domMap[index].children, fragment, polyps);
-				elem.appendChild(fragment);
+				domMap[index].node.appendChild(fragment)
 				return;
 			}
 

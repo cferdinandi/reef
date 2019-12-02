@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.5
+ * reefjs v4.1.6
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -416,7 +416,7 @@ if (!Element.prototype.matches) {
 			if (domMap[index].children.length < 1 && node.children.length > 0) {
 				var fragment = document.createDocumentFragment();
 				diff(node.children, domMap[index].children, fragment, polyps);
-				elem.appendChild(fragment);
+				domMap[index].node.appendChild(fragment)
 				return;
 			}
 
