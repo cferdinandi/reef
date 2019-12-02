@@ -30,6 +30,8 @@
 
 		<main>
 
+			<div id="test2"></div>
+
 			<div id="test"></div>
 
 			<div id="app"></div>
@@ -37,6 +39,23 @@
 			<script>
 				// Turn on debug mode
 				Reef.debug(true);
+
+				var test2 = new Reef('#test2', {
+					data: {
+						showContent: true
+					},
+					template: function (props) {
+						if (!props.showContent) return 'Hi';
+						return `
+							<style>.color { color: red; }</style>
+							<p class="color">Hi!</p>`;
+					}
+				});
+				test2.render();
+
+				setTimeout(function () {
+				  app.setData({showContent: true});
+				}, 2000);
 
 				var test = new Reef('#test', {
 					data: {

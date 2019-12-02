@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.8
+ * reefjs v4.1.9
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -455,9 +455,20 @@ if (!Element.prototype.matches) {
 
 		// If DOMParser is supported, use it
 		if (support) {
+
+			// Create document
 			var parser = new DOMParser();
 			var doc = parser.parseFromString(str, 'text/html');
+
+			// If there are items in the head, move them to the body
+			if (doc.head.childNodes.length > 0) {
+				Array.prototype.slice.call(doc.head.childNodes).reverse().forEach((function (node) {
+					doc.body.insertBefore(node, doc.body.firstChild);
+				}));
+			}
+
 			return doc.body;
+
 		}
 
 		// Otherwise, fallback to old-school method
