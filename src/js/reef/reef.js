@@ -225,6 +225,11 @@
 			} else if (attribute.att === 'style') {
 				diffStyles(elem, attribute.value);
 			} else {
+				if (attribute.att in elem) {
+					try {
+						elem[attribute.att] = attribute.value;
+					} catch (e) {}
+				}
 				elem.setAttribute(attribute.att, attribute.value || '');
 			}
 		});
@@ -245,6 +250,11 @@
 			} else if (attribute.att === 'style') {
 				removeStyles(elem, Array.prototype.slice.call(elem.style));
 			} else {
+				if (attribute.att in elem) {
+					try {
+						elem[attribute.att] = '';
+					} catch (e) {}
+				}
 				elem.removeAttribute(attribute.att);
 			}
 		});
