@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.10
+ * reefjs v4.1.11
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2019 Chris Ferdinandi
  * MIT License
@@ -242,7 +242,7 @@ if (!Element.prototype.matches) {
 			} else {
 				if (attribute.att in elem) {
 					try {
-						elem[attribute.att] = attribute.value;
+						elem[attribute.att] = attribute.value || attribute.att;
 					} catch (e) {}
 				}
 				elem.setAttribute(attribute.att, attribute.value || '');

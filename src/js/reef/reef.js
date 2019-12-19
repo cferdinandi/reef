@@ -227,7 +227,7 @@
 			} else {
 				if (attribute.att in elem) {
 					try {
-						elem[attribute.att] = attribute.value;
+						elem[attribute.att] = attribute.value || attribute.att;
 					} catch (e) {}
 				}
 				elem.setAttribute(attribute.att, attribute.value || '');
