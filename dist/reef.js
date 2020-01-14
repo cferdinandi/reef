@@ -1,7 +1,7 @@
 /*!
- * reefjs v4.1.11
+ * reefjs v4.1.12
  * A lightweight helper function for creating reactive, state-based components and UI
- * (c) 2019 Chris Ferdinandi
+ * (c) 2020 Chris Ferdinandi
  * MIT License
  * http://github.com/cferdinandi/reef
  */
@@ -30,6 +30,9 @@ if (!Element.prototype.matches) {
 	//
 	// Variables
 	//
+
+	// Attributes that might be changed dynamically
+	var dynamicAttributes = ['checked', 'disabled', 'hidden', 'lang', 'readonly', 'required', 'selected', 'value'];
 
 	// If true, debug mode is enabled
 	var debug = false;
@@ -126,6 +129,19 @@ if (!Element.prototype.matches) {
 		var matches = arr.filter(callback);
 		if (matches.length < 1) return null;
 		return matches[0];
+	};
+
+	/**
+	 * Find the index of the first matching item in an array
+	 * @param  {Array}    arr      The array to search in
+	 * @param  {Function} callback The callback to run to find a match
+	 * @return {*}                 The matching item's index
+	 */
+	var findIndex = function (arr, callback) {
+		return arr.reduce((function (index, item, currentIndex) {
+			if (index < 0 && callback(item, currentIndex)) return currentIndex;
+			return index;
+		}), -1);
 	};
 
 	/**
@@ -276,17 +292,54 @@ if (!Element.prototype.matches) {
 	};
 
 	/**
+	 * Create an object with the attribute name and value
+	 * @param  {String} name  The attribute name
+	 * @param  {*}      value The attribute value
+	 * @return {Object}       The object of attribute details
+	 */
+	var getAttribute = function (name, value) {
+		return {
+			att: name,
+			value: value
+		};
+	};
+
+	/**
+	 * Get the dynamic attributes for a node
+	 * @param  {Node} node  The node
+	 * @param  {Array} atts The static attributes
+	 */
+	var getDynamicAttributes = function (node, atts) {
+		dynamicAttributes.forEach((function (prop) {
+			if (!node[prop]) return;
+			atts.push(getAttribute(prop, node[prop]));
+		}));
+	};
+
+	/**
+	 * Get base attributes for a node
+	 * @param  {Node} node The node
+	 * @return {Array}     The node's attributes
+	 */
+	var getBaseAttributes = function (node) {
+		return Array.prototype.reduce.call(node.attributes, (function (arr, attribute) {
+			if (dynamicAttributes.indexOf(attribute.name) < 0) {
+				arr.push(getAttribute(attribute.name, attribute.value));
+			}
+			return arr;
+		}), []);
+	};
+
+	/**
 	 * Create an array of the attributes on an element
 	 * @param  {NamedNodeMap} attributes The attributes on an element
+	 * @param  {Node} node The node to get attributes from
 	 * @return {Array}                   The attributes on an element as an array of key/value pairs
 	 */
-	var getAttributes = function (attributes) {
-		return Array.prototype.map.call(attributes, (function (attribute) {
-			return {
-				att: attribute.name,
-				value: attribute.value
-			};
-		}));
+	var getAttributes = function (node) {
+		var atts = getBaseAttributes(node);
+		getDynamicAttributes(node, atts);
+		return atts;
 	};
 
 	/**
@@ -434,7 +487,7 @@ if (!Element.prototype.matches) {
 		return Array.prototype.map.call(element.childNodes, (function (node) {
 			var details = {
 				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
-				atts: node.nodeType !== 1 ? [] : getAttributes(node.attributes),
+				atts: node.nodeType !== 1 ? [] : getAttributes(node),
 				type: node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase()),
 				node: node
 			};
