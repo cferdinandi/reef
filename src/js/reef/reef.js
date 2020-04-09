@@ -246,7 +246,10 @@
 						elem[attribute.att] = attribute.value || attribute.att;
 					} catch (e) {}
 				}
-				elem.setAttribute(attribute.att, attribute.value || '');
+				try {
+					elem.setAttribute(attribute.att, attribute.value || '');
+				} catch (e) {}
+
 			}
 		});
 	};
@@ -271,7 +274,9 @@
 						elem[attribute.att] = '';
 					} catch (e) {}
 				}
-				elem.removeAttribute(attribute.att);
+				try {
+					elem.removeAttribute(attribute.att);
+				} catch (e) {}
 			}
 		});
 	};

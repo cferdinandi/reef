@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.12
+ * reefjs v4.1.13
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2020 Chris Ferdinandi
  * MIT License
@@ -261,7 +261,10 @@ if (!Element.prototype.matches) {
 						elem[attribute.att] = attribute.value || attribute.att;
 					} catch (e) {}
 				}
-				elem.setAttribute(attribute.att, attribute.value || '');
+				try {
+					elem.setAttribute(attribute.att, attribute.value || '');
+				} catch (e) {}
+
 			}
 		}));
 	};
@@ -286,7 +289,9 @@ if (!Element.prototype.matches) {
 						elem[attribute.att] = '';
 					} catch (e) {}
 				}
-				elem.removeAttribute(attribute.att);
+				try {
+					elem.removeAttribute(attribute.att);
+				} catch (e) {}
 			}
 		}));
 	};
