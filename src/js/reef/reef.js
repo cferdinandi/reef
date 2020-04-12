@@ -226,13 +226,23 @@
 
 	};
 
+	var getDefaultAttributes = function (atts, firstRender) {
+		if (!firstRender) return atts;
+		return atts.map(function (attribute) {
+			if (dynamicAttributes.indexOf(attribute.att.slice(7)) > -1) {
+				attribute.att = attribute.att.slice(7);
+			}
+			return attribute;
+		});
+	};
+
 	/**
 	 * Add attributes to an element
 	 * @param {Node}  elem The element
 	 * @param {Array} atts The attributes to add
 	 */
-	var addAttributes = function (elem, atts) {
-		atts.forEach(function (attribute) {
+	var addAttributes = function (elem, atts, firstRender) {
+		getDefaultAttributes(atts, firstRender).forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, diff and update styles
 			// Otherwise, set the attribute
@@ -296,10 +306,12 @@
 
 	/**
 	 * Get the dynamic attributes for a node
-	 * @param  {Node} node  The node
-	 * @param  {Array} atts The static attributes
+	 * @param  {Node}    node       The node
+	 * @param  {Array}   atts       The static attributes
+	 * @param  {Boolean} isTemplate If true, these are for the template
 	 */
-	var getDynamicAttributes = function (node, atts) {
+	var getDynamicAttributes = function (node, atts, isTemplate) {
+		if (isTemplate) return;
 		dynamicAttributes.forEach(function (prop) {
 			if (!node[prop]) return;
 			atts.push(getAttribute(prop, node[prop]));
@@ -322,13 +334,13 @@
 
 	/**
 	 * Create an array of the attributes on an element
-	 * @param  {NamedNodeMap} attributes The attributes on an element
-	 * @param  {Node} node The node to get attributes from
-	 * @return {Array}                   The attributes on an element as an array of key/value pairs
+	 * @param  {Node}    node       The node to get attributes from
+	 * @param  {Boolean} isTemplate If true, these are for the template
+	 * @return {Array}              The attributes on an element as an array of key/value pairs
 	 */
-	var getAttributes = function (node) {
+	var getAttributes = function (node, isTemplate) {
 		var atts = getBaseAttributes(node);
-		getDynamicAttributes(node, atts);
+		getDynamicAttributes(node, atts, isTemplate);
 		return atts;
 	};
 
@@ -340,7 +352,6 @@
 	var makeElem = function (elem) {
 
 		// Create the element
-		// var node = elem.type === 'text' ? document.createTextNode(elem.content) : (elem.type === 'comment' ? document.createComment(elem.content) : document.createElement(elem.type));
 		var node;
 		if (elem.type === 'text') {
 			node = document.createTextNode(elem.content);
@@ -353,7 +364,7 @@
 		}
 
 		// Add attributes
-		addAttributes(node, elem.atts);
+		addAttributes(node, elem.atts, true);
 
 		// If the element has child nodes, create them
 		// Otherwise, add textContent
@@ -378,9 +389,11 @@
 
 		// Get attributes to remove
 		var remove = existing.atts.filter(function (att) {
+			if (dynamicAttributes.indexOf(att.att) > -1) return false;
 			var getAtt = find(template.atts, function (newAtt) {
 				return att.att === newAtt.att;
 			});
+
 			return getAtt === null;
 		});
 
@@ -470,19 +483,21 @@
 
 	/**
 	 * Create a DOM Tree Map for an element
-	 * @param  {Node}   element The element to map
+	 * @param  {Node}    element    The element to map
+	 * @param  {Boolean} isSVG      If true, the node is an SVG
+	 * @param  {Boolean} isTemplate If true, these are for the template
 	 * @return {Array}          A DOM tree map
 	 */
-	var createDOMMap = function (element, isSVG) {
+	var createDOMMap = function (element, isSVG, isTemplate) {
 		return Array.prototype.map.call(element.childNodes, (function (node) {
 			var details = {
 				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
-				atts: node.nodeType !== 1 ? [] : getAttributes(node),
+				atts: node.nodeType !== 1 ? [] : getAttributes(node, isTemplate),
 				type: node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase()),
 				node: node
 			};
 			details.isSVG = isSVG || details.type === 'svg';
-			details.children = createDOMMap(node, details.isSVG);
+			details.children = createDOMMap(node, details.isSVG, isTemplate);
 			return details;
 		}));
 	};
@@ -562,21 +577,13 @@
 		// If UI is unchanged, do nothing
 		if (elem.innerHTML === template.innerHTML) return;
 
-		// If target element or template are empty, inject the entire template
-		// Otherwise, diff and update
-		if (elem.innerHTML.trim().length < 1 || template.trim().length < 1) {
-			elem.innerHTML = template;
-		} else {
+		// Create DOM maps of the template and target element
+		var templateMap = createDOMMap(stringToHTML(template), false, true);
+		var domMap = createDOMMap(elem);
 
-			// Create DOM maps of the template and target element
-			var templateMap = createDOMMap(stringToHTML(template));
-			var domMap = createDOMMap(elem);
-
-			// Diff and update the DOM
-			var polyps = this.attached.map(function (polyp) { return polyp.elem; });
-			diff(templateMap, domMap, elem, polyps);
-
-		}
+		// Diff and update the DOM
+		var polyps = this.attached.map(function (polyp) { return polyp.elem; });
+		diff(templateMap, domMap, elem, polyps);
 
 		// Dispatch a render event
 		var event;
