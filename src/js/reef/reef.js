@@ -18,7 +18,6 @@
 
 	// Attributes that might be changed dynamically
 	var dynamicAttributes = ['checked', 'disabled', 'hidden', 'lang', 'readonly', 'required', 'selected', 'value'];
-	var noValueAttributes = ['checked', 'disabled', 'hidden', 'download', 'readonly', 'required', 'selected'];
 
 	// If true, debug mode is enabled
 	var debug = false;
@@ -234,13 +233,14 @@
 	 * @return {Array}               Attributes, include default values
 	 */
 	var getDefaultAttributes = function (atts, firstRender) {
-		if (!firstRender) return atts;
-		return atts.map(function (attribute) {
+		return atts.reduce(function (atts, attribute) {
 			if (attribute.att.length > 7 && attribute.att.slice(0, 7) === 'default') {
+				if (!firstRender) return atts;
 				attribute.att = attribute.att.slice(7);
 			}
-			return attribute;
-		});
+			atts.push(attribute);
+			return atts;
+		}, []);
 	};
 
 	/**
@@ -260,13 +260,15 @@
 			} else {
 				if (attribute.att in elem) {
 					try {
-						elem[attribute.att] = !attributes.value && noValueAttributes.indexOf(attribute.att) ? attribute.att : attribute.value;
+						elem[attribute.att] = attribute.value;
+						if (!elem[attribute.att]) {
+							elem[attribute.att] = true;
+						}
 					} catch (e) {}
 				}
 				try {
 					elem.setAttribute(attribute.att, attribute.value || '');
 				} catch (e) {}
-
 			}
 		});
 	};
@@ -312,13 +314,27 @@
 	};
 
 	/**
+	 * Get the dynamic attributes for a node
+	 * @param  {Node}    node       The node
+	 * @param  {Array}   atts       The static attributes
+	 * @param  {Boolean} isTemplate If true, these are for the template
+	 */
+	var getDynamicAttributes = function (node, atts, isTemplate) {
+		if (isTemplate) return;
+		dynamicAttributes.forEach(function (prop) {
+			if (!node[prop]) return;
+			atts.push(getAttribute(prop, node[prop]));
+		});
+	};
+
+	/**
 	 * Get base attributes for a node
 	 * @param  {Node} node The node
 	 * @return {Array}     The node's attributes
 	 */
-	var getBaseAttributes = function (node) {
+	var getBaseAttributes = function (node, isTemplate) {
 		return Array.prototype.reduce.call(node.attributes, function (arr, attribute) {
-			if (dynamicAttributes.indexOf(attribute.name) < 0) {
+			if (dynamicAttributes.indexOf(attribute.name) < 0 || (isTemplate && attribute.name === 'selected')) {
 				arr.push(getAttribute(attribute.name, attribute.value));
 			}
 			return arr;
@@ -330,8 +346,9 @@
 	 * @param  {Node}    node       The node to get attributes from
 	 * @return {Array}              The attributes on an element as an array of key/value pairs
 	 */
-	var getAttributes = function (node) {
-		var atts = getBaseAttributes(node);
+	var getAttributes = function (node, isTemplate) {
+		var atts = getBaseAttributes(node, isTemplate);
+		getDynamicAttributes(node, atts, isTemplate);
 		return atts;
 	};
 
@@ -478,16 +495,16 @@
 	 * @param  {Boolean} isSVG      If true, the node is an SVG
 	 * @return {Array}          A DOM tree map
 	 */
-	var createDOMMap = function (element, isSVG) {
+	var createDOMMap = function (element, isSVG, isTemplate) {
 		return Array.prototype.map.call(element.childNodes, (function (node) {
 			var details = {
 				content: node.childNodes && node.childNodes.length > 0 ? null : node.textContent,
-				atts: node.nodeType !== 1 ? [] : getAttributes(node),
+				atts: node.nodeType !== 1 ? [] : getAttributes(node, isTemplate),
 				type: node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase()),
 				node: node
 			};
 			details.isSVG = isSVG || details.type === 'svg';
-			details.children = createDOMMap(node, details.isSVG);
+			details.children = createDOMMap(node, details.isSVG, isTemplate);
 			return details;
 		}));
 	};
@@ -568,7 +585,7 @@
 		if (elem.innerHTML === template.innerHTML) return;
 
 		// Create DOM maps of the template and target element
-		var templateMap = createDOMMap(stringToHTML(template));
+		var templateMap = createDOMMap(stringToHTML(template), false, true);
 		var domMap = createDOMMap(elem);
 
 		// Diff and update the DOM
