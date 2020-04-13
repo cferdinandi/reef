@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.15
+ * reefjs v4.1.16
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2020 Chris Ferdinandi
  * MIT License
@@ -32,7 +32,7 @@ if (!Element.prototype.matches) {
 	//
 
 	// Attributes that might be changed dynamically
-	var dynamicAttributes = ['checked', 'disabled', 'hidden', 'readonly', 'required', 'selected'];
+	var dynamicAttributes = ['checked', 'disabled', 'hidden', 'lang', 'readonly', 'required', 'selected', 'value'];
 
 	// If true, debug mode is enabled
 	var debug = false;
