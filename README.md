@@ -229,6 +229,48 @@ var app = new Reef('#app', {
 **[Try allowing HTML in your data on CodePen &rarr;](https://codepen.io/cferdinandi/pen/LwgNyr)**
 
 
+### Default and state-based HTML attributes
+
+You can use component data to conditionally include or change the value of HTML attributes in your template.
+
+In the example below, the checkbox is `checked` when `agreeToTOS` is `true`.
+
+```js
+var app = new Reef('#app', {
+	data: {
+		agreeToTOS: true
+	},
+	template: function (props) {
+		var html =
+			'<label for="tos">' +
+				'<input type="checkbox" id="tos" ' + (props.agreeToTOS ? 'checked' : '') + '>' +
+			'</label>';
+		return html;
+	}
+});
+```
+
+You might also want to use a default value for an attribute, but not change it based on your component's state. You can do that by prefixing any attribute with `default` in your template.
+
+In this example, `option[value="hermione"]` has the `[selected]` attribute on it when first rendered, but will defer to whatever changes the user makes when diffing and updating the UI.
+
+```js
+var app = new Reef('#app', {
+	data: {},
+	template: function () {
+		var html =
+			'<label for="wizards">Who is the best wizard?</label>' +
+			'<select>' +
+				'<option value="harry">Harry</option>' +
+				'<option value="hermione" defaultSelected>Hermione</option>' +
+				'<option value="neville">Neville</option>' +
+			'</select>';
+		return html;
+	}
+});
+```
+
+
 ### Nested Components
 
 If you're managing a bigger app, you may have components inside components.
