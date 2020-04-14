@@ -1,5 +1,5 @@
 /*!
- * reefjs v4.1.18
+ * reefjs v4.1.19
  * A lightweight helper function for creating reactive, state-based components and UI
  * (c) 2020 Chris Ferdinandi
  * MIT License
@@ -335,9 +335,9 @@ if (!Element.prototype.matches) {
 	 * @param  {Boolean} isTemplate If true, these are for the template
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
-		if (isTemplate) return;
+		// if (isTemplate) return;
 		dynamicAttributes.forEach((function (prop) {
-			if (!node[prop]) return;
+			if (!node[prop] || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 			atts.push(getAttribute(prop, node[prop]));
 		}));
 	};
