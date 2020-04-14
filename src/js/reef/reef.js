@@ -17,7 +17,7 @@
 	//
 
 	// Attributes that might be changed dynamically
-	var dynamicAttributes = ['checked', 'disabled', 'hidden', 'lang', 'readonly', 'required', 'selected', 'value'];
+	var dynamicAttributes = ['checked', 'selected', 'value'];
 
 	// If true, debug mode is enabled
 	var debug = false;
