@@ -1,6 +1,6 @@
 {
 	"name": "reefjs",
-	"version": "4.1.20",
+	"version": "4.2.0",
 	"description": "A lightweight helper function for creating reactive, state-based components and UI",
 	"main": "./dist/reef.min.js",
 	"author": {
@@ -27,7 +27,7 @@
 		"gulp-sass": "4.0.2",
 		"gulp-svgmin": "2.1.0",
 		"gulp-terser": "1.2.0",
-		"jshint": "2.9.6",
+		"jshint": "^2.11.0",
 		"jshint-stylish": "2.2.1",
 		"lazypipe": "1.0.1"
 	}

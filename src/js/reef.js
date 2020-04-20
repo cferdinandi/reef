@@ -44,6 +44,10 @@
 		return true;
 	};
 
+	var matches = function (elem, selector) {
+		return (Element.prototype.matches && elem.matches(selector)) || (Element.prototype.msMatchesSelector && elem.msMatchesSelector(selector)) || (Element.prototype.webkitMatchesSelector && elem.webkitMatchesSelector(selector));
+	};
+
 	/**
 	 * More accurately check the type of a JavaScript object
 	 * @param  {Object} obj The object
@@ -456,7 +460,7 @@
 
 			// If element is an attached component, skip it
 			var isPolyp = polyps.filter(function (polyp) {
-				return node.node.nodeType !== 3 && node.node.matches(polyp);
+				return node.node.nodeType !== 3 && matches(node.node, polyp);
 			});
 			if (isPolyp.length > 0) return;
 
@@ -476,7 +480,7 @@
 			if (domMap[index].children.length < 1 && node.children.length > 0) {
 				var fragment = document.createDocumentFragment();
 				diff(node.children, domMap[index].children, fragment, polyps);
-				domMap[index].node.appendChild(fragment)
+				domMap[index].node.appendChild(fragment);
 				return;
 			}
 
@@ -553,6 +557,21 @@
 
 	};
 
+	Component.emit = function (elem, name, detail) {
+		var event;
+		if (!elem || !name) return err('ReefJS: You did not provide an element or event name.');
+		if (trueTypeOf(window.CustomEvent) === 'function') {
+			event = new CustomEvent(name, {
+				bubbles: true,
+				detail: detail
+			});
+		} else {
+			event = document.createEvent('CustomEvent');
+			event.initCustomEvent(name, true, false, detail);
+		}
+		elem.dispatchEvent(event);
+	};
+
 	/**
 	 * Render a template into the DOM
 	 * @return {Node}  The elemenft
@@ -593,16 +612,7 @@
 		diff(templateMap, domMap, elem, polyps);
 
 		// Dispatch a render event
-		var event;
-		if (trueTypeOf(window.CustomEvent) === 'function') {
-			event = new CustomEvent('render', {
-				bubbles: true
-			});
-		} else {
-			event = document.createEvent('CustomEvent');
-			event.initCustomEvent('render', true, false, null);
-		}
-		elem.dispatchEvent(event);
+		Component.emit(elem, 'render', data);
 
 		// If there are linked Reefs, render them, too
 		renderPolyps(this.attached, this);

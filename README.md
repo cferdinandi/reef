@@ -454,15 +454,34 @@ Whenever Reef updates the DOM, it emits a custom `render` event that you can lis
 
 The `render` event is emitted on the element that was update, and bubbles, so you can [use event delegation](https://gomakethings.com/checking-event-target-selectors-with-event-bubbling-in-vanilla-javascript/) if you'd prefer.
 
+The `event.detail` property includes a copy of the `data` at the time that the template was rendered.
+
 ```js
 document.addEventListener('render', function (event) {
-	if (event.target.matches('#app')) {
-		// Do something...
-	}
+
+	// Only run for elements with the #app ID
+	if (!event.target.matches('#app')) return;
+
+	// The data for this template
+	var data = event.detail;
+
 }, false);
 ```
 
 **[Try the `render` event on CodePen &rarr;](https://codepen.io/cferdinandi/pen/XvxdRa)**
+
+### Emitting your own custom events
+
+Reef includes a helper function, `Reef.emit()`, that you can use to emit your own custom events in your apps.
+
+Pass in the element to emit the event on and the event name as arguments. You can optionally pass in an object with event details as a third argument.
+
+```js
+// Emit the 'partyTime' event on the document element
+Reef.emit(document, 'partyTime', {
+	msg: 'It\'s party time!'
+});
+```
 
 ### Debugging
 
