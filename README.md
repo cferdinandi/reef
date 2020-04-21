@@ -54,21 +54,46 @@ Compiled and production-ready code can be found in the `dist` directory. The `sr
 
 **CDN**
 
-You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdinandi/reef?path=dist). I recommend linking to a specific version number or version range to prevent major updates from breaking your site. Reef uses semantic versioning.
+You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdinandi/reef?path=dist).
 
 ```html
-<!-- Always get the latest version -->
-<!-- Not recommended for production sites! -->
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
+```
 
-<!-- Get minor updates and patch fixes within a major version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@4/dist/reef.min.js"></script>
+Reef using semantic versioning. You can grab a major, minor, or patch version from the CDN with the `@1.2.3` syntax. You can find all available versions [under releases](<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>).
 
-<!-- Get patch fixes within a minor version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@4.0/dist/reef.min.js"></script>
+```html
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@5.0.0/dist/reef.min.js"></script>
+```
 
-<!-- Get a specific version -->
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@4.0.0/dist/reef.min.js"></script>
+**ES Modules**
+
+Reef now supports modern browsers and module bundlers (like Rollup, Webpack, Snowpack, and so on) using the ES modules `import` syntax. Use the `.es` version.
+
+```js
+import Reef from 'path/to/reef.es.min.js';
+```
+
+<details>
+<summary>More ways to install Reef</summary>
+<div>
+
+**CommonJS**
+
+If you use NodeJS, you can import Reef using the `require()` method with the `.cjs` version.
+
+```js
+var Reef = require('path/to/reef.cjs.min.js');
+```
+
+**AMD**
+
+If you use RequireJS, SystemJS, and other AMD formats, you can import Reef with the `.amd` version.
+
+```js
+requirejs(['path/to/reef.amd.min.js'], function (Reef) {
+  //...
+});
 ```
 
 **NPM**
@@ -76,8 +101,11 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 You can also use NPM (or your favorite package manager).
 
 ```bash
-npm install reefjs
+npm install reefjs --save
 ```
+
+</div>
+</details>
 
 ### 2. Add an element to render your component/UI into.
 
