@@ -5,7 +5,7 @@ A lightweight library for creating reactive, state-based components and UI. Reef
 
 **Features:**
 
-- Weighs just 2.5kb (minified and gzipped) with zero dependencies.
+- Weighs just 2.3kb (minified and gzipped) with zero dependencies.
 - Simple templating with JavaScript strings or template literals.
 - Load it with a `<script>` element&mdash;no command line or transpiling required.
 - Updates only the parts of the DOM that have changed. Keep those form fields in focus!
@@ -54,16 +54,16 @@ Compiled and production-ready code can be found in the `dist` directory. The `sr
 
 **CDN**
 
-You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdinandi/reef?path=dist).
+You can also use the [jsDelivr CDN](https://cdn.jsdelivr.net/npm/reefjs/dist/).
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reefjs/dist/reef.min.js"></script>
 ```
 
 Reef using semantic versioning. You can grab a major, minor, or patch version from the CDN with the `@1.2.3` syntax. You can find all available versions [under releases](https://github.com/cferdinandi/reef/releases).
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@5.0.0/dist/reef.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reefjs@5.0.0/dist/reef.min.js"></script>
 ```
 
 **ES Modules**
