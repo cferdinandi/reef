@@ -1,7 +1,7 @@
 # Reef
 A lightweight library for creating reactive, state-based components and UI. Reef is a simpler alternative to React, Vue, and other large frameworks.
 
-[Getting Started](#getting-started) | [State Management](#state-management) | [Advanced Components](#advanced-components) | [Demos](#demos) | [What's New?](#whats-new) | [Browser Compatibility](#browser-compatibility) | [License](#license)
+[Getting Started](#getting-started) · [State Management](#state-management) · [Advanced Components](#advanced-components) · [Demos](#demos) · [What's New?](#whats-new) · [Browser Compatibility](#browser-compatibility) · [License](#license)
 
 **Features:**
 
