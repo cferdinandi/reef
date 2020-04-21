@@ -78,7 +78,7 @@ import Reef from 'path/to/reef.es.min.js';
 
 <details>
 <summary><strong>More ways to install Reef</strong></summary>
-<div><br>
+<div markdown="1"><br>
 
 **CommonJS**
 
