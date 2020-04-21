@@ -60,7 +60,7 @@ You can also use the [jsDelivr CDN](https://www.jsdelivr.com/package/gh/cferdina
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>
 ```
 
-Reef using semantic versioning. You can grab a major, minor, or patch version from the CDN with the `@1.2.3` syntax. You can find all available versions [under releases](<script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef/dist/reef.min.js"></script>).
+Reef using semantic versioning. You can grab a major, minor, or patch version from the CDN with the `@1.2.3` syntax. You can find all available versions [under releases](https://github.com/cferdinandi/reef/releases).
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/cferdinandi/reef@5.0.0/dist/reef.min.js"></script>
