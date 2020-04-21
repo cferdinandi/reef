@@ -2,6 +2,8 @@
 title: Reef
 ---
 
+<style>h1:first-child { display: none; }</style>
+
 # Reef
 
 A lightweight library for creating reactive, state-based components and UI. Reef is a simpler alternative to React, Vue, and other large frameworks.
