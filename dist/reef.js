@@ -1,23 +1,5 @@
-/*!
- * reefjs v4.2.0
- * A lightweight helper function for creating reactive, state-based components and UI
- * (c) 2020 Chris Ferdinandi
- * MIT License
- * http://github.com/cferdinandi/reef
- */
-
-(function (root, factory) {
-	if (typeof define === 'function' && define.amd) {
-		define([], (function () {
-			return factory(root);
-		}));
-	} else if (typeof exports === 'object') {
-		module.exports = factory(root);
-	} else {
-		root.Reef = factory(root);
-	}
-})(typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : this, (function (window) {
-
+/*! Reef v5.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+var Reef = (function () {
 	'use strict';
 
 	//
@@ -99,9 +81,9 @@
 
 		// If an array, create a new array and recursively encode
 		if (type === 'array') {
-			return obj.map((function (item) {
+			return obj.map(function (item) {
 				return clone(item, allowHTML);
-			}));
+			});
 		}
 
 		// If the data is a string, encode it
@@ -129,19 +111,6 @@
 	};
 
 	/**
-	 * Find the index of the first matching item in an array
-	 * @param  {Array}    arr      The array to search in
-	 * @param  {Function} callback The callback to run to find a match
-	 * @return {*}                 The matching item's index
-	 */
-	var findIndex = function (arr, callback) {
-		return arr.reduce((function (index, item, currentIndex) {
-			if (index < 0 && callback(item, currentIndex)) return currentIndex;
-			return index;
-		}), -1);
-	};
-
-	/**
 	 * Create the Component object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
@@ -165,11 +134,11 @@
 		// Attach linked components
 		if (options.attachTo) {
 			var _this = this;
-			options.attachTo.forEach((function (coral) {
+			options.attachTo.forEach(function (coral) {
 				if ('attach' in coral) {
 					coral.attach(_this);
 				}
-			}));
+			});
 		}
 
 	};
@@ -180,7 +149,7 @@
 	 * @return {Array}         The styles
 	 */
 	var getStyleMap = function (styles) {
-		return styles.split(';').reduce((function (arr, style) {
+		return styles.split(';').reduce(function (arr, style) {
 			if (style.indexOf(':') > 0) {
 				var styleArr = style.trim().split(':');
 				arr.push({
@@ -189,7 +158,7 @@
 				});
 			}
 			return arr;
-		}), []);
+		}, []);
 	};
 
 	/**
@@ -198,9 +167,9 @@
 	 * @param  {Array} styles The styles to remove
 	 */
 	var removeStyles = function (elem, styles) {
-		styles.forEach((function (style) {
+		styles.forEach(function (style) {
 			elem.style[style] = '';
-		}));
+		});
 	};
 
 	/**
@@ -209,9 +178,9 @@
 	 * @param  {Array} styles The styles to add or update
 	 */
 	var changeStyles = function (elem, styles) {
-		styles.forEach((function (style) {
+		styles.forEach(function (style) {
 			elem.style[style.name] = style.value;
-		}));
+		});
 	};
 
 	/**
@@ -225,12 +194,12 @@
 		var styleMap = getStyleMap(styles);
 
 		// Get styles to remove
-		var remove = Array.prototype.filter.call(elem.style, (function (style) {
-			var findStyle = find(styleMap, (function (newStyle) {
+		var remove = Array.prototype.filter.call(elem.style, function (style) {
+			var findStyle = find(styleMap, function (newStyle) {
 				return newStyle.name === style && newStyle.value === elem.style[style];
-			}));
+			});
 			return findStyle === null;
-		}));
+		});
 
 		// Add and remove styles
 		removeStyles(elem, remove);
@@ -245,14 +214,14 @@
 	 * @return {Array}               Attributes, include default values
 	 */
 	var getDefaultAttributes = function (atts, firstRender) {
-		return atts.reduce((function (atts, attribute) {
+		return atts.reduce(function (atts, attribute) {
 			if (attribute.att.length > 7 && attribute.att.slice(0, 7) === 'default') {
 				if (!firstRender) return atts;
 				attribute.att = attribute.att.slice(7);
 			}
 			atts.push(attribute);
 			return atts;
-		}), []);
+		}, []);
 	};
 
 	/**
@@ -261,7 +230,7 @@
 	 * @param {Array} atts The attributes to add
 	 */
 	var addAttributes = function (elem, atts, firstRender) {
-		getDefaultAttributes(atts, firstRender).forEach((function (attribute) {
+		getDefaultAttributes(atts, firstRender).forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, diff and update styles
 			// Otherwise, set the attribute
@@ -282,7 +251,7 @@
 					elem.setAttribute(attribute.att, attribute.value || '');
 				} catch (e) {}
 			}
-		}));
+		});
 	};
 
 	/**
@@ -291,7 +260,7 @@
 	 * @param {Array} atts The attributes to remove
 	 */
 	var removeAttributes = function (elem, atts) {
-		atts.forEach((function (attribute) {
+		atts.forEach(function (attribute) {
 			// If the attribute is a class, use className
 			// Else if it's style, remove all styles
 			// Otherwise, use removeAttribute()
@@ -309,7 +278,7 @@
 					elem.removeAttribute(attribute.att);
 				} catch (e) {}
 			}
-		}));
+		});
 	};
 
 	/**
@@ -333,10 +302,10 @@
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
 		// if (isTemplate) return;
-		dynamicAttributes.forEach((function (prop) {
+		dynamicAttributes.forEach(function (prop) {
 			if (!node[prop] || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 			atts.push(getAttribute(prop, node[prop]));
-		}));
+		});
 	};
 
 	/**
@@ -345,12 +314,12 @@
 	 * @return {Array}     The node's attributes
 	 */
 	var getBaseAttributes = function (node, isTemplate) {
-		return Array.prototype.reduce.call(node.attributes, (function (arr, attribute) {
+		return Array.prototype.reduce.call(node.attributes, function (arr, attribute) {
 			if (dynamicAttributes.indexOf(attribute.name) < 0 || (isTemplate && attribute.name === 'selected')) {
 				arr.push(getAttribute(attribute.name, attribute.value));
 			}
 			return arr;
-		}), []);
+		}, []);
 	};
 
 	/**
@@ -389,9 +358,9 @@
 		// If the element has child nodes, create them
 		// Otherwise, add textContent
 		if (elem.children.length > 0) {
-			elem.children.forEach((function (childElem) {
+			elem.children.forEach(function (childElem) {
 				node.appendChild(makeElem(childElem));
-			}));
+			});
 		} else if (elem.type !== 'text') {
 			node.textContent = elem.content;
 		}
@@ -408,22 +377,22 @@
 	var diffAtts = function (template, existing) {
 
 		// Get attributes to remove
-		var remove = existing.atts.filter((function (att) {
+		var remove = existing.atts.filter(function (att) {
 			if (dynamicAttributes.indexOf(att.att) > -1) return false;
-			var getAtt = find(template.atts, (function (newAtt) {
+			var getAtt = find(template.atts, function (newAtt) {
 				return att.att === newAtt.att;
-			}));
+			});
 
 			return getAtt === null;
-		}));
+		});
 
 		// Get attributes to change
-		var change = template.atts.filter((function (att) {
-			var getAtt = find(existing.atts, (function (existingAtt) {
+		var change = template.atts.filter(function (att) {
+			var getAtt = find(existing.atts, function (existingAtt) {
 				return att.att === existingAtt.att;
-			}));
+			});
 			return getAtt === null || getAtt.value !== att.value;
-		}));
+		});
 
 		// Add/remove any required attributes
 		addAttributes(existing.node, change);
@@ -449,7 +418,7 @@
 		}
 
 		// Diff each item in the templateMap
-		templateMap.forEach((function (node, index) {
+		templateMap.forEach(function (node, index) {
 
 			// If element doesn't exist, create it
 			if (!domMap[index]) {
@@ -467,9 +436,9 @@
 			diffAtts(templateMap[index], domMap[index]);
 
 			// If element is an attached component, skip it
-			var isPolyp = polyps.filter((function (polyp) {
+			var isPolyp = polyps.filter(function (polyp) {
 				return node.node.nodeType !== 3 && matches(node.node, polyp);
-			}));
+			});
 			if (isPolyp.length > 0) return;
 
 			// If content is different, update it
@@ -497,7 +466,7 @@
 				diff(node.children, domMap[index].children, domMap[index].node, polyps);
 			}
 
-		}));
+		});
 
 	};
 
@@ -527,10 +496,10 @@
 	 */
 	var renderPolyps = function (polyps, reef) {
 		if (!polyps) return;
-		polyps.forEach((function (coral) {
+		polyps.forEach(function (coral) {
 			if (coral.attached.indexOf(reef) > -1) return err('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 			if ('render' in coral) coral.render();
-		}));
+		});
 	};
 
 	/**
@@ -549,9 +518,9 @@
 
 			// If there are items in the head, move them to the body
 			if (doc.head.childNodes.length > 0) {
-				Array.prototype.slice.call(doc.head.childNodes).reverse().forEach((function (node) {
+				Array.prototype.slice.call(doc.head.childNodes).reverse().forEach(function (node) {
 					doc.body.insertBefore(node, doc.body.firstChild);
-				}));
+				});
 			}
 
 			return doc.body;
@@ -616,7 +585,7 @@
 		var domMap = createDOMMap(elem);
 
 		// Diff and update the DOM
-		var polyps = this.attached.map((function (polyp) { return polyp.elem; }));
+		var polyps = this.attached.map(function (polyp) { return polyp.elem; });
 		diff(templateMap, domMap, elem, polyps);
 
 		// Dispatch a render event
@@ -670,13 +639,13 @@
 	 */
 	Component.prototype.detach = function (coral) {
 		var isArray = trueTypeOf(coral) === 'array';
-		this.attached = this.attached.filter((function (polyp) {
+		this.attached = this.attached.filter(function (polyp) {
 			if (isArray) {
 				return coral.indexOf(polyp) === -1;
 			} else {
 				return polyp !== coral;
 			}
-		}));
+		});
 	};
 
 	/**
@@ -698,11 +667,6 @@
 
 	support = checkSupport();
 
-
-	//
-	// Export public methods
-	//
-
 	return Component;
 
-}));
+}());

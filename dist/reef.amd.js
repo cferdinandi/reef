@@ -1,16 +1,5 @@
-(function (root, factory) {
-	if (typeof define === 'function' && define.amd) {
-		define([], function () {
-			return factory(root);
-		});
-	} else if (typeof exports === 'object') {
-		module.exports = factory(root);
-	} else {
-		root.Reef = factory(root);
-	}
-})(typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : this, function (window) {
-
-	'use strict';
+/*! Reef v5.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+define(function () { 'use strict';
 
 	//
 	// Variables
@@ -118,19 +107,6 @@
 		var matches = arr.filter(callback);
 		if (matches.length < 1) return null;
 		return matches[0];
-	};
-
-	/**
-	 * Find the index of the first matching item in an array
-	 * @param  {Array}    arr      The array to search in
-	 * @param  {Function} callback The callback to run to find a match
-	 * @return {*}                 The matching item's index
-	 */
-	var findIndex = function (arr, callback) {
-		return arr.reduce(function (index, item, currentIndex) {
-			if (index < 0 && callback(item, currentIndex)) return currentIndex;
-			return index;
-		}, -1);
 	};
 
 	/**
@@ -689,11 +665,6 @@
 	//
 
 	support = checkSupport();
-
-
-	//
-	// Export public methods
-	//
 
 	return Component;
 
