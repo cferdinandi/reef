@@ -1,58 +1,70 @@
 // Plugins
-import { terser } from "rollup-plugin-terser";
+import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
 
-// Banner
-var banner = `/*! ${pkg.config.name} v${pkg.version} | (c) ${new Date().getFullYear()} ${pkg.author.name} | ${pkg.license} License | ${pkg.repository.url} */`;
 
-export default {
-	input: `src/${pkg.config.filename}.js`,
-	output: [
-		{
-			file: `dist/${pkg.config.filename}.js`,
-			format: 'iife',
-			name: pkg.config.name,
-			banner: banner
-		},
-		{
-			file: `dist/${pkg.config.filename}.min.js`,
-			format: 'iife',
-			name: pkg.config.name,
-			banner: banner,
-			plugins: [terser()]
-		},
-		{
-			file: `dist/${pkg.config.filename}.es.js`,
-			format: 'es',
-			banner: banner
-		},
-		{
-			file: `dist/${pkg.config.filename}.es.min.js`,
-			format: 'es',
-			banner: banner,
-			plugins: [terser()]
-		},
-		{
-			file: `dist/${pkg.config.filename}.amd.js`,
-			format: 'amd',
-			banner: banner
-		},
-		{
-			file: `dist/${pkg.config.filename}.amd.min.js`,
-			format: 'amd',
-			banner: banner,
-			plugins: [terser()]
-		},
-		{
-			file: `dist/${pkg.config.filename}.cjs.js`,
-			format: 'cjs',
-			banner: banner
-		},
-		{
-			file: `dist/${pkg.config.filename}.cjs.min.js`,
-			format: 'cjs',
-			banner: banner,
-			plugins: [terser()]
-		}
-	]
+// Configs
+var configs = {
+	name: 'Reef',
+	files: ['reef.js'],
+	formats: ['iife', 'es', 'amd', 'cjs'],
+	default: 'iife',
+	minify: true
 };
+
+// Banner
+var banner = `/*! ${configs.name ? configs.name : pkg.name} v${pkg.version} | (c) ${new Date().getFullYear()} ${pkg.author.name} | ${pkg.license} License | ${pkg.repository.url} */`;
+
+var createOutput = function (filename, minify) {
+	return configs.formats.map(function (format) {
+		var output = {
+			file: `dist/${filename}${format === configs.default ? '' : `.${format}`}${minify ? '.min' : ''}.js`,
+			format: format,
+			banner: banner
+		};
+		if (format === 'iife') {
+			output.name = configs.name ? configs.name : pkg.name;
+		}
+		if (minify) {
+			output.plugins = [terser()];
+		}
+		return output;
+	});
+};
+
+/**
+ * Create output formats
+ * @param  {String} filename The filename
+ * @return {Array}           The outputs array
+ */
+var createOutputs = function (filename) {
+
+	// Create base outputs
+	var outputs = createOutput(filename);
+
+	// If not minifying, return outputs
+	if (!configs.minify) return outputs;
+
+	// Otherwise, ceate second set of outputs
+	var outputsMin = createOutput(filename, true);
+
+	// Merge and return the two arrays
+	return outputs.concat(outputsMin);
+
+};
+
+/**
+ * Create export object
+ * @return {Array} The export object
+ */
+var createExport = function (file) {
+	return configs.files.map(function (file) {
+		var filename = file.replace('.js', '');
+		return {
+			input: `src/${file}`,
+			output: createOutputs(filename)
+		};
+	});
+};
+
+export default createExport();

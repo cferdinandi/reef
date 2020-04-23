@@ -8,10 +8,6 @@
 		"reef-es": "./dist/reef.cjs.min.js",
 		"reef-iife": "./dist/reef.min.js"
 	},
-	"config": {
-		"name": "Reef",
-		"filename": "reef"
-	},
 	"author": {
 		"name": "Chris Ferdinandi",
 		"url": "http://gomakethings.com"
