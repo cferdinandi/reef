@@ -9,6 +9,8 @@ var configs = {
 	files: ['reef.js'],
 	formats: ['iife', 'es', 'amd', 'cjs'],
 	default: 'iife',
+	pathIn: 'src',
+	pathOut: 'dist',
 	minify: true
 };
 
@@ -18,7 +20,7 @@ var banner = `/*! ${configs.name ? configs.name : pkg.name} v${pkg.version} | (c
 var createOutput = function (filename, minify) {
 	return configs.formats.map(function (format) {
 		var output = {
-			file: `dist/${filename}${format === configs.default ? '' : `.${format}`}${minify ? '.min' : ''}.js`,
+			file: `${configs.pathOut}/${filename}${format === configs.default ? '' : `.${format}`}${minify ? '.min' : ''}.js`,
 			format: format,
 			banner: banner
 		};
@@ -61,7 +63,7 @@ var createExport = function (file) {
 	return configs.files.map(function (file) {
 		var filename = file.replace('.js', '');
 		return {
-			input: `src/${file}`,
+			input: `${configs.pathIn}/${file}`,
 			output: createOutputs(filename)
 		};
 	});
