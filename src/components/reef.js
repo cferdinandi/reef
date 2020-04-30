@@ -187,6 +187,7 @@ var Component = function (elem, options) {
 		},
 		set: function (data) {
 			_data = new Proxy(data, dataHandler(this));
+			debounceRender(this);
 		}
 	});
 

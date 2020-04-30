@@ -1,4 +1,4 @@
-/*! Reef v6.0.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.0.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 //
@@ -177,6 +177,7 @@ var Component = function (elem, options) {
 		},
 		set: function (data) {
 			_data = new Proxy(data, dataHandler(this));
+			debounceRender(this);
 		}
 	});
 
