@@ -1,4 +1,4 @@
-/*! Reef v6.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.0.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -189,12 +189,22 @@ var Component = function (elem, options) {
 
 	// Set the component properties
 	this.elem = elem;
-	this.data = new Proxy(options.data, dataHandler(this));
+	var _data = new Proxy(options.data, dataHandler(this));
 	this.template = options.template;
 	this.allowHTML = options.allowHTML;
 	this.attached = [];
 	this.lagoon = options.lagoon;
 	this.debounce = null;
+
+	// Define setter and getter for data
+	Object.defineProperty(this, 'data', {
+		get: function () {
+			return _data;
+		},
+		set: function (data) {
+			_data = new Proxy(data, dataHandler(this));
+		}
+	});
 
 	// Attach linked components
 	if (options.attachTo) {

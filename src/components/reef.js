@@ -173,12 +173,22 @@ var Component = function (elem, options) {
 
 	// Set the component properties
 	this.elem = elem;
-	this.data = new Proxy(options.data, dataHandler(this));
+	var _data = new Proxy(options.data, dataHandler(this));
 	this.template = options.template;
 	this.allowHTML = options.allowHTML;
 	this.attached = [];
 	this.lagoon = options.lagoon;
 	this.debounce = null;
+
+	// Define setter and getter for data
+	Object.defineProperty(this, 'data', {
+		get: function () {
+			return _data;
+		},
+		set: function (data) {
+			_data = new Proxy(data, dataHandler(this));
+		}
+	});
 
 	// Attach linked components
 	if (options.attachTo) {
