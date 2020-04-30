@@ -619,8 +619,7 @@ Component.prototype.render = function () {
 	var elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
 
-	// Encode the data
-	// var data = clone(this.data || {}, this.allowHTML);
+	// Get the data (if there is any)
 	var data = this.data || {};
 
 	// Get the template
