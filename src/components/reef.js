@@ -1,4 +1,3 @@
-/*! Reef v5.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 //
 // Variables
 //
@@ -105,6 +104,19 @@ var find = function (arr, callback) {
 	var matches = arr.filter(callback);
 	if (matches.length < 1) return null;
 	return matches[0];
+};
+
+/**
+ * Find the index of the first matching item in an array
+ * @param  {Array}    arr      The array to search in
+ * @param  {Function} callback The callback to run to find a match
+ * @return {*}                 The matching item's index
+ */
+var findIndex = function (arr, callback) {
+	return arr.reduce(function (index, item, currentIndex) {
+		if (index < 0 && callback(item, currentIndex)) return currentIndex;
+		return index;
+	}, -1);
 };
 
 /**
@@ -663,5 +675,10 @@ Component.debug = function (on) {
 //
 
 support = checkSupport();
+
+
+//
+// Export public methods
+//
 
 export default Component;
