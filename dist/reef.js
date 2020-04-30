@@ -99,6 +99,45 @@ var Reef = (function () {
 	};
 
 	/**
+	 * Debounce rendering for better performance
+	 * @param  {Constructor} instance The current instantiation
+	 */
+	var debounceRender = function (instance) {
+
+		// If there's a pending render, cancel it
+		if (instance.debounce) {
+			window.cancelAnimationFrame(instance.debounce);
+		}
+
+		// Setup the new render to run at the next animation frame
+		instance.debounce = window.requestAnimationFrame(function () {
+			instance.render();
+		});
+
+	};
+
+	/**
+	 * Create settings and getters for data Proxy
+	 * @param  {Constructor} instance The current instantiation
+	 * @return {Object}               The setter and getter methods for the Proxy
+	 */
+	var dataHandler = function (instance) {
+		return {
+			get: function (obj, prop) {
+				if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+					return new Proxy(obj[prop], dataHandler(instance));
+				}
+				return obj[prop];
+			},
+			set: function (obj, prop, value) {
+				obj[prop] = value;
+				debounceRender(instance);
+				return true;
+			}
+		};
+	};
+
+	/**
 	 * Find the first matching item in an array
 	 * @param  {Array}    arr      The array to search in
 	 * @param  {Function} callback The callback to run to find a match
@@ -125,11 +164,12 @@ var Reef = (function () {
 
 		// Set the component properties
 		this.elem = elem;
-		this.data = options.data;
+		this.data = new Proxy(options.data, dataHandler(this));
 		this.template = options.template;
 		this.allowHTML = options.allowHTML;
 		this.attached = [];
 		this.lagoon = options.lagoon;
+		this.debounce = null;
 
 		// Attach linked components
 		if (options.attachTo) {
@@ -534,18 +574,19 @@ var Reef = (function () {
 
 	};
 
+	/**
+	 * Emit a custom event
+	 * @param  {Node}   elem   The element to emit the custom event on
+	 * @param  {String} name   The name of the custom event
+	 * @param  {*}      detail Details to attach to the event
+	 */
 	Component.emit = function (elem, name, detail) {
 		var event;
 		if (!elem || !name) return err('ReefJS: You did not provide an element or event name.');
-		if (trueTypeOf(window.CustomEvent) === 'function') {
-			event = new CustomEvent(name, {
-				bubbles: true,
-				detail: detail
-			});
-		} else {
-			event = document.createEvent('CustomEvent');
-			event.initCustomEvent(name, true, false, detail);
-		}
+		event = new CustomEvent(name, {
+			bubbles: true,
+			detail: detail
+		});
 		elem.dispatchEvent(event);
 	};
 
@@ -603,22 +644,8 @@ var Reef = (function () {
 	 * Get a clone of the Component.data property
 	 * @return {Object} A clone of the Component.data property
 	 */
-	Component.prototype.getData = function () {
+	Component.prototype.clone = function () {
 		return clone(this.data, true);
-	};
-
-	/**
-	 * Update the data property and re-render
-	 * @param {Object} obj The data to merge into the existing state
-	 */
-	Component.prototype.setData = function (obj) {
-		if (trueTypeOf(obj) !== 'object') return err('ReefJS: The provided data is not an object.');
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				this.data[key] = obj[key];
-			}
-		}
-		this.render();
 	};
 
 	/**

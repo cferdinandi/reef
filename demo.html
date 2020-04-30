@@ -42,11 +42,13 @@
 
 				var test2 = new Reef('#test2', {
 					data: {
-						showContent: true
+						showContent: true,
+						xss: `<img onerror="alert('xss attack yo!')" src=x>`
 					},
 					template: function (props) {
 						if (!props.showContent) return 'Hi';
 						return `
+							${props.xss}
 							<style>.color { color: red; }</style>
 							<p class="color">Hi!</p>`;
 					}
@@ -54,7 +56,7 @@
 				test2.render();
 
 				setTimeout(function () {
-				  app.setData({showContent: true});
+					app.data.showContent = true;
 				}, 2000);
 
 				var test = new Reef('#test', {
@@ -104,6 +106,7 @@
 				var app = new Reef('#content', {
 					data: sourceOfTruth.data,
 					template: function (props) {
+						console.log(props);
 						var html = '<h1>Todos</h1><ul sandwich="tuna">';
 						var styles = props.heading.length > 4 ? ' style="font-weight: bold; color: rebeccapurple; background-color: gainsboro;"' : '';
 						props.items.todos.forEach(function (todo) {
@@ -127,7 +130,7 @@
 				// Update state on input change
 				document.addEventListener('input', function (event) {
 					if (!event.target.matches('#heading')) return;
-					sourceOfTruth.setData({heading: event.target.value});
+					sourceOfTruth.data.heading = event.target.value;
 				}, false);
 			</script>
 		</main>
