@@ -1,4 +1,4 @@
-/*! Reef v6.0.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.0.3 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -574,7 +574,7 @@ var renderPolyps = function (polyps, reef) {
 	if (!polyps) return;
 	polyps.forEach(function (coral) {
 		if (coral.attached.indexOf(reef) > -1) return err('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
-		if ('render' in coral) coral.render();
+		if ('render' in coral) debounceRender(coral);
 	});
 };
 

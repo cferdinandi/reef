@@ -558,7 +558,7 @@ var renderPolyps = function (polyps, reef) {
 	if (!polyps) return;
 	polyps.forEach(function (coral) {
 		if (coral.attached.indexOf(reef) > -1) return err('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
-		if ('render' in coral) coral.render();
+		if ('render' in coral) debounceRender(coral);
 	});
 };
 
