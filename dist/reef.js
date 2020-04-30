@@ -611,8 +611,8 @@ var Reef = (function () {
 		if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
 
 		// Encode the data
-		// var data = this.allowHTML ? clone(this.data) : encode(this.data || {});
-		var data = clone(this.data || {}, this.allowHTML);
+		// var data = clone(this.data || {}, this.allowHTML);
+		var data = this.data || {};
 
 		// Get the template
 		var template = (trueTypeOf(this.template) === 'function' ? this.template(data) : this.template);

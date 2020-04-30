@@ -106,7 +106,6 @@
 				var app = new Reef('#content', {
 					data: sourceOfTruth.data,
 					template: function (props) {
-						console.log(props);
 						var html = '<h1>Todos</h1><ul sandwich="tuna">';
 						var styles = props.heading.length > 4 ? ' style="font-weight: bold; color: rebeccapurple; background-color: gainsboro;"' : '';
 						props.items.todos.forEach(function (todo) {
