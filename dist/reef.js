@@ -127,7 +127,7 @@ var Reef = (function () {
 				if (typeof obj[prop] === 'object' && obj[prop] !== null) {
 					return new Proxy(obj[prop], dataHandler(instance));
 				}
-				return obj[prop];
+				return clone(obj[prop], instance.allowHTML);
 			},
 			set: function (obj, prop, value) {
 				obj[prop] = value;
@@ -645,7 +645,7 @@ var Reef = (function () {
 	 * @return {Object} A clone of the Component.data property
 	 */
 	Component.prototype.clone = function () {
-		return clone(this.data, true);
+		return clone(this.data, this.allowHTML);
 	};
 
 	/**
