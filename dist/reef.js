@@ -1,4 +1,4 @@
-/*! Reef v6.0.3 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.0.4 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -131,6 +131,11 @@ var Reef = (function () {
 			},
 			set: function (obj, prop, value) {
 				obj[prop] = value;
+				debounceRender(instance);
+				return true;
+			},
+			deleteProperty: function (obj, prop) {
+				delete obj[prop];
 				debounceRender(instance);
 				return true;
 			}

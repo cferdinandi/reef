@@ -129,6 +129,11 @@ var dataHandler = function (instance) {
 			obj[prop] = value;
 			debounceRender(instance);
 			return true;
+		},
+		deleteProperty: function (obj, prop) {
+			delete obj[prop];
+			debounceRender(instance);
+			return true;
 		}
 	};
 };
