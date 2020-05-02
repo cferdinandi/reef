@@ -1,4 +1,4 @@
-/*! Reef v6.0.4 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.1.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -700,6 +700,9 @@ define(function () { 'use strict';
 			debug = false;
 		}
 	};
+
+	// Expose the clone method externally
+	Component.clone = clone;
 
 
 	//

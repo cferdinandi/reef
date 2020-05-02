@@ -711,6 +711,9 @@ Component.debug = function (on) {
 	}
 };
 
+// Expose the clone method externally
+Component.clone = clone;
+
 
 //
 // Set support
