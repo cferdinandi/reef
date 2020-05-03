@@ -52,7 +52,11 @@
 					}
 				});
 
-				// app.render();
+				app.render();
+
+				document.addEventListener('render', function (event) {
+					console.log('rendered!');
+				});
 			</script>
 		</main>
 

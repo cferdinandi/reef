@@ -123,9 +123,10 @@ var dataHandler = function (instance) {
 			if (['[object Object]', '[object Array]'].indexOf(Object.prototype.toString.call(obj[prop])) > -1) {
 				return new Proxy(obj[prop], dataHandler(instance));
 			}
-			return clone(obj[prop], instance.allowHTML);
+			return obj[prop];
 		},
 		set: function (obj, prop, value) {
+			if (obj[prop] === value) return true;
 			obj[prop] = value;
 			debounceRender(instance);
 			return true;
@@ -193,6 +194,7 @@ var Component = function (elem, options) {
 		set: function (data) {
 			_data = new Proxy(data, dataHandler(this));
 			debounceRender(this);
+			return true;
 		}
 	});
 
@@ -636,7 +638,7 @@ Component.prototype.render = function () {
 	if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
 
 	// Get the data (if there is any)
-	var data = this.data || {};
+	var data = clone(this.data || {}, this.allowHTML);
 
 	// Get the template
 	var template = (trueTypeOf(this.template) === 'function' ? this.template(data) : this.template);
