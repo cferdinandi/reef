@@ -120,7 +120,7 @@ var debounceRender = function (instance) {
 var dataHandler = function (instance) {
 	return {
 		get: function (obj, prop) {
-			if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+			if (['[object Object]', '[object Array]'].indexOf(Object.prototype.toString.call(obj[prop])) > -1) {
 				return new Proxy(obj[prop], dataHandler(instance));
 			}
 			return clone(obj[prop], instance.allowHTML);

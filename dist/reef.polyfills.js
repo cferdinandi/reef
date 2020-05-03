@@ -1,4 +1,4 @@
-/*! Reef v6.1.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.1.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -150,7 +150,7 @@ var Reef = (function () {
 	var dataHandler = function (instance) {
 		return {
 			get: function (obj, prop) {
-				if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+				if (['[object Object]', '[object Array]'].indexOf(Object.prototype.toString.call(obj[prop])) > -1) {
 					return new Proxy(obj[prop], dataHandler(instance));
 				}
 				return clone(obj[prop], instance.allowHTML);
