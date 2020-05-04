@@ -13,17 +13,19 @@
 				font-size: 112.5%;
 				margin-left: auto;
 				margin-right: auto;
-				max-width: 40em;
+				max-width: 32em;
 				width: 88%;
 			}
 
-			[disabled] {
-				opacity: 0.9;
+			label,
+			input {
+				display: block;
+				width: 100%;
 			}
 		</style>
 
 		<!-- scripts -->
-		<script src="dist/reef.js"></script>
+		<script src="../dist/reef.js"></script>
 	</head>
 
 	<body>
@@ -36,27 +38,28 @@
 				// Turn on debug mode
 				Reef.debug(true);
 
+				// Create an app
 				var app = new Reef('#app', {
 					data: {
-						todos: ['Swim', 'Climb', 'Jump', 'Play'],
-						xss: `<img onerror="alert('XSS!')" src=x>`
+						text: ''
 					},
 					template: function (props) {
 						return `
-							${props.xss}
-							<ul>
-								${props.todos.map(function (todo) {
-									return `<li>${todo}</li>`;
-								}).join('')}
-							</ul>`;
+							<label for="mirror">Whatever you type shows up below the field</label>
+							<input type="text" id="mirror">
+							<div><em aria-live="polite">${props.text.length ? props.text : 'Type something above to change this text'}</em></div>`;
+						return html;
 					}
 				});
 
 				app.render();
 
-				document.addEventListener('render', function (event) {
-					console.log('rendered!');
-				});
+				// Update state on input change
+				// Rendering is debounced for performance
+				document.addEventListener('input', function (event) {
+					if (!event.target.matches('#mirror')) return;
+					app.data.text = event.target.value;
+				}, false);
 			</script>
 		</main>
 

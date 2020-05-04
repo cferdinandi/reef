@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>ReefJS Test</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!-- stylesheets -->
+		<style type="text/css">
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+				font-size: 112.5%;
+				margin-left: auto;
+				margin-right: auto;
+				max-width: 40em;
+				width: 88%;
+			}
+		</style>
+
+		<!-- scripts -->
+		<script src="../dist/reef.js"></script>
+	</head>
+
+	<body>
+
+		<main>
+
+			<div id="app"></div>
+
+			<script>
+				// Turn on debug mode
+				Reef.debug(true);
+
+				// Create a data store
+				// This holds app data that can used by one or more components
+				// Updating the store data automatically triggers renders in any component using it
+				var store = new Reef.Store({
+					data: {
+						heading: 'My Todos',
+						todos: ['Swim', 'Climb', 'Jump', 'Play']
+					}
+				});
+
+				// Use the store in the app instead of a data object
+				var app = new Reef('#app', {
+					store: store,
+					template: function (props) {
+						return `
+							<h1>${props.heading}</h1>
+							<ul>
+								${props.todos.map(function (todo) {
+									return `<li>${todo}</li>`;
+								}).join('')}
+							</ul>`;
+
+					}
+				});
+
+				app.render();
+
+				// The app has no direct data/state
+				console.log('app.data:', app.data);
+
+				// After 3 seconds, update the store data
+				// The app will re-render with the new data
+				setTimeout(function () {
+					store.data.todos.push('Take a nap... zzzz');
+				}, 3000);
+			</script>
+		</main>
+
+	</body>
+</html>

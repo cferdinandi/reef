@@ -164,12 +164,17 @@ var findIndex = function (arr, callback) {
 	}, -1);
 };
 
+var makeProxy = function (options, instance) {
+	if (options.setters) return !options.store ? options.data : null;
+	return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
+};
+
 /**
- * Create the Component object
+ * Create the Reef object
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-var Component = function (elem, options) {
+var Reef = function (elem, options) {
 
 	// Make sure an element is provided
 	if (!elem && (!options || !options.lagoon)) return err('Reef.js: You did not provide an element to make into a component.');
@@ -178,8 +183,11 @@ var Component = function (elem, options) {
 	if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
 
 	// Set the component properties
-	var _data = options.data && !options.store ? new Proxy(options.data, dataHandler(this)) : null;
+	var _this = this;
+	var _data = makeProxy(options, this);
 	var _store = options.store;
+	var _setters = options.setters;
+	var _getters = options.getters;
 	this.debounce = null;
 
 	// Create properties for stuff
@@ -195,15 +203,35 @@ var Component = function (elem, options) {
 	// Define setter and getter for data
 	Object.defineProperty(this, 'data', {
 		get: function () {
-			return _data;
+			return _setters ? clone(_data, true) : _data;
 		},
 		set: function (data) {
-			if (_store) return false;
+			if (_store || _setters) return true;
 			_data = new Proxy(data, dataHandler(this));
 			debounceRender(this);
 			return true;
 		}
 	});
+
+	if (_setters && !_store) {
+		Object.defineProperty(this, 'do', {
+			value: function (id) {
+				if (!_setters[id]) return err('ReefJS: There is no setter with this name.');
+				var args = Array.prototype.slice.call(arguments);
+				args[0] = _store ? _store.data : _data;
+				_setters[id].apply(this, args);
+				debounceRender(_this);
+			}
+		});
+	}
+
+	if (_getters && !_store) {
+		Object.defineProperty(this, 'get', {
+			get: function () {
+				return clone(_getters, true);
+			}
+		});
+	}
 
 	// Attach to store
 	if (_store && 'attach' in _store) {
@@ -212,8 +240,8 @@ var Component = function (elem, options) {
 
 	// Attach linked components
 	if (options.attachTo) {
-		var _this = this;
-		options.attachTo.forEach(function (coral) {
+		var _attachTo = trueTypeOf(options.attachTo) === 'array' ? option.attachTo : [options.attachTo];
+		_attachTo.forEach(function (coral) {
 			if ('attach' in coral) {
 				coral.attach(_this);
 			}
@@ -226,9 +254,9 @@ var Component = function (elem, options) {
  * Lagoon constructor
  * @param {Object} options The component options
  */
-Component.Store = function (options) {
+Reef.Store = function (options) {
 	options.lagoon = true;
-	return new Component(null, options);
+	return new Reef(null, options);
 };
 
 /**
@@ -628,7 +656,7 @@ var stringToHTML = function (str) {
  * @param  {String} name   The name of the custom event
  * @param  {*}      detail Details to attach to the event
  */
-Component.emit = function (elem, name, detail) {
+Reef.emit = function (elem, name, detail) {
 	var event;
 	if (!elem || !name) return err('ReefJS: You did not provide an element or event name.');
 	event = new CustomEvent(name, {
@@ -642,7 +670,7 @@ Component.emit = function (elem, name, detail) {
  * Render a template into the DOM
  * @return {Node}  The elemenft
  */
-Component.prototype.render = function () {
+Reef.prototype.render = function () {
 
 	// If this is used only for data, render attached and bail
 	if (this.lagoon) {
@@ -677,7 +705,7 @@ Component.prototype.render = function () {
 	diff(templateMap, domMap, elem, polyps);
 
 	// Dispatch a render event
-	Component.emit(elem, 'render', data);
+	Reef.emit(elem, 'render', data);
 
 	// If there are linked Reefs, render them, too
 	renderPolyps(this.attached, this);
@@ -688,10 +716,10 @@ Component.prototype.render = function () {
 };
 
 /**
- * Get a clone of the Component.data property
- * @return {Object} A clone of the Component.data property
+ * Get a clone of the Reef.data property
+ * @return {Object} A clone of the Reef.data property
  */
-Component.prototype.clone = function () {
+Reef.prototype.clone = function () {
 	return clone(this.data, this.allowHTML);
 };
 
@@ -699,7 +727,7 @@ Component.prototype.clone = function () {
  * Attach a component to this one
  * @param  {Function|Array} coral The component(s) to attach
  */
-Component.prototype.attach = function (coral) {
+Reef.prototype.attach = function (coral) {
 	if (trueTypeOf(coral) === 'array') {
 		this.attached.concat(coral);
 		// Array.prototype.push.apply(this.attached, coral);
@@ -712,7 +740,7 @@ Component.prototype.attach = function (coral) {
  * Detach a linked component to this one
  * @param  {Function|Array} coral The linked component(s) to detach
  */
-Component.prototype.detach = function (coral) {
+Reef.prototype.detach = function (coral) {
 	var isArray = trueTypeOf(coral) === 'array';
 	this.attached = this.attached.filter(function (polyp) {
 		if (isArray) {
@@ -727,7 +755,7 @@ Component.prototype.detach = function (coral) {
  * Turn debug mode on or off
  * @param  {Boolean} on If true, turn debug mode on
  */
-Component.debug = function (on) {
+Reef.debug = function (on) {
 	if (on) {
 		debug = true;
 	} else {
@@ -736,7 +764,7 @@ Component.debug = function (on) {
 };
 
 // Expose the clone method externally
-Component.clone = clone;
+Reef.clone = clone;
 
 
 //
@@ -750,4 +778,4 @@ support = checkSupport();
 // Export public methods
 //
 
-export default Component;
+export default Reef;
