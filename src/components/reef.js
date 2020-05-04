@@ -120,7 +120,7 @@ var debounceRender = function (instance) {
 var dataHandler = function (instance) {
 	return {
 		get: function (obj, prop) {
-			if (['[object Object]', '[object Array]'].indexOf(Object.prototype.toString.call(obj[prop])) > -1) {
+			if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
 				return new Proxy(obj[prop], dataHandler(instance));
 			}
 			return obj[prop];
@@ -218,7 +218,7 @@ var Reef = function (elem, options) {
 			value: function (id) {
 				if (!_setters[id]) return err('There is no setter with this name.');
 				var args = Array.prototype.slice.call(arguments);
-				args[0] = _store ? _store.data : _data;
+				args[0] = _data;
 				_setters[id].apply(this, args);
 				debounceRender(_this);
 			}
@@ -227,8 +227,9 @@ var Reef = function (elem, options) {
 
 	if (_getters && !_store) {
 		Object.defineProperty(this, 'get', {
-			get: function () {
-				return clone(_getters, true);
+			value: function (id) {
+				if (!_getters[id]) return err('There is no getter with this name.');
+				return _getters[id](_data);
 			}
 		});
 	}

@@ -41,8 +41,8 @@
 						todos: ['Swim', 'Climb', 'Jump', 'Play']
 					},
 					getters: {
-						total: function () {
-							return store.data.todos.length;
+						total: function (props) {
+							return props.todos.length;
 						}
 					}
 				});
@@ -65,12 +65,12 @@
 				app.render();
 
 				// Use a getter to get the total number of todo items
-				console.log('total:', store.get.total());
+				console.log('total:', store.get('total'));
 
 				// After 3 seconds, update the data and get the new total
 				setTimeout(function () {
 					store.data.todos.push('Take a nap... zzzz');
-					console.log('New total:', store.get.total());
+					console.log('New total:', store.get('total'));
 				}, 3000);
 
 			</script>
