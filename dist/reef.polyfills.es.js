@@ -1,4 +1,4 @@
-/*! Reef v7.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.0.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
 h+"'");c[h]=f[h];}"function"===typeof f&&(c.apply=f.apply.bind(f));var d=this,q=!1,r=!1;"function"===typeof a?(d=function(){var b=this&&this.constructor===d,e=Array.prototype.slice.call(arguments);g(b?"construct":"apply");return b&&c.construct?c.construct.call(this,a,e):!b&&c.apply?c.apply(a,this,e):b?(e.unshift(a),new (a.bind.apply(a,e))):a.apply(this,e)},q=!0):a instanceof Array&&(d=[],r=!0);var t=c.get?function(b){g("get");return c.get(this,b,d)}:function(b){g("get");return this[b]},w=c.set?function(b,
 e){g("set");c.set(this,b,e,d);}:function(b,e){g("set");this[b]=e;},u={};Object.getOwnPropertyNames(a).forEach(function(b){if(!((q||r)&&b in d)){var e={enumerable:!!Object.getOwnPropertyDescriptor(a,b).enumerable,get:t.bind(a,b),set:w.bind(a,b)};Object.defineProperty(d,b,e);u[b]=!0;}});f=!0;Object.setPrototypeOf?Object.setPrototypeOf(d,Object.getPrototypeOf(a)):d.__proto__?d.__proto__=a.__proto__:f=!1;if(c.get||!f)for(var m in a)u[m]||Object.defineProperty(d,m,{get:t.bind(a,m)});Object.seal(a);Object.seal(d);
@@ -198,11 +198,11 @@ var Reef = function (elem, options) {
 
 	// Set the component properties
 	var _this = this;
-	var _data = makeProxy(options, this);
+	var _data = makeProxy(options, _this);
 	var _store = options.store;
 	var _setters = options.setters;
 	var _getters = options.getters;
-	this.debounce = null;
+	_this.debounce = null;
 
 	// Create properties for stuff
 	Object.defineProperties(this, {
@@ -215,32 +215,32 @@ var Reef = function (elem, options) {
 	});
 
 	// Define setter and getter for data
-	Object.defineProperty(this, 'data', {
+	Object.defineProperty(_this, 'data', {
 		get: function () {
 			return _setters ? clone(_data, true) : _data;
 		},
 		set: function (data) {
 			if (_store || _setters) return true;
-			_data = new Proxy(data, dataHandler(this));
-			debounceRender(this);
+			_data = new Proxy(data, dataHandler(_this));
+			debounceRender(_this);
 			return true;
 		}
 	});
 
 	if (_setters && !_store) {
-		Object.defineProperty(this, 'do', {
+		Object.defineProperty(_this, 'do', {
 			value: function (id) {
 				if (!_setters[id]) return err('There is no setter with this name.');
 				var args = Array.prototype.slice.call(arguments);
 				args[0] = _data;
-				_setters[id].apply(this, args);
+				_setters[id].apply(_this, args);
 				debounceRender(_this);
 			}
 		});
 	}
 
 	if (_getters && !_store) {
-		Object.defineProperty(this, 'get', {
+		Object.defineProperty(_this, 'get', {
 			value: function (id) {
 				if (!_getters[id]) return err('There is no getter with this name.');
 				return _getters[id](_data);
@@ -250,7 +250,7 @@ var Reef = function (elem, options) {
 
 	// Attach to store
 	if (_store && 'attach' in _store) {
-		store.attach(this);
+		_store.attach(_this);
 	}
 
 	// Attach linked components

@@ -1,4 +1,4 @@
-/*! Reef v7.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.0.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -200,11 +200,11 @@ var Reef = function (elem, options) {
 
 	// Set the component properties
 	var _this = this;
-	var _data = makeProxy(options, this);
+	var _data = makeProxy(options, _this);
 	var _store = options.store;
 	var _setters = options.setters;
 	var _getters = options.getters;
-	this.debounce = null;
+	_this.debounce = null;
 
 	// Create properties for stuff
 	Object.defineProperties(this, {
@@ -217,32 +217,32 @@ var Reef = function (elem, options) {
 	});
 
 	// Define setter and getter for data
-	Object.defineProperty(this, 'data', {
+	Object.defineProperty(_this, 'data', {
 		get: function () {
 			return _setters ? clone(_data, true) : _data;
 		},
 		set: function (data) {
 			if (_store || _setters) return true;
-			_data = new Proxy(data, dataHandler(this));
-			debounceRender(this);
+			_data = new Proxy(data, dataHandler(_this));
+			debounceRender(_this);
 			return true;
 		}
 	});
 
 	if (_setters && !_store) {
-		Object.defineProperty(this, 'do', {
+		Object.defineProperty(_this, 'do', {
 			value: function (id) {
 				if (!_setters[id]) return err('There is no setter with this name.');
 				var args = Array.prototype.slice.call(arguments);
 				args[0] = _data;
-				_setters[id].apply(this, args);
+				_setters[id].apply(_this, args);
 				debounceRender(_this);
 			}
 		});
 	}
 
 	if (_getters && !_store) {
-		Object.defineProperty(this, 'get', {
+		Object.defineProperty(_this, 'get', {
 			value: function (id) {
 				if (!_getters[id]) return err('There is no getter with this name.');
 				return _getters[id](_data);
@@ -252,7 +252,7 @@ var Reef = function (elem, options) {
 
 	// Attach to store
 	if (_store && 'attach' in _store) {
-		store.attach(this);
+		_store.attach(_this);
 	}
 
 	// Attach linked components

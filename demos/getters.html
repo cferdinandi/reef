@@ -34,7 +34,7 @@
 
 				// Create a data store
 				// You can use getters directly on a component, too
-				// Getters do not accept any arguments
+				// Getters only accept the component props as an argument
 				var store = new Reef.Store({
 					data: {
 						heading: 'My Todos',
@@ -72,7 +72,6 @@
 					store.data.todos.push('Take a nap... zzzz');
 					console.log('New total:', store.get('total'));
 				}, 3000);
-
 			</script>
 		</main>
 
