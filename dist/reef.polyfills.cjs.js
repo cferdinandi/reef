@@ -1,4 +1,4 @@
-/*! Reef v6.3.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -193,10 +193,10 @@ var makeProxy = function (options, instance) {
 var Reef = function (elem, options) {
 
 	// Make sure an element is provided
-	if (!elem && (!options || !options.lagoon)) return err('Reef.js: You did not provide an element to make into a component.');
+	if (!elem && (!options || !options.lagoon)) return err('You did not provide an element to make into a component.');
 
 	// Make sure a template is provided
-	if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
+	if (!options || (!options.template && !options.lagoon)) return err('You did not provide a template for this component.');
 
 	// Set the component properties
 	var _this = this;
@@ -232,7 +232,7 @@ var Reef = function (elem, options) {
 	if (_setters && !_store) {
 		Object.defineProperty(this, 'do', {
 			value: function (id) {
-				if (!_setters[id]) return err('ReefJS: There is no setter with this name.');
+				if (!_setters[id]) return err('There is no setter with this name.');
 				var args = Array.prototype.slice.call(arguments);
 				args[0] = _store ? _store.data : _data;
 				_setters[id].apply(this, args);
@@ -267,8 +267,8 @@ var Reef = function (elem, options) {
 };
 
 /**
- * Lagoon constructor
- * @param {Object} options The component options
+ * Store constructor
+ * @param {Object} options The data store options
  */
 Reef.Store = function (options) {
 	options.lagoon = true;
@@ -629,7 +629,7 @@ var createDOMMap = function (element, isSVG, isTemplate) {
 var renderPolyps = function (polyps, reef) {
 	if (!polyps) return;
 	polyps.forEach(function (coral) {
-		if (coral.attached.indexOf(reef) > -1) return err('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+		if (coral.attached.indexOf(reef) > -1) return err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 		if ('render' in coral) debounceRender(coral);
 	});
 };
@@ -674,7 +674,7 @@ var stringToHTML = function (str) {
  */
 Reef.emit = function (elem, name, detail) {
 	var event;
-	if (!elem || !name) return err('ReefJS: You did not provide an element or event name.');
+	if (!elem || !name) return err('You did not provide an element or event name.');
 	event = new CustomEvent(name, {
 		bubbles: true,
 		detail: detail
@@ -695,12 +695,12 @@ Reef.prototype.render = function () {
 	}
 
 	// Make sure there's a template
-	if (!this.template) return err('Reef.js: No template was provided.');
+	if (!this.template) return err('No template was provided.');
 
 	// If elem is an element, use it.
 	// If it's a selector, get it.
 	var elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
-	if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
+	if (!elem) return err('The DOM element to render your template into was not found.');
 
 	// Get the data (if there is any)
 	var data = clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
@@ -729,14 +729,6 @@ Reef.prototype.render = function () {
 	// Return the elem for use elsewhere
 	return elem;
 
-};
-
-/**
- * Get a clone of the Reef.data property
- * @return {Object} A clone of the Reef.data property
- */
-Reef.prototype.clone = function () {
-	return clone(this.data, this.allowHTML);
 };
 
 /**
@@ -772,11 +764,7 @@ Reef.prototype.detach = function (coral) {
  * @param  {Boolean} on If true, turn debug mode on
  */
 Reef.debug = function (on) {
-	if (on) {
-		debug = true;
-	} else {
-		debug = false;
-	}
+	debug = on ? true : false;
 };
 
 // Expose the clone method externally
