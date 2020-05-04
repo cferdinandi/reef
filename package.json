@@ -18,8 +18,9 @@
 		"url": "http://github.com/cferdinandi/reef"
 	},
 	"scripts": {
+		"clean": "rm -rf dist",
 		"js": "rollup --config",
-		"build": "npm run js"
+		"build": "npm run clean && npm run js"
 	},
 	"devDependencies": {
 		"rollup": "2.6.1",

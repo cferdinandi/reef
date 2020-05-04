@@ -168,7 +168,8 @@ var Component = function (elem, options) {
 	if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
 
 	// Set the component properties
-	var _data = new Proxy(options.data, dataHandler(this));
+	var _data = options.data && !options.store ? new Proxy(options.data, dataHandler(this)) : null;
+	var _store = options.store;
 	this.debounce = null;
 
 	// Create properties for stuff
@@ -177,6 +178,7 @@ var Component = function (elem, options) {
 		template: {value: options.template},
 		allowHTML: {value: options.allowHTML},
 		lagoon: {value: options.lagoon},
+		store: {value: _store},
 		attached: {value: []}
 	});
 
@@ -186,11 +188,17 @@ var Component = function (elem, options) {
 			return _data;
 		},
 		set: function (data) {
+			if (_store) return false;
 			_data = new Proxy(data, dataHandler(this));
 			debounceRender(this);
 			return true;
 		}
 	});
+
+	// Attach to store
+	if (_store && 'attach' in _store) {
+		store.attach(this);
+	}
 
 	// Attach linked components
 	if (options.attachTo) {
@@ -208,7 +216,7 @@ var Component = function (elem, options) {
  * Lagoon constructor
  * @param {Object} options The component options
  */
-Component.Lagoon = function (options) {
+Component.Store = function (options) {
 	options.lagoon = true;
 	return new Component(null, options);
 };
@@ -641,7 +649,7 @@ Component.prototype.render = function () {
 	if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
 
 	// Get the data (if there is any)
-	var data = clone(this.data || {}, this.allowHTML);
+	var data = clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
 	var template = (trueTypeOf(this.template) === 'function' ? this.template(data) : this.template);
@@ -683,7 +691,8 @@ Component.prototype.clone = function () {
  */
 Component.prototype.attach = function (coral) {
 	if (trueTypeOf(coral) === 'array') {
-		Array.prototype.push.apply(this.attached, coral);
+		this.attached.concat(coral);
+		// Array.prototype.push.apply(this.attached, coral);
 	} else {
 		this.attached.push(coral);
 	}
