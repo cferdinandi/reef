@@ -1,4 +1,4 @@
-/*! Reef v6.3.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.0.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -150,7 +150,7 @@ var Reef = (function () {
 	var dataHandler = function (instance) {
 		return {
 			get: function (obj, prop) {
-				if (['[object Object]', '[object Array]'].indexOf(Object.prototype.toString.call(obj[prop])) > -1) {
+				if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
 					return new Proxy(obj[prop], dataHandler(instance));
 				}
 				return obj[prop];
@@ -181,21 +181,30 @@ var Reef = (function () {
 		return matches[0];
 	};
 
+	var makeProxy = function (options, instance) {
+		if (options.setters) return !options.store ? options.data : null;
+		return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
+	};
+
 	/**
-	 * Create the Component object
+	 * Create the Reef object
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
 	 */
-	var Component = function (elem, options) {
+	var Reef = function (elem, options) {
 
 		// Make sure an element is provided
-		if (!elem && (!options || !options.lagoon)) return err('Reef.js: You did not provide an element to make into a component.');
+		if (!elem && (!options || !options.lagoon)) return err('You did not provide an element to make into a component.');
 
 		// Make sure a template is provided
-		if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
+		if (!options || (!options.template && !options.lagoon)) return err('You did not provide a template for this component.');
 
 		// Set the component properties
-		var _data = new Proxy(options.data, dataHandler(this));
+		var _this = this;
+		var _data = makeProxy(options, this);
+		var _store = options.store;
+		var _setters = options.setters;
+		var _getters = options.getters;
 		this.debounce = null;
 
 		// Create properties for stuff
@@ -204,25 +213,53 @@ var Reef = (function () {
 			template: {value: options.template},
 			allowHTML: {value: options.allowHTML},
 			lagoon: {value: options.lagoon},
+			store: {value: _store},
 			attached: {value: []}
 		});
 
 		// Define setter and getter for data
 		Object.defineProperty(this, 'data', {
 			get: function () {
-				return _data;
+				return _setters ? clone(_data, true) : _data;
 			},
 			set: function (data) {
+				if (_store || _setters) return true;
 				_data = new Proxy(data, dataHandler(this));
 				debounceRender(this);
 				return true;
 			}
 		});
 
+		if (_setters && !_store) {
+			Object.defineProperty(this, 'do', {
+				value: function (id) {
+					if (!_setters[id]) return err('There is no setter with this name.');
+					var args = Array.prototype.slice.call(arguments);
+					args[0] = _data;
+					_setters[id].apply(this, args);
+					debounceRender(_this);
+				}
+			});
+		}
+
+		if (_getters && !_store) {
+			Object.defineProperty(this, 'get', {
+				value: function (id) {
+					if (!_getters[id]) return err('There is no getter with this name.');
+					return _getters[id](_data);
+				}
+			});
+		}
+
+		// Attach to store
+		if (_store && 'attach' in _store) {
+			store.attach(this);
+		}
+
 		// Attach linked components
 		if (options.attachTo) {
-			var _this = this;
-			options.attachTo.forEach(function (coral) {
+			var _attachTo = trueTypeOf(options.attachTo) === 'array' ? option.attachTo : [options.attachTo];
+			_attachTo.forEach(function (coral) {
 				if ('attach' in coral) {
 					coral.attach(_this);
 				}
@@ -232,12 +269,12 @@ var Reef = (function () {
 	};
 
 	/**
-	 * Lagoon constructor
-	 * @param {Object} options The component options
+	 * Store constructor
+	 * @param {Object} options The data store options
 	 */
-	Component.Lagoon = function (options) {
+	Reef.Store = function (options) {
 		options.lagoon = true;
-		return new Component(null, options);
+		return new Reef(null, options);
 	};
 
 	/**
@@ -594,7 +631,7 @@ var Reef = (function () {
 	var renderPolyps = function (polyps, reef) {
 		if (!polyps) return;
 		polyps.forEach(function (coral) {
-			if (coral.attached.indexOf(reef) > -1) return err('ReefJS: ' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+			if (coral.attached.indexOf(reef) > -1) return err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 			if ('render' in coral) debounceRender(coral);
 		});
 	};
@@ -637,9 +674,9 @@ var Reef = (function () {
 	 * @param  {String} name   The name of the custom event
 	 * @param  {*}      detail Details to attach to the event
 	 */
-	Component.emit = function (elem, name, detail) {
+	Reef.emit = function (elem, name, detail) {
 		var event;
-		if (!elem || !name) return err('ReefJS: You did not provide an element or event name.');
+		if (!elem || !name) return err('You did not provide an element or event name.');
 		event = new CustomEvent(name, {
 			bubbles: true,
 			detail: detail
@@ -651,7 +688,7 @@ var Reef = (function () {
 	 * Render a template into the DOM
 	 * @return {Node}  The elemenft
 	 */
-	Component.prototype.render = function () {
+	Reef.prototype.render = function () {
 
 		// If this is used only for data, render attached and bail
 		if (this.lagoon) {
@@ -660,15 +697,15 @@ var Reef = (function () {
 		}
 
 		// Make sure there's a template
-		if (!this.template) return err('Reef.js: No template was provided.');
+		if (!this.template) return err('No template was provided.');
 
 		// If elem is an element, use it.
 		// If it's a selector, get it.
 		var elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
-		if (!elem) return err('Reef.js: The DOM element to render your template into was not found.');
+		if (!elem) return err('The DOM element to render your template into was not found.');
 
 		// Get the data (if there is any)
-		var data = clone(this.data || {}, this.allowHTML);
+		var data = clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 		// Get the template
 		var template = (trueTypeOf(this.template) === 'function' ? this.template(data) : this.template);
@@ -686,7 +723,7 @@ var Reef = (function () {
 		diff(templateMap, domMap, elem, polyps);
 
 		// Dispatch a render event
-		Component.emit(elem, 'render', data);
+		Reef.emit(elem, 'render', data);
 
 		// If there are linked Reefs, render them, too
 		renderPolyps(this.attached, this);
@@ -697,20 +734,13 @@ var Reef = (function () {
 	};
 
 	/**
-	 * Get a clone of the Component.data property
-	 * @return {Object} A clone of the Component.data property
-	 */
-	Component.prototype.clone = function () {
-		return clone(this.data, this.allowHTML);
-	};
-
-	/**
 	 * Attach a component to this one
 	 * @param  {Function|Array} coral The component(s) to attach
 	 */
-	Component.prototype.attach = function (coral) {
+	Reef.prototype.attach = function (coral) {
 		if (trueTypeOf(coral) === 'array') {
-			Array.prototype.push.apply(this.attached, coral);
+			this.attached.concat(coral);
+			// Array.prototype.push.apply(this.attached, coral);
 		} else {
 			this.attached.push(coral);
 		}
@@ -720,7 +750,7 @@ var Reef = (function () {
 	 * Detach a linked component to this one
 	 * @param  {Function|Array} coral The linked component(s) to detach
 	 */
-	Component.prototype.detach = function (coral) {
+	Reef.prototype.detach = function (coral) {
 		var isArray = trueTypeOf(coral) === 'array';
 		this.attached = this.attached.filter(function (polyp) {
 			if (isArray) {
@@ -735,16 +765,12 @@ var Reef = (function () {
 	 * Turn debug mode on or off
 	 * @param  {Boolean} on If true, turn debug mode on
 	 */
-	Component.debug = function (on) {
-		if (on) {
-			debug = true;
-		} else {
-			debug = false;
-		}
+	Reef.debug = function (on) {
+		debug = on ? true : false;
 	};
 
 	// Expose the clone method externally
-	Component.clone = clone;
+	Reef.clone = clone;
 
 
 	//
@@ -753,6 +779,6 @@ var Reef = (function () {
 
 	support = checkSupport();
 
-	return Component;
+	return Reef;
 
 }());
