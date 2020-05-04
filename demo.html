@@ -80,7 +80,22 @@
 				});
 				test.render();
 
-				var sourceOfTruth = new Reef(null, {
+				// var sourceOfTruth = new Reef(null, {
+				// 	data: {
+				// 		heading: '',
+				// 		items: {
+				// 			todos: [
+				// 				'Buy milk',
+				// 				'Bake a birthday cake',
+				// 				'Go apple picking'
+				// 			],
+				// 			heading: 'Things'
+				// 		},
+				// 	},
+				// 	lagoon: true
+				// });
+
+				var sourceOfTruth = new Reef.Lagoon({
 					data: {
 						heading: '',
 						items: {
@@ -91,8 +106,7 @@
 							],
 							heading: 'Things'
 						},
-					},
-					lagoon: true
+					}
 				});
 
 				var wrapper = new Reef('#app', {

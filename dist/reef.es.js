@@ -1,4 +1,4 @@
-/*! Reef v6.2.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.3.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 //
 // Variables
 //
@@ -166,13 +166,17 @@ var Component = function (elem, options) {
 	if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
 
 	// Set the component properties
-	this.elem = elem;
 	var _data = new Proxy(options.data, dataHandler(this));
-	this.template = options.template;
-	this.allowHTML = options.allowHTML;
-	this.attached = [];
-	this.lagoon = options.lagoon;
 	this.debounce = null;
+
+	// Create properties for stuff
+	Object.defineProperties(this, {
+		elem: {value: elem},
+		template: {value: options.template},
+		allowHTML: {value: options.allowHTML},
+		lagoon: {value: options.lagoon},
+		attached: {value: []}
+	});
 
 	// Define setter and getter for data
 	Object.defineProperty(this, 'data', {
@@ -196,6 +200,15 @@ var Component = function (elem, options) {
 		});
 	}
 
+};
+
+/**
+ * Lagoon constructor
+ * @param {Object} options The component options
+ */
+Component.Lagoon = function (options) {
+	options.lagoon = true;
+	return new Component(null, options);
 };
 
 /**

@@ -1,4 +1,4 @@
-/*! Reef v6.2.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v6.3.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	(function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -194,13 +194,17 @@ define(function () { 'use strict';
 		if (!options || (!options.template && !options.lagoon)) return err('Reef.js: You did not provide a template for this component.');
 
 		// Set the component properties
-		this.elem = elem;
 		var _data = new Proxy(options.data, dataHandler(this));
-		this.template = options.template;
-		this.allowHTML = options.allowHTML;
-		this.attached = [];
-		this.lagoon = options.lagoon;
 		this.debounce = null;
+
+		// Create properties for stuff
+		Object.defineProperties(this, {
+			elem: {value: elem},
+			template: {value: options.template},
+			allowHTML: {value: options.allowHTML},
+			lagoon: {value: options.lagoon},
+			attached: {value: []}
+		});
 
 		// Define setter and getter for data
 		Object.defineProperty(this, 'data', {
@@ -224,6 +228,15 @@ define(function () { 'use strict';
 			});
 		}
 
+	};
+
+	/**
+	 * Lagoon constructor
+	 * @param {Object} options The component options
+	 */
+	Component.Lagoon = function (options) {
+		options.lagoon = true;
+		return new Component(null, options);
 	};
 
 	/**
