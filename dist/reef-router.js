@@ -137,7 +137,7 @@
 	 * @return {String}      The href
 	 */
 	var getHref = function (url, root) {
-		if (!root.length) return url.pathname;
+		if (!root.length) return removeSlashes(url.pathname);
 		root = removeSlashes(root);
 		var href = removeSlashes(url.pathname);
 		if (href.indexOf(root) === 0) {
@@ -252,8 +252,15 @@
 		// Update the route
 		router.current = route;
 
+		// Get the href
+		var href = removeSlashes(link.getAttribute('href'));
+
 		// Update the URL
-		history.pushState(route ? route : {}, route && route.title ? route.title : '', link.getAttribute('href'));
+		if (router.hash) {
+			window.location.hash = '!/' + href;
+		} else {
+			history.pushState(route ? route : {}, route && route.title ? route.title : '', '/' + href);
+		}
 
 		// Render the UI
 		render(route, router);
@@ -286,6 +293,18 @@
 			return eventPath[i];
 		}
 
+	};
+
+	/**
+	 * Create a link element from a URL
+	 * @param  {String} url  The URL
+	 * @param  {String} root The root for the domain
+	 * @return {Node}       The element
+	 */
+	var getLinkElem = function (url, root) {
+		var link = document.createElement('a');
+		link.href = (root.length ? '/' + removeSlashes(root) : '') + '/' + removeSlashes(url);
+		return link;
 	};
 
 	/**
@@ -352,6 +371,26 @@
 		}
 	};
 
+	var hashHandler = function (event, router) {
+
+		// Parse a link from the URL
+		var link = getLinkElem(window.location.hash.slice(2), router.root);
+		var href = link.getAttribute('href');
+		var route = getRoute(link, router.routes, router.root);
+
+		// Emit pre-routing event
+		var previous = router.current;
+		preEvent(previous, route);
+
+		// Update the UI
+		router.current = route;
+		render(route, router);
+
+		// Emit post-routing event
+		postEvent(route, previous);
+
+	};
+
 
 	//
 	// Constructor
@@ -373,16 +412,19 @@
 		var _title = options.title ? options.title : '{{title}}';
 		var _current = getRoute(window.location, _routes, _root);
 		var _components = [];
+		var _hash = options.useHash || !support;
 
 		// Event Handlers
 		var _clickHandler = function (event) { clickHandler(event, _this); };
 		var _popHandler = function (event) { popHandler(event, _this); };
+		var _hashHandler = function (event) { hashHandler(event, _this); };
 
 		// Create immutable property getters
 		Object.defineProperties(_this, {
 			routes: {value: Reef.clone(_routes, true)},
 			root: {value: _root},
-			title: {value: _title}
+			title: {value: _title},
+			hash: {value: _hash}
 		});
 
 		// Define setter and getter for current
@@ -415,9 +457,11 @@
 		updateTitle(_current, _this);
 
 		// Listen for clicks and popstate events
-		if (support) {
+		document.addEventListener('click', _clickHandler);
+		if (_hash) {
+			window.addEventListener('hashchange', _hashHandler);
+		} else {
 			history.replaceState(_current, document.title, window.location.href);
-			document.addEventListener('click', _clickHandler);
 			window.addEventListener('popstate', _popHandler);
 		}
 
@@ -452,9 +496,7 @@
 	 * @param  {String} url The URL to navigate to
 	 */
 	Reef.Router.prototype.navigate = function (url) {
-		var link = document.createElement('a');
-		link.href = '/' + removeSlashes(this.root) + '/' + removeSlashes(url);
-		updateRoute(link, this);
+		updateRoute(getLinkElem(url, this.root), this);
 	};
 
 }());
