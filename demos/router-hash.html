@@ -39,7 +39,7 @@
 				<li><a href="/user/tom">User Profile</a></li>
 				<li><a href="/user?params=hi&hello=world"">User</a></li>
 				<li><a href="/busted?params=hi&hello=world"><span class="test">Busted</span></a></li>
-				<!-- <li><a href="#anchor">Anchor</a></li> -->
+				<li><a href="#anchor">Anchor</a></li>
 			</ul>
 			<div id="app"></div>
 
@@ -56,7 +56,6 @@
 
 				// Create a router
 				var router = new Reef.Router({
-					useHash: true,
 					title: function (route) {
 						if (route && route.id === 'home') {
 							return 'Reef Router';

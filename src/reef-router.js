@@ -238,6 +238,19 @@ var render = function (route, router) {
  */
 var updateRoute = function (link, router) {
 
+	// Set haschange state
+	if (router.hash) {
+		router.hashing = true;
+	}
+
+	// Check if link has hash
+	if (router.hash && link.hash.length) {
+		var elem = document.getElementById(link.hash.slice(1));
+		window.location.hash += link.hash;
+		elem.scrollIntoView();
+		return;
+	}
+
 	// Get the route
 	var route = getRoute(link, router.routes, router.root);
 
@@ -331,10 +344,10 @@ var clickHandler = function (event, router) {
 	if (!link) return;
 
 	// Ignore if link has a "download" or rel="external" attribute
-	if (link.hasAttribute('download') || link.getAttribute('rel') === 'external') return;
+	if (link.hasAttribute('download') || link.getAttribute('rel') === 'external' || link.href.indexOf('mailto:') > -1) return;
 
-	// Make sure link isn't hash pointing to current URL or 'mailto:'
-	if (isSamePath(link) || link.href.indexOf('mailto:') > -1) return;
+	// Make sure link isn't hash pointing to current URL
+	if (isSamePath(link) && !router.hash && link.hash.length) return;
 
 	// Stop link from running
 	event.preventDefault();
@@ -375,6 +388,12 @@ var popHandler = function (event, router) {
  */
 var hashHandler = function (event, router) {
 
+	// Don't run on hashchange transitions
+	if (router.hashing) {
+		router.hashing = false;
+		return;
+	}
+
 	// Parse a link from the URL
 	var link = getLinkElem(window.location.hash.slice(2), router.root);
 	var href = link.getAttribute('href');
@@ -414,7 +433,8 @@ Reef.Router = function (options) {
 	var _title = options.title ? options.title : '{{title}}';
 	var _current = getRoute(window.location, _routes, _root);
 	var _components = [];
-	var _hash = options.useHash || !support;
+	var _hash = options.useHash || !support || window.location.protocol === 'file:';
+	_this._hashing = false;
 
 	// Event Handlers
 	var _clickHandler = function (event) { clickHandler(event, _this); };
