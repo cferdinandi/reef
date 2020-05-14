@@ -1,4 +1,4 @@
-/*! Reef v7.1.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function () {
 	'use strict';
 
@@ -236,7 +236,7 @@
 	var focusHeading = function () {
 		var heading = document.querySelector('h1, h2, h3, h4, h5, h6');
 		if (!heading) return;
-		heading.setAttribute('tabindex', '-1');
+		if (!heading.hasAttribute('tabindex')) { heading.setAttribute('tabindex', '-1'); }
 		heading.focus();
 	};
 
@@ -353,7 +353,6 @@
 
 	/**
 	 * Handle click events
-	 * Adapted from https://github.com/visionmedia/page.js
 	 * @param  {Event}       event  The event object
 	 * @param  {Constructor} router The router component
 	 */

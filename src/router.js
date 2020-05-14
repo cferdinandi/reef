@@ -232,7 +232,7 @@ var updateTitle = function (route, router) {
 var focusHeading = function () {
 	var heading = document.querySelector('h1, h2, h3, h4, h5, h6');
 	if (!heading) return;
-	heading.setAttribute('tabindex', '-1');
+	if (!heading.hasAttribute('tabindex')) { heading.setAttribute('tabindex', '-1'); }
 	heading.focus();
 };
 
@@ -349,7 +349,6 @@ var isSamePath = function (url) {
 
 /**
  * Handle click events
- * Adapted from https://github.com/visionmedia/page.js
  * @param  {Event}       event  The event object
  * @param  {Constructor} router The router component
  */
