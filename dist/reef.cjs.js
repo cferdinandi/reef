@@ -1,4 +1,4 @@
-/*! Reef v7.1.3 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.4 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 //
@@ -420,9 +420,8 @@ var getAttribute = function (name, value) {
  * @param  {Boolean} isTemplate If true, these are for the template
  */
 var getDynamicAttributes = function (node, atts, isTemplate) {
-	// if (isTemplate) return;
 	dynamicAttributes.forEach(function (prop) {
-		if (!node[prop] || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
+		if (node[prop] === undefined || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 		atts.push(getAttribute(prop, node[prop]));
 	});
 };

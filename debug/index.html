@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-	<meta charset="UTF-8">
-	<title>CodePen - Reef.js Reduced Test Case</title>
+  <meta charset="UTF-8">
+  <title>CodePen - Reef.js Reduced Test Case</title>
 
-	<style type="text/css">
-		.image {
-			width: 500px;
-			height: 250px;
-			background-size: contain;
-			background-repeat: no-repeat;
-		}
-	</style>
+
 </head>
 <body>
 
-	<div id="app">Loading...</div>
+	<div id="app"></div>
 
-	<script src="../dist/reef.js"></script>
+	<script src='../dist/reef.js'></script>
 	<script>
-		var app = new Reef('#app', {
-			data: {
-				images: ['https://i.some-random-api.ml/ZiSHA1RvNg.jpg', 'https://i.some-random-api.ml/IC9sssLQyP.jpg', 'https://i.some-random-api.ml/4DVKzxANVK.jpg']
-			},
-			template: function(props) {
-				return `
-					<div style="background-image: url(https://i.some-random-api.ml/eIlcplhzXI.jpg);" class="image"></div>
-					${props.images.map(function (img) {
-						console.log(img);
-						return `<div style="background-image: url(${img})" class="image"></div>`;
-					}).join('')}`;
+		// If props.percentage is falsy, the value attribute doesn't get added to the progress element.
+
+		// Using the property doesn't work:
+
+		// var app = new Reef("#app", {
+		//   data: { percentage: 0 },
+		//   template: function (props) {
+		//     return `<progress max="100" value="${props.percentage}">${props.percentage}&percnt;</progress>`;
+		//   }
+		// });
+
+		// Nor does a hard-coded attribute:
+
+		var app = new Reef("#app", {
+			data: { percentage: 0 },
+			template: function (props) {
+				return `<progress max="100" value="0">${props.percentage}&percnt;</progress>`;
 			}
 		});
 

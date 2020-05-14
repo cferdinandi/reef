@@ -1,4 +1,4 @@
-/*! Reef v7.1.3 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.4 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	(function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -446,9 +446,8 @@ define(function () { 'use strict';
 	 * @param  {Boolean} isTemplate If true, these are for the template
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
-		// if (isTemplate) return;
 		dynamicAttributes.forEach(function (prop) {
-			if (!node[prop] || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
+			if (node[prop] === undefined || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 			atts.push(getAttribute(prop, node[prop]));
 		});
 	};
