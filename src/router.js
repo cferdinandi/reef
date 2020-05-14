@@ -151,7 +151,7 @@ var scrollToAnchor = function (hash, url) {
  * @return {String}      The href
  */
 var getHref = function (url, root, hash) {
-	if (hash || url.hash.indexOf('#!') === 0) {
+	if ((hash && url.pathname.slice(-5) === '.html') || url.hash.indexOf('#!') === 0) {
 		url = getLinkElem(url.hash.slice(2), root);
 	}
 	var href = removeSlashes(url.pathname);
@@ -172,7 +172,6 @@ var getHref = function (url, root, hash) {
  */
 var getRoute = function (url, routes, root, hash) {
 	var href = getHref(url, root, hash);
-	console.log(href);
 	var matches = findMatchedRoutes(href, routes);
 	if (!matches.length) return;
 	var route = Reef.clone(matches[0].route);

@@ -37,6 +37,7 @@
 				<li><a href="/about">About</a></li>
 				<li><a href="/contact">Contact</a></li>
 				<li><a href="/user/tom">User Profile</a></li>
+				<li><a href="/user/tom/password">Change Password</a></li>
 				<li><a href="/user?params=hi&hello=world"">User</a></li>
 				<li><a href="/busted?params=hi&hello=world"><span class="test">Busted</span></a></li>
 				<li><a href="/contact#anchor">Anchor</a></li>
@@ -82,6 +83,11 @@
 							id: 'user-profile',
 							title: 'User Profile',
 							url: '/user/:id'
+						},
+						{
+							id: 'user-password',
+							title: 'Change Password',
+							url: '/user/:id/password'
 						},
 						{
 							id: 'user',
