@@ -130,6 +130,11 @@
 		});
 	};
 
+	/**
+	 * Scroll to an anchor link
+	 * @param  {String} hash The anchor to scroll to
+	 * @param  {String} url  The URL to update [optional]
+	 */
 	var scrollToAnchor = function (hash, url) {
 		if (url) {
 			window.location.hash = '!/' + removeSlashes(url) + hash;
@@ -144,16 +149,14 @@
 
 	/**
 	 * Get the href from a full URL, excluding hashes and query strings
-	 * @param  {URL}    url  The URL object
-	 * @param  {String} root The root domain
+	 * @param  {URL}     url  The URL object
+	 * @param  {String}  root The root domain
+	 * @param  {Boolean} hash If true, as hash is used
 	 * @return {String}      The href
 	 */
-	var getHref = function (url, root, load) {
-		if (url.hash.indexOf('#!') === 0) {
+	var getHref = function (url, root, hash) {
+		if (hash || url.hash.indexOf('#!') === 0) {
 			url = getLinkElem(url.hash.slice(2), root);
-			if (url.hash.length) {
-				scrollToAnchor(url.hash);
-			}
 		}
 		var href = removeSlashes(url.pathname);
 		if (!root.length) return href;
@@ -171,8 +174,9 @@
 	 * @param  {String} root  The domain root
 	 * @return {Object}       The matching route
 	 */
-	var getRoute = function (url, routes, root, load) {
-		var href = getHref(url, root);
+	var getRoute = function (url, routes, root, hash) {
+		var href = getHref(url, root, hash);
+		console.log(href);
 		var matches = findMatchedRoutes(href, routes);
 		if (!matches.length) return;
 		var route = Reef.clone(matches[0].route);
@@ -241,15 +245,20 @@
 	 * Render an updated UI
 	 * @param  {URL}         link   The URL object
 	 * @param  {Constructor} router The router component
+	 * @param  {String}      hash   An anchor link to scroll to [optional]
 	 */
-	var render = function (route, router) {
+	var render = function (route, router, hash) {
 
 		// Render each component
 		renderComponents(router._components);
 
 		// a11y adjustments
 		updateTitle(route, router);
-		focusHeading();
+		if (hash) {
+			scrollToAnchor(hash);
+		} else {
+			focusHeading();
+		}
 
 	};
 
@@ -261,7 +270,7 @@
 	var updateRoute = function (link, router) {
 
 		// Get the route
-		var route = getRoute(link, router.routes, router.root);
+		var route = getRoute(link, router.routes, router.root, router.hash);
 
 		// If hash enabled, handle anchors on URLs
 		if (router.hash) {
@@ -290,7 +299,7 @@
 		}
 
 		// Render the UI
-		render(route, router);
+		render(route, router, link.hash);
 
 		// Emit post-routing event
 		postEvent(route, previous);
@@ -412,7 +421,7 @@
 		// Parse a link from the URL
 		var link = getLinkElem(window.location.hash.slice(2), router.root);
 		var href = link.getAttribute('href');
-		var route = getRoute(link, router.routes, router.root);
+		var route = getRoute(link, router.routes, router.root, router.hash);
 
 		// Emit pre-routing event
 		var previous = router.current;
@@ -446,9 +455,9 @@
 		var _routes = options.routes;
 		var _root = options.root ? options.root : '';
 		var _title = options.title ? options.title : '{{title}}';
-		var _current = getRoute(window.location, _routes, _root);
 		var _components = [];
 		var _hash = options.useHash || !support || window.location.protocol === 'file:';
+		var _current = getRoute(window.location, _routes, _root, _hash);
 		_this._hashing = false;
 
 		// Event Handlers
