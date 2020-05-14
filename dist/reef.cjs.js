@@ -1,4 +1,4 @@
-/*! Reef v7.0.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 //
@@ -7,6 +7,9 @@
 
 // Attributes that might be changed dynamically
 var dynamicAttributes = ['checked', 'selected', 'value'];
+
+// Hold internal helper functions
+var _ = {};
 
 // If true, debug mode is enabled
 var debug = false;
@@ -45,6 +48,7 @@ var matches = function (elem, selector) {
 var trueTypeOf = function (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 };
+_.trueTypeOf = trueTypeOf;
 
 /**
  * Throw an error message
@@ -55,6 +59,7 @@ var err = function (msg) {
 		throw new Error(msg);
 	}
 };
+_.err = err;
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
@@ -176,18 +181,20 @@ var Reef = function (elem, options) {
 	var _this = this;
 	var _data = makeProxy(options, _this);
 	var _store = options.store;
+	var _router = options.router;
 	var _setters = options.setters;
 	var _getters = options.getters;
 	_this.debounce = null;
 
 	// Create properties for stuff
-	Object.defineProperties(this, {
+	Object.defineProperties(_this, {
 		elem: {value: elem},
 		template: {value: options.template},
 		allowHTML: {value: options.allowHTML},
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
-		attached: {value: []}
+		attached: {value: []},
+		router: {value: _router}
 	});
 
 	// Define setter and getter for data
@@ -222,6 +229,11 @@ var Reef = function (elem, options) {
 				return _getters[id](_data);
 			}
 		});
+	}
+
+	// Attach to router
+	if (_router && 'addComponent' in _router) {
+		_router.addComponent(_this);
 	}
 
 	// Attach to store
@@ -605,7 +617,7 @@ var renderPolyps = function (polyps, reef) {
 	if (!polyps) return;
 	polyps.forEach(function (coral) {
 		if (coral.attached.indexOf(reef) > -1) return err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
-		if ('render' in coral) debounceRender(coral);
+		if ('render' in coral) coral.render();
 	});
 };
 
@@ -681,11 +693,8 @@ Reef.prototype.render = function () {
 	var data = clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
-	var template = (trueTypeOf(this.template) === 'function' ? this.template(data) : this.template);
+	var template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : null) : this.template);
 	if (['string', 'number'].indexOf(trueTypeOf(template)) === -1) return;
-
-	// If UI is unchanged, do nothing
-	if (elem.innerHTML === template.innerHTML) return;
 
 	// Create DOM maps of the template and target element
 	var templateMap = createDOMMap(stringToHTML(template), false, true);
@@ -713,7 +722,6 @@ Reef.prototype.render = function () {
 Reef.prototype.attach = function (coral) {
 	if (trueTypeOf(coral) === 'array') {
 		this.attached.concat(coral);
-		// Array.prototype.push.apply(this.attached, coral);
 	} else {
 		this.attached.push(coral);
 	}
@@ -744,6 +752,9 @@ Reef.debug = function (on) {
 
 // Expose the clone method externally
 Reef.clone = clone;
+
+// Attach internal helpers
+Reef._ = _;
 
 
 //

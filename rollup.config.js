@@ -6,7 +6,7 @@ import pkg from './package.json';
 // Configs
 var configs = {
 	name: 'Reef',
-	files: ['reef.js', 'reef.polyfills.js'],
+	files: ['reef.js', 'reef.polyfills.js', 'router.js'],
 	formats: ['iife', 'es', 'amd', 'cjs'],
 	default: 'iife',
 	pathIn: 'src',
