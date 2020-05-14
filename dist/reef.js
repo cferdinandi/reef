@@ -1,4 +1,4 @@
-/*! Reef v7.1.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.3 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -270,11 +270,11 @@ var Reef = (function () {
 	 */
 	var getStyleMap = function (styles) {
 		return styles.split(';').reduce(function (arr, style) {
-			if (style.indexOf(':') > 0) {
-				var styleArr = style.trim().split(':');
+			var col = style.indexOf(':');
+			if (col) {
 				arr.push({
-					name: styleArr[0] ? styleArr[0].trim() : '',
-					value: styleArr[1] ? styleArr[1].trim() : ''
+					name: style.slice(0, col).trim(),
+					value: style.slice(col + 1).trim()
 				});
 			}
 			return arr;

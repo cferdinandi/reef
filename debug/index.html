@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+	<meta charset="UTF-8">
+	<title>CodePen - Reef.js Reduced Test Case</title>
+
+	<style type="text/css">
+		.image {
+			width: 500px;
+			height: 250px;
+			background-size: contain;
+			background-repeat: no-repeat;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app">Loading...</div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		var app = new Reef('#app', {
+			data: {
+				images: ['https://i.some-random-api.ml/ZiSHA1RvNg.jpg', 'https://i.some-random-api.ml/IC9sssLQyP.jpg', 'https://i.some-random-api.ml/4DVKzxANVK.jpg']
+			},
+			template: function(props) {
+				return `
+					<div style="background-image: url(https://i.some-random-api.ml/eIlcplhzXI.jpg);" class="image"></div>
+					${props.images.map(function (img) {
+						console.log(img);
+						return `<div style="background-image: url(${img})" class="image"></div>`;
+					}).join('')}`;
+			}
+		});
+
+		app.render();
+	</script>
+
+</body>
+</html>
