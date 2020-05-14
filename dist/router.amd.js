@@ -1,6 +1,5 @@
-/*! Reef v7.0.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
-(function () {
-	'use strict';
+/*! Reef v7.1.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+define(function () { 'use strict';
 
 	//
 	// Variables
@@ -130,16 +129,34 @@
 		});
 	};
 
+	var scrollToAnchor = function (hash, url) {
+		if (url) {
+			window.location.hash = '!/' + removeSlashes(url) + hash;
+		}
+		var elem = document.getElementById(hash.slice(1));
+		if (!elem) return;
+		elem.scrollIntoView();
+		if (document.activeElement === elem) return;
+		elem.setAttribute('tabindex', '-1');
+		elem.focus();
+	};
+
 	/**
 	 * Get the href from a full URL, excluding hashes and query strings
 	 * @param  {URL}    url  The URL object
 	 * @param  {String} root The root domain
 	 * @return {String}      The href
 	 */
-	var getHref = function (url, root) {
-		if (!root.length) return removeSlashes(url.pathname);
-		root = removeSlashes(root);
+	var getHref = function (url, root, load) {
+		if (url.hash.indexOf('#!') === 0) {
+			url = getLinkElem(url.hash.slice(2), root);
+			if (url.hash.length) {
+				scrollToAnchor(url.hash);
+			}
+		}
 		var href = removeSlashes(url.pathname);
+		if (!root.length) return href;
+		root = removeSlashes(root);
 		if (href.indexOf(root) === 0) {
 			href = href.slice(root.length);
 		}
@@ -153,7 +170,7 @@
 	 * @param  {String} root  The domain root
 	 * @return {Object}       The matching route
 	 */
-	var getRoute = function (url, routes, root) {
+	var getRoute = function (url, routes, root, load) {
 		var href = getHref(url, root);
 		var matches = findMatchedRoutes(href, routes);
 		if (!matches.length) return;
@@ -242,21 +259,17 @@
 	 */
 	var updateRoute = function (link, router) {
 
-		// Set haschange state
-		if (router.hash) {
-			router.hashing = true;
-		}
-
-		// Check if link has hash
-		if (router.hash && link.hash.length) {
-			var elem = document.getElementById(link.hash.slice(1));
-			window.location.hash += link.hash;
-			elem.scrollIntoView();
-			return;
-		}
-
 		// Get the route
 		var route = getRoute(link, router.routes, router.root);
+
+		// If hash enabled, handle anchors on URLs
+		if (router.hash) {
+			router.hashing = true;
+			if (route.url === router.current.url && link.hash.length) {
+				scrollToAnchor(link.hash, route.url);
+				return;
+			}
+		}
 
 		// Emit pre-routing event
 		var previous = router.current;
@@ -337,18 +350,15 @@
 	 */
 	var clickHandler = function (event, router) {
 
-		// Don't run for right-click or control/command click
-		if (event.metaKey || event.ctrlKey || event.shiftKey) return;
-
-		// If event was prevented elsewhere, bail
-		if (event.defaultPrevented) return;
+		// Ignore for right-click or control/command click
+		// Ignore if event was prevented
+		if (event.metaKey || event.ctrlKey || event.shiftKey || event.defaultPrevented) return;
 
 		// Check if a link was clicked
+		// Ignore if link points to external location
+		// Ignore if link has "download", rel="external", or "mailto:"
 		var link = getLink(event);
-		if (!link) return;
-
-		// Ignore if link has a "download" or rel="external" attribute
-		if (link.hasAttribute('download') || link.getAttribute('rel') === 'external' || link.href.indexOf('mailto:') > -1) return;
+		if (!link || link.host !== window.location.host || link.hasAttribute('download') || link.getAttribute('rel') === 'external' || link.href.indexOf('mailto:') > -1) return;
 
 		// Make sure link isn't hash pointing to current URL
 		if (isSamePath(link) && !router.hash && link.hash.length) return;
@@ -525,4 +535,4 @@
 		updateRoute(getLinkElem(url, this.root), this);
 	};
 
-}());
+});

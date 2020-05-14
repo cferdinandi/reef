@@ -1,6 +1,5 @@
 /*! Reef v7.1.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
-var Reef = (function () {
-	'use strict';
+define(function () { 'use strict';
 
 	//
 	// Variables
@@ -766,4 +765,4 @@ var Reef = (function () {
 
 	return Reef;
 
-}());
+});

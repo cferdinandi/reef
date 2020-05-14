@@ -1,6 +1,6 @@
 {
 	"name": "reefjs",
-	"version": "7.0.1",
+	"version": "7.1.0",
 	"description": "A lightweight helper function for creating reactive, state-based components and UI",
 	"main": "./dist/reef.cjs.min.js",
 	"module": "./dist/reef.es.min.js",
@@ -18,9 +18,10 @@
 		"url": "http://github.com/cferdinandi/reef"
 	},
 	"scripts": {
-		"clean": "rm -rf dist",
+		"clean": "rm -rf dist && rm -f router.js",
 		"js": "rollup --config",
-		"build": "npm run clean && npm run js"
+		"move": "cp dist/router.cjs.min.js ./ && mv router.cjs.min.js router.js",
+		"build": "npm run clean && npm run js && npm run move"
 	},
 	"devDependencies": {
 		"rollup": "2.6.1",
