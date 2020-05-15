@@ -371,7 +371,7 @@ var addAttributes = function (elem, atts, firstRender) {
 			if (attribute.att in elem) {
 				try {
 					elem[attribute.att] = attribute.value;
-					if (!elem[attribute.att]) {
+					if (elem[attribute.att]) {
 						elem[attribute.att] = true;
 					}
 				} catch (e) {}
@@ -431,7 +431,8 @@ var getAttribute = function (name, value) {
  */
 var getDynamicAttributes = function (node, atts, isTemplate) {
 	dynamicAttributes.forEach(function (prop) {
-		if (node[prop] === undefined || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
+		// if (node[prop] === undefined || node[prop] === null || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
+		if ((!node[prop] && node[prop] !== 0) || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 		atts.push(getAttribute(prop, node[prop]));
 	});
 };

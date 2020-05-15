@@ -1,4 +1,4 @@
-/*! Reef v7.1.4 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.5 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -362,7 +362,7 @@ var Reef = (function () {
 				if (attribute.att in elem) {
 					try {
 						elem[attribute.att] = attribute.value;
-						if (!elem[attribute.att]) {
+						if (elem[attribute.att]) {
 							elem[attribute.att] = true;
 						}
 					} catch (e) {}
@@ -422,7 +422,8 @@ var Reef = (function () {
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
 		dynamicAttributes.forEach(function (prop) {
-			if (node[prop] === undefined || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
+			// if (node[prop] === undefined || node[prop] === null || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
+			if ((!node[prop] && node[prop] !== 0) || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 			atts.push(getAttribute(prop, node[prop]));
 		});
 	};

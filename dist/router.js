@@ -1,4 +1,4 @@
-/*! Reef v7.1.4 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.5 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function () {
 	'use strict';
 
