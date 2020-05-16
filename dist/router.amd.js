@@ -1,4 +1,4 @@
-/*! Reef v7.1.5 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.6 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -47,7 +47,7 @@ define(function () { 'use strict';
 	 * @return {String}     The string with slashes removed
 	 */
 	var removeSlashes = function (str) {
-		return str.replace(/^\/|\/$/g, '');
+		return '/' + str.replace(/^\/|\/$/g, '');
 	};
 
 	/**
@@ -118,6 +118,7 @@ define(function () { 'use strict';
 		return routes.map(function (route) {
 			var parts = replaceDynamicURLParts(removeSlashes(route.url));
 			var match = url.replace(/^\/+/, '/').match(parts.regexp);
+			console.log(url, route, parts, match);
 			if (!match) return;
 			var params = regExpResultToParams(match, parts.paramNames);
 			return {
@@ -291,9 +292,9 @@ define(function () { 'use strict';
 
 		// Update the URL
 		if (router.hash) {
-			window.location.hash = '!/' + href;
+			window.location.hash = '!' + href;
 		} else {
-			history.pushState(route ? route : {}, route && route.title ? route.title : '', '/' + href);
+			history.pushState(route ? route : {}, route && route.title ? route.title : '', href);
 		}
 
 		// Render the UI
@@ -337,7 +338,7 @@ define(function () { 'use strict';
 	 */
 	var getLinkElem = function (url, root) {
 		var link = document.createElement('a');
-		link.href = (root.length ? '/' + removeSlashes(root) : '') + '/' + removeSlashes(url);
+		link.href = (root.length ? removeSlashes(root) : '') + removeSlashes(url);
 		return link;
 	};
 

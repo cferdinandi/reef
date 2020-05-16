@@ -1,4 +1,4 @@
-/*! Reef v7.1.5 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.6 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -421,7 +421,6 @@ define(function () { 'use strict';
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
 		dynamicAttributes.forEach(function (prop) {
-			// if (node[prop] === undefined || node[prop] === null || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 			if ((!node[prop] && node[prop] !== 0) || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
 			atts.push(getAttribute(prop, node[prop]));
 		});
