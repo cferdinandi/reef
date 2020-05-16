@@ -1,4 +1,4 @@
-/*! Reef v7.1.7 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.8 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function () {
 	'use strict';
 
@@ -112,7 +112,7 @@
 	 */
 	var findMatchedRoutes = function (url, routes) {
 		if (!routes || Reef._.trueTypeOf(routes) !== 'array') return [];
-		if (!url.length) {
+		if (url === '/') {
 			var home = getHome(routes);
 			if (home) return home;
 		}

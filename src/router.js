@@ -108,7 +108,7 @@ var getHome = function (routes) {
  */
 var findMatchedRoutes = function (url, routes) {
 	if (!routes || Reef._.trueTypeOf(routes) !== 'array') return [];
-	if (!url.length) {
+	if (url === '/') {
 		var home = getHome(routes);
 		if (home) return home;
 	}
