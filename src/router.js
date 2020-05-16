@@ -115,7 +115,6 @@ var findMatchedRoutes = function (url, routes) {
 	return routes.map(function (route) {
 		var parts = replaceDynamicURLParts(removeSlashes(route.url));
 		var match = url.replace(/^\/+/, '/').match(parts.regexp);
-		console.log(url, route, parts, match);
 		if (!match) return;
 		var params = regExpResultToParams(match, parts.paramNames);
 		return {

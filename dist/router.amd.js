@@ -1,4 +1,4 @@
-/*! Reef v7.1.6 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.7 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -118,7 +118,6 @@ define(function () { 'use strict';
 		return routes.map(function (route) {
 			var parts = replaceDynamicURLParts(removeSlashes(route.url));
 			var match = url.replace(/^\/+/, '/').match(parts.regexp);
-			console.log(url, route, parts, match);
 			if (!match) return;
 			var params = regExpResultToParams(match, parts.paramNames);
 			return {
