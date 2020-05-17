@@ -1,4 +1,4 @@
-/*! Reef v7.1.8 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.9 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	(function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -387,13 +387,13 @@ define(function () { 'use strict';
 				if (attribute.att in elem) {
 					try {
 						elem[attribute.att] = attribute.value;
-						if (elem[attribute.att]) {
+						if (!elem[attribute.att] && elem[attribute.att] !== 0) {
 							elem[attribute.att] = true;
 						}
 					} catch (e) {}
 				}
 				try {
-					elem.setAttribute(attribute.att, attribute.value || '');
+					elem.setAttribute(attribute.att, attribute.value);
 				} catch (e) {}
 			}
 		});

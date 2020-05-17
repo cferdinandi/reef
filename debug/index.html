@@ -28,7 +28,12 @@
 		var app = new Reef("#app", {
 			data: { percentage: 0 },
 			template: function (props) {
-				return `<progress max="100" value="0">${props.percentage}&percnt;</progress>`;
+				return `
+					<progress max="100" value="0">${props.percentage}&percnt;</progress>
+					<label>
+						<input type="checkbox" checked>
+						Testing checked state
+					</label>`;
 			}
 		});
 

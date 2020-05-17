@@ -1,4 +1,4 @@
-/*! Reef v7.1.8 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.1.9 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -361,13 +361,13 @@ define(function () { 'use strict';
 				if (attribute.att in elem) {
 					try {
 						elem[attribute.att] = attribute.value;
-						if (elem[attribute.att]) {
+						if (!elem[attribute.att] && elem[attribute.att] !== 0) {
 							elem[attribute.att] = true;
 						}
 					} catch (e) {}
 				}
 				try {
-					elem.setAttribute(attribute.att, attribute.value || '');
+					elem.setAttribute(attribute.att, attribute.value);
 				} catch (e) {}
 			}
 		});
