@@ -1,4 +1,4 @@
-/*! Reef v7.1.9 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.2.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 //
 // Variables
 //

@@ -36,6 +36,7 @@
 				<li><a href="/">Home</a></li>
 				<li><a href="/about">About</a></li>
 				<li><a href="/contact">Contact</a></li>
+				<li><a href="/contact-us">Redirects to Contact</a></li>
 				<li><a href="/user/tom">User Profile</a></li>
 				<li><a href="/user/tom/password">Change Password</a></li>
 				<li><a href="/user?params=hi&hello=world"">User</a></li>
@@ -78,6 +79,10 @@
 							id: 'contact',
 							title: 'Contact Us',
 							url: '/contact'
+						},
+						{
+							url: '/contact-us',
+							redirect: '/contact'
 						},
 						{
 							id: 'user-profile',

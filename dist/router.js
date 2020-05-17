@@ -1,4 +1,4 @@
-/*! Reef v7.1.9 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.2.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function () {
 	'use strict';
 
@@ -178,6 +178,7 @@
 		var href = getHref(url, root, hash);
 		var matches = findMatchedRoutes(href, routes);
 		if (!matches.length) return;
+		// if (matches[0].route.redirect) return getRoute(getLinkElem(matches[0].route.redirect, root, hash), routes, root, hash);
 		var route = Reef.clone(matches[0].route);
 		route.params = matches[0].params;
 		route.search = getParams(url);
@@ -270,6 +271,9 @@
 
 		// Get the route
 		var route = getRoute(link, router.routes, router.root, router.hash);
+
+		// If redirect, switch up
+		if (route.redirect) return updateRoute(getLinkElem(typeof route.redirect === 'function' ? route.redirect(route) : route.redirect, router.root), router);
 
 		// If hash enabled, handle anchors on URLs
 		if (router.hash) {
