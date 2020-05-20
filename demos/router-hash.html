@@ -82,7 +82,10 @@
 						},
 						{
 							url: '/contact-us',
-							redirect: '/contact'
+							redirect: function (route) {
+								console.log(route.params, route.search);
+								return '/contact';
+							}
 						},
 						{
 							id: 'user-profile',
