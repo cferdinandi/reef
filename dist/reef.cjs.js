@@ -1,4 +1,4 @@
-/*! Reef v7.3.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.3.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 //
@@ -712,13 +712,12 @@ Reef.prototype.attach = function (coral) {
  * @param  {Function|Array} coral The linked component(s) to detach
  */
 Reef.prototype.detach = function (coral) {
-	var isArray = trueTypeOf(coral) === 'array';
-	this.attached = this.attached.filter(function (polyp) {
-		if (isArray) {
-			return coral.indexOf(polyp) === -1;
-		} else {
-			return polyp !== coral;
-		}
+	var polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
+	var instance = this;
+	polyps.forEach(function (polyp) {
+		var index = instance.attached.indexOf(polyp);
+		if (index < 0) return;
+		instance.attached.splice(index, 1);
 	});
 };
 
