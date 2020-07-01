@@ -10,30 +10,12 @@
 
 	<div id="app"></div>
 
-	<script src='../dist/reef.js'></script>
+	<script src='../dist/reef.polyfills.js'></script>
 	<script>
-		// If props.percentage is falsy, the value attribute doesn't get added to the progress element.
-
-		// Using the property doesn't work:
-
-		// var app = new Reef("#app", {
-		//   data: { percentage: 0 },
-		//   template: function (props) {
-		//     return `<progress max="100" value="${props.percentage}">${props.percentage}&percnt;</progress>`;
-		//   }
-		// });
-
-		// Nor does a hard-coded attribute:
-
 		var app = new Reef("#app", {
 			data: { percentage: 0 },
 			template: function (props) {
-				return `
-					<progress max="100" value="0">${props.percentage}&percnt;</progress>
-					<label>
-						<input type="checkbox" checked>
-						Testing checked state
-					</label>`;
+				return 'Hello world!';
 			}
 		});
 

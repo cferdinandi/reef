@@ -1,4 +1,4 @@
-/*! Reef v7.3.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.3.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 //
@@ -136,11 +136,6 @@ var dataHandler = function (instance) {
 		set: function (obj, prop, value) {
 			if (obj[prop] === value) return true;
 			obj[prop] = value;
-			debounceRender(instance);
-			return true;
-		},
-		deleteProperty: function (obj, prop) {
-			delete obj[prop];
 			debounceRender(instance);
 			return true;
 		}
@@ -620,7 +615,7 @@ var stringToHTML = function (str) {
 		var doc = parser.parseFromString(str, 'text/html');
 
 		// If there are items in the head, move them to the body
-		if (doc.head.childNodes.length > 0) {
+		if ('head' in doc && 'childNodes' in doc.head && doc.head.childNodes.length > 0) {
 			Array.prototype.slice.call(doc.head.childNodes).reverse().forEach(function (node) {
 				doc.body.insertBefore(node, doc.body.firstChild);
 			});

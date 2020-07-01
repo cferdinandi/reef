@@ -135,11 +135,6 @@ var dataHandler = function (instance) {
 			obj[prop] = value;
 			debounceRender(instance);
 			return true;
-		},
-		deleteProperty: function (obj, prop) {
-			delete obj[prop];
-			debounceRender(instance);
-			return true;
 		}
 	};
 };
@@ -617,7 +612,7 @@ var stringToHTML = function (str) {
 		var doc = parser.parseFromString(str, 'text/html');
 
 		// If there are items in the head, move them to the body
-		if (doc.head.childNodes.length > 0) {
+		if ('head' in doc && 'childNodes' in doc.head && doc.head.childNodes.length > 0) {
 			Array.prototype.slice.call(doc.head.childNodes).reverse().forEach(function (node) {
 				doc.body.insertBefore(node, doc.body.firstChild);
 			});
