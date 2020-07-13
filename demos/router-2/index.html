@@ -114,8 +114,9 @@
 					}
 				});
 
-				window.addEventListener('beforeRouteUpdated', function (event) { console.log('before', event.detail); });
+				// window.addEventListener('beforeRouteUpdated', function (event) { console.log('before', event.detail); });
 				window.addEventListener('routeUpdated', function (event) { console.log('after', event.detail); });
+				window.addEventListener('render', function (event) { console.log('render', event.detail); });
 
 				// Render the app
 				app.render();

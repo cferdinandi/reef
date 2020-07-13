@@ -1,4 +1,4 @@
-/*! Reef v7.3.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.3.3 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function () {
 	'use strict';
 
@@ -43,12 +43,30 @@
 	};
 
 	/**
+	 * Remove hashbang (#!) from a string
+	 * @param  {String} str The string
+	 * @return {String}     The string with the hashbang removed
+	 */
+	var removeHashBang = function (str) {
+		return str.replace(/^(#!)\/?/g, '');
+	};
+
+	/**
 	 * Remove leading and trailing slashes from a string
 	 * @param  {String} str The string
 	 * @return {String}     The string with slashes removed
 	 */
 	var removeSlashes = function (str) {
-		return '/' + str.replace(/^\/|\/$/g, '');
+		return str.replace(/^\/|\/$/g, '');
+	};
+
+	/**
+	 * Remove slashes and hashbangs from a URL
+	 * @param  {String} str The string
+	 * @return {String}     The string with slashes and hashbangs removed
+	 */
+	var cleanURL = function (str) {
+		return '/' + removeHashBang(removeSlashes(str));
 	};
 
 	/**
@@ -117,7 +135,7 @@
 			if (home) return home;
 		}
 		return routes.map(function (route) {
-			var parts = replaceDynamicURLParts(removeSlashes(route.url));
+			var parts = replaceDynamicURLParts(cleanURL(route.url));
 			var match = url.replace(/^\/+/, '/').match(parts.regexp);
 			if (!match) return;
 			var params = regExpResultToParams(match, parts.paramNames);
@@ -137,8 +155,9 @@
 	 */
 	var scrollToAnchor = function (hash, url) {
 		if (url) {
-			window.location.hash = '!/' + removeSlashes(url) + hash;
+			window.location.hash = '!' + cleanURL(url) + hash;
 		}
+		console.log(hash);
 		var elem = document.getElementById(hash.slice(1));
 		if (!elem) return;
 		elem.scrollIntoView();
@@ -158,9 +177,9 @@
 		if ((hash && url.pathname.slice(-5) === '.html') || url.hash.indexOf('#!') === 0) {
 			url = getLinkElem(url.hash.slice(2), root);
 		}
-		var href = removeSlashes(url.pathname);
+		var href = cleanURL(url.pathname);
 		if (!root.length) return href;
-		root = removeSlashes(root);
+		root = cleanURL(root);
 		if (href.indexOf(root) === 0) {
 			href = href.slice(root.length);
 		}
@@ -178,7 +197,6 @@
 		var href = getHref(url, root, hash);
 		var matches = findMatchedRoutes(href, routes);
 		if (!matches.length) return;
-		// if (matches[0].route.redirect) return getRoute(getLinkElem(matches[0].route.redirect, root, hash), routes, root, hash);
 		var route = Reef.clone(matches[0].route);
 		route.params = matches[0].params;
 		route.search = getParams(url);
@@ -278,8 +296,9 @@
 		// If hash enabled, handle anchors on URLs
 		if (router.hash) {
 			router.hashing = true;
-			if (route.url === router.current.url && link.hash.length) {
-				scrollToAnchor(link.hash, route.url);
+			var hash = getHash(link.hash);
+			if (route.url === router.current.url && hash.length) {
+				scrollToAnchor(hash, route.url);
 				return;
 			}
 		}
@@ -292,7 +311,7 @@
 		router.current = route;
 
 		// Get the href
-		var href = removeSlashes(link.getAttribute('href'));
+		var href = cleanURL(link.getAttribute('href'));
 
 		// Update the URL
 		if (router.hash) {
@@ -302,7 +321,7 @@
 		}
 
 		// Render the UI
-		render(route, router, link.hash);
+		render(route, router, router.hash ? getHash(link.hash) : link.hash);
 
 		// Emit post-routing event
 		postEvent(route, previous);
@@ -314,7 +333,7 @@
 	 * @param  {Event} event The event object
 	 * @return {Node}        The link
 	 */
-	var getLink = function (event) {
+	var getLink = function (event, router) {
 
 		// Cache for better minification
 		var elem = event.target;
@@ -342,16 +361,27 @@
 	 */
 	var getLinkElem = function (url, root) {
 		var link = document.createElement('a');
-		link.href = (root.length ? removeSlashes(root) : '') + removeSlashes(url);
+		link.href = (root.length ? cleanURL(root) : '') + cleanURL(url);
 		return link;
 	};
 
 	/**
-	 * Check if URL matches current location
-	 * @param  {String}  url The URL path
-	 * @return {Boolean}     If true, points to current location
+	 * Get true hash from hashbang (#!) string
+	 * @param  {String} str The string
+	 * @return {String}     The hash
 	 */
-	var isSamePath = function (url) {
+	var getHash = function (str) {
+		var parts = str.split('#');
+		return parts[2] ? '#' + parts[2] : '';
+	};
+
+	/**
+	 * Check if URL matches current location
+	 * @param  {String}  url  The URL path
+	 * @param  {Boolean} hash If true, using hashbang routing
+	 * @return {Boolean}      If true, points to current location
+	 */
+	var isSamePath = function (url, hash) {
 		return url.pathname === window.location.pathname && url.search === window.location.search;
 	};
 
@@ -372,7 +402,7 @@
 		var link = getLink(event);
 		if (!link || link.host !== window.location.host || link.hasAttribute('download') || link.getAttribute('rel') === 'external' || link.href.indexOf('mailto:') > -1) return;
 
-		// Make sure link isn't hash pointing to current URL
+		// Make sure link isn't hash pointing to hash at current URL
 		if (isSamePath(link) && !router.hash && link.hash.length) return;
 
 		// Stop link from running

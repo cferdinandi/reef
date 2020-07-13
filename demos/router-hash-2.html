@@ -33,15 +33,15 @@
 		<main>
 
 			<ul>
-				<li><a href="#!/">Home</a></li>
-				<li><a href="#!/about">About</a></li>
-				<li><a href="#!/contact">Contact</a></li>
-				<li><a href="#!/contact-us">Redirects to Contact</a></li>
-				<li><a href="#!/user/tom">User Profile</a></li>
-				<li><a href="#!/user/tom/password">Change Password</a></li>
-				<li><a href="#!/user?params=hi&hello=world"">User</a></li>
-				<li><a href="#!/busted?params=hi&hello=world"><span class="test">Busted</span></a></li>
-				<li><a href="#!/contact#anchor">Anchor</a></li>
+				<li><a href="/">Home</a></li>
+				<li><a href="/about">About</a></li>
+				<li><a href="/contact">Contact</a></li>
+				<li><a href="/contact-us">Redirects to Contact</a></li>
+				<li><a href="/user/tom">User Profile</a></li>
+				<li><a href="/user/tom/password">Change Password</a></li>
+				<li><a href="/user?params=hi&hello=world"">User</a></li>
+				<li><a href="/busted?params=hi&hello=world"><span class="test">Busted</span></a></li>
+				<li><a href="/contact#anchor">Anchor</a></li>
 				<li><a href="https://gomakethings.com">Go Make Things</a></li>
 			</ul>
 			<div id="app"></div>
@@ -103,14 +103,14 @@
 							url: '/user'
 						},
 						{
-							id: 'home',
-							title: 'Home',
-							url: '/'
-						},
-						{
 							id: 'catchall',
 							title: 'Catchall',
 							url: '*'
+						},
+						{
+							id: 'home',
+							title: 'Home',
+							url: '/'
 						}
 					]
 				});
@@ -128,8 +128,8 @@
 					}
 				});
 
-				// window.addEventListener('beforeRouteUpdated', function (event) { console.log('before', event.detail); });
-				// window.addEventListener('routeUpdated', function (event) { console.log('after', event.detail); });
+				window.addEventListener('beforeRouteUpdated', function (event) { console.log('before', event.detail); });
+				window.addEventListener('routeUpdated', function (event) { console.log('after', event.detail); });
 
 				// Render the app
 				app.render();
