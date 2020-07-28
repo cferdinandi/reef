@@ -194,6 +194,9 @@ var getRoute = function (url, routes, root, hash) {
 	var matches = findMatchedRoutes(href, routes);
 	if (!matches.length) return;
 	var route = Reef.clone(matches[0].route);
+	if (route.redirect) {
+		return getRoute(getLinkElem(typeof route.redirect === 'function' ? route.redirect(route) : route.redirect, root), routes, root, hash);
+	}
 	route.params = matches[0].params;
 	route.search = getParams(url);
 	return route;
