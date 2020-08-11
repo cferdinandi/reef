@@ -587,3 +587,10 @@ Reef.Router.prototype.addComponent = function (component) {
 Reef.Router.prototype.navigate = function (url) {
 	updateRoute(getLinkElem(url, this.root), this);
 };
+
+/**
+ * Update the title
+ */
+Reef.Router.prototype.updateTitle = function () {
+	updateTitle(this.current, this);
+};

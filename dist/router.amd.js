@@ -1,4 +1,4 @@
-/*! Reef v7.3.5 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.4.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -589,6 +589,13 @@ define(function () { 'use strict';
 	 */
 	Reef.Router.prototype.navigate = function (url) {
 		updateRoute(getLinkElem(url, this.root), this);
+	};
+
+	/**
+	 * Update the title
+	 */
+	Reef.Router.prototype.updateTitle = function () {
+		updateTitle(this.current, this);
 	};
 
 });
