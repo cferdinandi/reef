@@ -5,7 +5,7 @@
 	"main": "./dist/reef.cjs.min.js",
 	"module": "./dist/reef.es.min.js",
 	"browser": {
-		"reef-es": "./dist/reef.cjs.min.js",
+		"reef-es": "./dist/reef.es.min.js",
 		"reef-iife": "./dist/reef.min.js"
 	},
 	"author": {
