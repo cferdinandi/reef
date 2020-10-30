@@ -1,4 +1,4 @@
-/*! Reef v7.4.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.4.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -117,10 +117,11 @@ var clone = function (obj, allowHTML) {
 	}
 
 	// If the data is a string, encode it
+	// https://portswigger.net/web-security/cross-site-scripting/preventing
 	if (type === 'string' && !allowHTML) {
-		var temp = document.createElement('div');
-		temp.textContent = obj;
-		return temp.innerHTML;
+		return obj.replace(/[^\w. ]/gi, function(c){
+			return '&#' + c.charCodeAt(0) + ';';
+		});
 	}
 
 	// Otherwise, return object as is

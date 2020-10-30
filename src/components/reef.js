@@ -88,10 +88,11 @@ var clone = function (obj, allowHTML) {
 	}
 
 	// If the data is a string, encode it
+	// https://portswigger.net/web-security/cross-site-scripting/preventing
 	if (type === 'string' && !allowHTML) {
-		var temp = document.createElement('div');
-		temp.textContent = obj;
-		return temp.innerHTML;
+		return obj.replace(/[^\w. ]/gi, function(c){
+			return '&#' + c.charCodeAt(0) + ';';
+		});
 	}
 
 	// Otherwise, return object as is

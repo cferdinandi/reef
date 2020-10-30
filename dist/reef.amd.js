@@ -1,4 +1,4 @@
-/*! Reef v7.4.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.4.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -91,10 +91,11 @@ define(function () { 'use strict';
 		}
 
 		// If the data is a string, encode it
+		// https://portswigger.net/web-security/cross-site-scripting/preventing
 		if (type === 'string' && !allowHTML) {
-			var temp = document.createElement('div');
-			temp.textContent = obj;
-			return temp.innerHTML;
+			return obj.replace(/[^\w. ]/gi, function(c){
+				return '&#' + c.charCodeAt(0) + ';';
+			});
 		}
 
 		// Otherwise, return object as is

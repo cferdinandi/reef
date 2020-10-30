@@ -36,10 +36,14 @@
 				// If you uncomment allowHTML: true, the alert will run
 				var app = new Reef('#app', {
 					data: {
-						xss: `<img onerror="alert('xss attack, yo!')" src=x>`
+						xss: `<img onerror="alert('xss attack, yo!')" src=x>`,
+						xss2: `x" onerror="alert('XSS Attack')"`
 					},
 					template: function (props) {
-						return props.xss;
+						return `
+							<p>${props.xss}</p>
+							<p><img src="${props.xss2}"></p>
+						`;
 					},
 					// allowHTML: true
 				});
