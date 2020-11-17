@@ -90,7 +90,7 @@ var clone = function (obj, allowHTML) {
 	// If the data is a string, encode it
 	// https://portswigger.net/web-security/cross-site-scripting/preventing
 	if (type === 'string' && !allowHTML) {
-		return obj.replace(/[^\w. ]/gi, function(c){
+		return obj.replace(/[^\w-_. ]/gi, function(c){
 			return '&#' + c.charCodeAt(0) + ';';
 		});
 	}
@@ -670,7 +670,7 @@ Reef.prototype.render = function () {
 	var data = clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
-	var template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : null) : this.template);
+	var template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
 	if (['string', 'number'].indexOf(trueTypeOf(template)) < 0) return;
 
 	// Diff and update the DOM
