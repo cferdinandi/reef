@@ -1,4 +1,4 @@
-/*! Reef v7.5.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -59,8 +59,23 @@ var checkSupport = function () {
 	return true;
 };
 
+/**
+ * Check if element has selector
+ * @param  {Node}    elem     The element
+ * @param  {String}  selector The selector
+ * @return {Boolean}          If true, the element has the selector
+ */
 var matches = function (elem, selector) {
 	return (Element.prototype.matches && elem.matches(selector)) || (Element.prototype.msMatchesSelector && elem.msMatchesSelector(selector)) || (Element.prototype.webkitMatchesSelector && elem.webkitMatchesSelector(selector));
+};
+
+/**
+ * Convert an iterable object into an array
+ * @param  {*}     arr The NodeList, HTMLCollection, etc. to convert into an array
+ * @return {Array}     The array
+ */
+var arrayFrom = function (arr) {
+	return Array.prototype.slice.call(arr);
 };
 
 /**
@@ -237,7 +252,7 @@ var Reef = function (elem, options) {
 		Object.defineProperty(_this, 'do', {
 			value: function (id) {
 				if (!_setters[id]) return err('There is no setter with this name.');
-				var args = Array.prototype.slice.call(arguments);
+				var args = arrayFrom(arguments);
 				args[0] = _data;
 				_setters[id].apply(_this, args);
 				debounceRender(_this);
@@ -392,7 +407,7 @@ var removeAttributes = function (elem, atts) {
 		if (attribute.att === 'class') {
 			elem.className = '';
 		} else if (attribute.att === 'style') {
-			removeStyles(elem, Array.prototype.slice.call(elem.style));
+			removeStyles(elem, arrayFrom(elem.style));
 		} else {
 			if (attribute.att in elem) {
 				try {
@@ -544,8 +559,8 @@ var addDefaultAtts = function (node) {
 var diff = function (template, elem, polyps) {
 
 	// Get arrays of child nodes
-	var domMap = Array.prototype.slice.call(elem.childNodes);
-	var templateMap = Array.prototype.slice.call(template.childNodes);
+	var domMap = arrayFrom(elem.childNodes);
+	var templateMap = arrayFrom(template.childNodes);
 
 	// If extra elements in DOM, remove them
 	var count = domMap.length - templateMap.length;
@@ -623,6 +638,28 @@ var renderPolyps = function (polyps, reef) {
 };
 
 /**
+ * Decode encoded entities in an HTML string
+ * @param  {String} str The encoded string
+ * @return {String}     The decoded string
+ */
+var decode = function (str) {
+	var div = document.createElement('div');
+	div.innerHTML = str;
+	return div.textContent;
+};
+
+/**
+ * Use decoded raw HTML in specified elements
+ * @param  {Node} html The parent element
+ */
+var handleRawHTML = function (html) {
+	arrayFrom(html.querySelectorAll('[reef-html]')).forEach(function (elem) {
+		elem.innerHTML = decode(elem.innerHTML);
+		elem.removeAttribute('reef-html');
+	});
+};
+
+/**
  * Convert a template string into HTML DOM nodes
  * @param  {String} str The template string
  * @return {Node}       The template HTML
@@ -638,10 +675,13 @@ var stringToHTML = function (str) {
 
 		// If there are items in the head, move them to the body
 		if ('head' in doc && 'childNodes' in doc.head && doc.head.childNodes.length > 0) {
-			Array.prototype.slice.call(doc.head.childNodes).reverse().forEach(function (node) {
+			arrayFrom(doc.head.childNodes).reverse().forEach(function (node) {
 				doc.body.insertBefore(node, doc.body.firstChild);
 			});
 		}
+
+		// Use raw HTML in [reef-html] elements
+		handleRawHTML(doc.body);
 
 		return doc.body;
 
