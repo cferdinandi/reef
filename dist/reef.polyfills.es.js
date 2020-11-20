@@ -32,9 +32,6 @@ return d};n.revocable=function(a,c){return {proxy:new n(a,c),revoke:l}};return n
 // Attributes that might be changed dynamically
 var dynamicAttributes = ['checked', 'selected', 'value'];
 
-// Hold internal helper functions
-var _ = {};
-
 // If true, debug mode is enabled
 var debug = false;
 
@@ -72,7 +69,6 @@ var matches = function (elem, selector) {
 var trueTypeOf = function (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 };
-_.trueTypeOf = trueTypeOf;
 
 /**
  * Throw an error message
@@ -83,7 +79,6 @@ var err = function (msg) {
 		throw new Error(msg);
 	}
 };
-_.err = err;
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
@@ -119,7 +114,7 @@ var clone = function (obj, allowHTML) {
 	if (type === 'string' && !allowHTML) {
 		return obj.replace(/[^\w-_. ]/gi, function(c){
 			return '&#' + c.charCodeAt(0) + ';';
-		});
+		}).replace(/javascript:/gi, '');
 	}
 
 	// Otherwise, return object as is
@@ -753,7 +748,10 @@ Reef.debug = function (on) {
 Reef.clone = clone;
 
 // Attach internal helpers
-Reef._ = _;
+Reef._ = {
+	trueTypeOf: trueTypeOf,
+	err: err
+};
 
 
 //
