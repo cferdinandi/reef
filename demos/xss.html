@@ -37,12 +37,14 @@
 				var app = new Reef('#app', {
 					data: {
 						xss: `<img onerror="alert('xss attack, yo!')" src=x>`,
-						xss2: `x" onerror="alert('XSS Attack')"`
+						xss2: `x" onerror="alert('XSS Attack')"`,
+						html: `<p>Hello, there</p>`
 					},
 					template: function (props) {
 						return `
 							<p>${props.xss}</p>
 							<p><img src="${props.xss2}"></p>
+							<div reef-html>${props.html}</div>
 						`;
 					},
 					// allowHTML: true
