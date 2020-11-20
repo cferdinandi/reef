@@ -1,4 +1,4 @@
-/*! Reef v7.6.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -613,28 +613,6 @@ var Reef = (function () {
 	};
 
 	/**
-	 * Decode encoded entities in an HTML string
-	 * @param  {String} str The encoded string
-	 * @return {String}     The decoded string
-	 */
-	var decode = function (str) {
-		var div = document.createElement('div');
-		div.innerHTML = str;
-		return div.textContent;
-	};
-
-	/**
-	 * Use decoded raw HTML in specified elements
-	 * @param  {Node} html The parent element
-	 */
-	var handleRawHTML = function (html) {
-		arrayFrom(html.querySelectorAll('[reef-html]')).forEach(function (elem) {
-			elem.innerHTML = decode(elem.innerHTML);
-			elem.removeAttribute('reef-html');
-		});
-	};
-
-	/**
 	 * Convert a template string into HTML DOM nodes
 	 * @param  {String} str The template string
 	 * @return {Node}       The template HTML
@@ -654,9 +632,6 @@ var Reef = (function () {
 					doc.body.insertBefore(node, doc.body.firstChild);
 				});
 			}
-
-			// Use raw HTML in [reef-html] elements
-			handleRawHTML(doc.body);
 
 			return doc.body;
 
