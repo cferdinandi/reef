@@ -1,4 +1,4 @@
-/*! Reef v7.5.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.5.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -33,9 +33,6 @@ return d};n.revocable=function(a,c){return {proxy:new n(a,c),revoke:l}};return n
 
 // Attributes that might be changed dynamically
 var dynamicAttributes = ['checked', 'selected', 'value'];
-
-// Hold internal helper functions
-var _ = {};
 
 // If true, debug mode is enabled
 var debug = false;
@@ -74,7 +71,6 @@ var matches = function (elem, selector) {
 var trueTypeOf = function (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 };
-_.trueTypeOf = trueTypeOf;
 
 /**
  * Throw an error message
@@ -85,7 +81,6 @@ var err = function (msg) {
 		throw new Error(msg);
 	}
 };
-_.err = err;
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
@@ -121,7 +116,7 @@ var clone = function (obj, allowHTML) {
 	if (type === 'string' && !allowHTML) {
 		return obj.replace(/[^\w-_. ]/gi, function(c){
 			return '&#' + c.charCodeAt(0) + ';';
-		});
+		}).replace(/javascript:/gi, '');
 	}
 
 	// Otherwise, return object as is
@@ -751,11 +746,14 @@ Reef.debug = function (on) {
 	debug = on ? true : false;
 };
 
-// Expose the clone method externally
+// External helper methods
 Reef.clone = clone;
 
-// Attach internal helpers
-Reef._ = _;
+// Internal helper methods
+Reef._ = {
+	trueTypeOf: trueTypeOf,
+	err: err
+};
 
 
 //

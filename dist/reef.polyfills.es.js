@@ -1,4 +1,4 @@
-/*! Reef v7.5.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.5.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
 h+"'");c[h]=f[h];}"function"===typeof f&&(c.apply=f.apply.bind(f));var d=this,q=!1,r=!1;"function"===typeof a?(d=function(){var b=this&&this.constructor===d,e=Array.prototype.slice.call(arguments);g(b?"construct":"apply");return b&&c.construct?c.construct.call(this,a,e):!b&&c.apply?c.apply(a,this,e):b?(e.unshift(a),new (a.bind.apply(a,e))):a.apply(this,e)},q=!0):a instanceof Array&&(d=[],r=!0);var t=c.get?function(b){g("get");return c.get(this,b,d)}:function(b){g("get");return this[b]},w=c.set?function(b,
 e){g("set");c.set(this,b,e,d);}:function(b,e){g("set");this[b]=e;},u={};Object.getOwnPropertyNames(a).forEach(function(b){if(!((q||r)&&b in d)){var e={enumerable:!!Object.getOwnPropertyDescriptor(a,b).enumerable,get:t.bind(a,b),set:w.bind(a,b)};Object.defineProperty(d,b,e);u[b]=!0;}});f=!0;Object.setPrototypeOf?Object.setPrototypeOf(d,Object.getPrototypeOf(a)):d.__proto__?d.__proto__=a.__proto__:f=!1;if(c.get||!f)for(var m in a)u[m]||Object.defineProperty(d,m,{get:t.bind(a,m)});Object.seal(a);Object.seal(d);
@@ -31,9 +31,6 @@ return d};n.revocable=function(a,c){return {proxy:new n(a,c),revoke:l}};return n
 
 // Attributes that might be changed dynamically
 var dynamicAttributes = ['checked', 'selected', 'value'];
-
-// Hold internal helper functions
-var _ = {};
 
 // If true, debug mode is enabled
 var debug = false;
@@ -72,7 +69,6 @@ var matches = function (elem, selector) {
 var trueTypeOf = function (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 };
-_.trueTypeOf = trueTypeOf;
 
 /**
  * Throw an error message
@@ -83,7 +79,6 @@ var err = function (msg) {
 		throw new Error(msg);
 	}
 };
-_.err = err;
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
@@ -119,7 +114,7 @@ var clone = function (obj, allowHTML) {
 	if (type === 'string' && !allowHTML) {
 		return obj.replace(/[^\w-_. ]/gi, function(c){
 			return '&#' + c.charCodeAt(0) + ';';
-		});
+		}).replace(/javascript:/gi, '');
 	}
 
 	// Otherwise, return object as is
@@ -749,11 +744,14 @@ Reef.debug = function (on) {
 	debug = on ? true : false;
 };
 
-// Expose the clone method externally
+// External helper methods
 Reef.clone = clone;
 
-// Attach internal helpers
-Reef._ = _;
+// Internal helper methods
+Reef._ = {
+	trueTypeOf: trueTypeOf,
+	err: err
+};
 
 
 //
