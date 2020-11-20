@@ -1,4 +1,4 @@
-/*! Reef v7.5.0 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.5.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -720,10 +720,10 @@ define(function () { 'use strict';
 		debug = on ? true : false;
 	};
 
-	// Expose the clone method externally
+	// External helper methods
 	Reef.clone = clone;
 
-	// Attach internal helpers
+	// Internal helper methods
 	Reef._ = {
 		trueTypeOf: trueTypeOf,
 		err: err

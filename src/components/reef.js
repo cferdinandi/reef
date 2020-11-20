@@ -5,9 +5,6 @@
 // Attributes that might be changed dynamically
 var dynamicAttributes = ['checked', 'selected', 'value'];
 
-// Hold internal helper functions
-var _ = {};
-
 // If true, debug mode is enabled
 var debug = false;
 
@@ -720,10 +717,10 @@ Reef.debug = function (on) {
 	debug = on ? true : false;
 };
 
-// Expose the clone method externally
+// External helper methods
 Reef.clone = clone;
 
-// Attach internal helpers
+// Internal helper methods
 Reef._ = {
 	trueTypeOf: trueTypeOf,
 	err: err
