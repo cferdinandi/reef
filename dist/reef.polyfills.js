@@ -28,28 +28,19 @@ var Reef = (function () {
 
 	})();
 
-	//
-	// Variables
-	//
-
-	// Attributes that might be changed dynamically
-	var dynamicAttributes = ['checked', 'selected', 'value'];
-
 	// If true, debug mode is enabled
 	var debug = false;
 
-	// Create global support variable
-	var support;
-
-
-	//
-	// Methods
-	//
-
 	/**
-	 * Check feature support
+	 * Turn debug mode on or off
+	 * @param  {Boolean} on If true, turn debug mode on
 	 */
-	var checkSupport = function () {
+	var setDebug = function (on) {
+		debug = on ? true : false;
+	};
+
+	// Check browser support
+	var support = (function () {
 		if (!window.DOMParser) return false;
 		var parser = new DOMParser();
 		try {
@@ -58,7 +49,7 @@ var Reef = (function () {
 			return false;
 		}
 		return true;
-	};
+	})();
 
 	/**
 	 * Check if element has selector
@@ -204,102 +195,39 @@ var Reef = (function () {
 	};
 
 	/**
-	 * Create the Reef object
-	 * @param {String|Node} elem    The element to make into a component
-	 * @param {Object}      options The component options
+	 * Convert a template string into HTML DOM nodes
+	 * @param  {String} str The template string
+	 * @return {Node}       The template HTML
 	 */
-	var Reef = function (elem, options) {
+	var stringToHTML = function (str) {
 
-		// Make sure an element is provided
-		if (!elem && (!options || !options.lagoon)) return err('You did not provide an element to make into a component.');
+		// If DOMParser is supported, use it
+		if (support) {
 
-		// Make sure a template is provided
-		if (!options || (!options.template && !options.lagoon)) return err('You did not provide a template for this component.');
+			// Create document
+			var parser = new DOMParser();
+			var doc = parser.parseFromString(str, 'text/html');
 
-		// Set the component properties
-		var _this = this;
-		var _data = makeProxy(options, _this);
-		var _store = options.store;
-		var _router = options.router;
-		var _setters = options.setters;
-		var _getters = options.getters;
-		_this.debounce = null;
-
-		// Create properties for stuff
-		Object.defineProperties(_this, {
-			elem: {value: elem},
-			template: {value: options.template},
-			allowHTML: {value: options.allowHTML},
-			lagoon: {value: options.lagoon},
-			store: {value: _store},
-			attached: {value: []},
-			router: {value: _router}
-		});
-
-		// Define setter and getter for data
-		Object.defineProperty(_this, 'data', {
-			get: function () {
-				return _setters ? clone(_data, true) : _data;
-			},
-			set: function (data) {
-				if (_store || _setters) return true;
-				_data = new Proxy(data, dataHandler(_this));
-				debounceRender(_this);
-				return true;
+			// If there are items in the head, move them to the body
+			if ('head' in doc && 'childNodes' in doc.head && doc.head.childNodes.length > 0) {
+				arrayFrom(doc.head.childNodes).reverse().forEach(function (node) {
+					doc.body.insertBefore(node, doc.body.firstChild);
+				});
 			}
-		});
 
-		if (_setters && !_store) {
-			Object.defineProperty(_this, 'do', {
-				value: function (id) {
-					if (!_setters[id]) return err('There is no setter with this name.');
-					var args = arrayFrom(arguments);
-					args[0] = _data;
-					_setters[id].apply(_this, args);
-					debounceRender(_this);
-				}
-			});
+			return doc.body;
+
 		}
 
-		if (_getters && !_store) {
-			Object.defineProperty(_this, 'get', {
-				value: function (id) {
-					if (!_getters[id]) return err('There is no getter with this name.');
-					return _getters[id](_data);
-				}
-			});
-		}
-
-		// Attach to router
-		if (_router && 'addComponent' in _router) {
-			_router.addComponent(_this);
-		}
-
-		// Attach to store
-		if (_store && 'attach' in _store) {
-			_store.attach(_this);
-		}
-
-		// Attach linked components
-		if (options.attachTo) {
-			var _attachTo = trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
-			_attachTo.forEach(function (coral) {
-				if ('attach' in coral) {
-					coral.attach(_this);
-				}
-			});
-		}
+		// Otherwise, fallback to old-school method
+		var dom = document.createElement('div');
+		dom.innerHTML = str;
+		return dom;
 
 	};
 
-	/**
-	 * Store constructor
-	 * @param {Object} options The data store options
-	 */
-	Reef.Store = function (options) {
-		options.lagoon = true;
-		return new Reef(null, options);
-	};
+	// Attributes that might be changed dynamically
+	var dynamicAttributes = ['checked', 'selected', 'value'];
 
 	/**
 	 * Create an array map of style names and values
@@ -639,35 +567,101 @@ var Reef = (function () {
 	};
 
 	/**
-	 * Convert a template string into HTML DOM nodes
-	 * @param  {String} str The template string
-	 * @return {Node}       The template HTML
+	 * Create the Reef object
+	 * @param {String|Node} elem    The element to make into a component
+	 * @param {Object}      options The component options
 	 */
-	var stringToHTML = function (str) {
+	var Reef = function (elem, options) {
 
-		// If DOMParser is supported, use it
-		if (support) {
+		// Make sure an element is provided
+		if (!elem && (!options || !options.lagoon)) return err('You did not provide an element to make into a component.');
 
-			// Create document
-			var parser = new DOMParser();
-			var doc = parser.parseFromString(str, 'text/html');
+		// Make sure a template is provided
+		if (!options || (!options.template && !options.lagoon)) return err('You did not provide a template for this component.');
 
-			// If there are items in the head, move them to the body
-			if ('head' in doc && 'childNodes' in doc.head && doc.head.childNodes.length > 0) {
-				arrayFrom(doc.head.childNodes).reverse().forEach(function (node) {
-					doc.body.insertBefore(node, doc.body.firstChild);
-				});
+		// Set the component properties
+		var _this = this;
+		var _data = makeProxy(options, _this);
+		var _store = options.store;
+		var _router = options.router;
+		var _setters = options.setters;
+		var _getters = options.getters;
+		_this.debounce = null;
+
+		// Create properties for stuff
+		Object.defineProperties(_this, {
+			elem: {value: elem},
+			template: {value: options.template},
+			allowHTML: {value: options.allowHTML},
+			lagoon: {value: options.lagoon},
+			store: {value: _store},
+			attached: {value: []},
+			router: {value: _router}
+		});
+
+		// Define setter and getter for data
+		Object.defineProperty(_this, 'data', {
+			get: function () {
+				return _setters ? clone(_data, true) : _data;
+			},
+			set: function (data) {
+				if (_store || _setters) return true;
+				_data = new Proxy(data, dataHandler(_this));
+				debounceRender(_this);
+				return true;
 			}
+		});
 
-			return doc.body;
-
+		if (_setters && !_store) {
+			Object.defineProperty(_this, 'do', {
+				value: function (id) {
+					if (!_setters[id]) return err('There is no setter with this name.');
+					var args = arrayFrom(arguments);
+					args[0] = _data;
+					_setters[id].apply(_this, args);
+					debounceRender(_this);
+				}
+			});
 		}
 
-		// Otherwise, fallback to old-school method
-		var dom = document.createElement('div');
-		dom.innerHTML = str;
-		return dom;
+		if (_getters && !_store) {
+			Object.defineProperty(_this, 'get', {
+				value: function (id) {
+					if (!_getters[id]) return err('There is no getter with this name.');
+					return _getters[id](_data);
+				}
+			});
+		}
 
+		// Attach to router
+		if (_router && 'addComponent' in _router) {
+			_router.addComponent(_this);
+		}
+
+		// Attach to store
+		if (_store && 'attach' in _store) {
+			_store.attach(_this);
+		}
+
+		// Attach linked components
+		if (options.attachTo) {
+			var _attachTo = trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
+			_attachTo.forEach(function (coral) {
+				if ('attach' in coral) {
+					coral.attach(_this);
+				}
+			});
+		}
+
+	};
+
+	/**
+	 * Store constructor
+	 * @param {Object} options The data store options
+	 */
+	Reef.Store = function (options) {
+		options.lagoon = true;
+		return new Reef(null, options);
 	};
 
 	/**
@@ -754,15 +748,8 @@ var Reef = (function () {
 		});
 	};
 
-	/**
-	 * Turn debug mode on or off
-	 * @param  {Boolean} on If true, turn debug mode on
-	 */
-	Reef.debug = function (on) {
-		debug = on ? true : false;
-	};
-
 	// External helper methods
+	Reef.debug = setDebug;
 	Reef.clone = clone;
 
 	// Internal helper methods
@@ -770,13 +757,6 @@ var Reef = (function () {
 		trueTypeOf: trueTypeOf,
 		err: err
 	};
-
-
-	//
-	// Set support
-	//
-
-	support = checkSupport();
 
 	return Reef;
 
