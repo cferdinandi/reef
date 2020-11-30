@@ -1,4 +1,4 @@
-/*! Reef v7.6.1 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 (function(){function k(){function p(a){return a?"object"===typeof a||"function"===typeof a:!1}var l=null;var n=function(a,c){function g(){}if(!p(a)||!p(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){a=null;g=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");};};setTimeout(function(){l=null;},0);var f=c;c={get:null,set:null,apply:null,construct:null};for(var h in f){if(!(h in c))throw new TypeError("Proxy polyfill does not support trap '"+
@@ -208,13 +208,13 @@ var stringToHTML = function (str) {
 		var doc = parser.parseFromString(str, 'text/html');
 
 		// If there are items in the head, move them to the body
-		if ('head' in doc && 'childNodes' in doc.head && doc.head.childNodes.length > 0) {
+		if (doc.head && doc.head.childNodes && doc.head.childNodes.length > 0) {
 			arrayFrom(doc.head.childNodes).reverse().forEach(function (node) {
 				doc.body.insertBefore(node, doc.body.firstChild);
 			});
 		}
 
-		return doc.body;
+		return doc.body || document.createElement('body');
 
 	}
 
