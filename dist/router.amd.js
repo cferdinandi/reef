@@ -1,4 +1,4 @@
-/*! Reef v7.6.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	//
@@ -566,13 +566,11 @@ define(function () { 'use strict';
 	Reef.Router.prototype.addRoutes = function (routes) {
 		var type = Reef._.trueTypeOf(routes);
 		if (['array', 'object'].indexOf(type) < 0) return Reef._.err('Please provide a valid route or routes.');
-		var _routes = this.routes;
 		if (type === 'object') {
-			_routes.push(routes);
+			this.routes.push(routes);
 		} else {
-			_routes.concat(routes);
+			this.routes.push.apply(this.routes, routes);
 		}
-		this._routes = _routes;
 	};
 
 	/**
