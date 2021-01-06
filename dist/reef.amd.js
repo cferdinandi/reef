@@ -1,4 +1,4 @@
-/*! Reef v7.6.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.4 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
@@ -701,7 +701,7 @@ define(function () { 'use strict';
 	 */
 	Reef.prototype.attach = function (coral) {
 		if (trueTypeOf(coral) === 'array') {
-			this.attached.concat(coral);
+			this.attached = this.attached.concat(coral);
 		} else {
 			this.attached.push(coral);
 		}
