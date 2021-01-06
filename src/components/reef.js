@@ -164,7 +164,10 @@ Reef.prototype.render = function () {
  */
 Reef.prototype.attach = function (coral) {
 	if (_.trueTypeOf(coral) === 'array') {
-		this.attached.concat(coral);
+		var instance = this;
+        coral.forEach(function (c) {
+            instance.attached.push(c);
+        });
 	} else {
 		this.attached.push(coral);
 	}
