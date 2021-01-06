@@ -1,4 +1,4 @@
-/*! Reef v7.6.2 | (c) 2020 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 // If true, debug mode is enabled
 var debug = false;
 
