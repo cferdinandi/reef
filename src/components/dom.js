@@ -87,7 +87,7 @@ var addAttributes = function (elem, atts) {
 				try {
 					elem[attribute.att] = attribute.value;
 					if (!elem[attribute.att] && elem[attribute.att] !== 0) {
-						elem[attribute.att] = true;
+						elem[attribute.att] = attribute.att === 'value' ? attribute.value : true;
 					}
 				} catch (e) {}
 			}
@@ -146,8 +146,16 @@ var getAttribute = function (name, value) {
  */
 var getDynamicAttributes = function (node, atts, isTemplate) {
 	dynamicAttributes.forEach(function (prop) {
-		if ((!node[prop] && node[prop] !== 0) || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
-		atts.push(getAttribute(prop, node[prop]));
+
+		// if (node.id === 'name' && prop === 'value' && isTemplate) {
+		// 	console.log(prop, node, node[prop]);
+		// }
+
+		// if (!node[prop] && node[prop] !== 0) return;
+		// if (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') return;
+		// if (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value') return;
+
+		atts.push(getAttribute(prop, node.getAttribute(prop)));
 	});
 };
 
@@ -189,7 +197,7 @@ var diffAtts = function (template, elem) {
 
 	// Get attributes to remove
 	var remove = elemAtts.filter(function (att) {
-		if (dynamicAttributes.indexOf(att.att) > -1) return false;
+		// if (dynamicAttributes.indexOf(att.att) > -1) return false; // @temp
 		var getAtt = _.find(templateAtts, function (newAtt) {
 			return att.att === newAtt.att;
 		});

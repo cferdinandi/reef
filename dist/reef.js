@@ -1,4 +1,4 @@
-/*! Reef v7.6.5 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.6 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -286,7 +286,7 @@ var Reef = (function () {
 					try {
 						elem[attribute.att] = attribute.value;
 						if (!elem[attribute.att] && elem[attribute.att] !== 0) {
-							elem[attribute.att] = true;
+							elem[attribute.att] = attribute.att === 'value' ? attribute.value : true;
 						}
 					} catch (e) {}
 				}
@@ -345,8 +345,16 @@ var Reef = (function () {
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
 		dynamicAttributes.forEach(function (prop) {
-			if ((!node[prop] && node[prop] !== 0) || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
-			atts.push(getAttribute(prop, node[prop]));
+
+			// if (node.id === 'name' && prop === 'value' && isTemplate) {
+			// 	console.log(prop, node, node[prop]);
+			// }
+
+			// if (!node[prop] && node[prop] !== 0) return;
+			// if (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') return;
+			// if (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value') return;
+
+			atts.push(getAttribute(prop, node.getAttribute(prop)));
 		});
 	};
 
@@ -372,7 +380,7 @@ var Reef = (function () {
 	var getAttributes = function (node, isTemplate) {
 		if (node.nodeType !== 1) return [];
 		var atts = getBaseAttributes(node, isTemplate);
-		getDynamicAttributes(node, atts, isTemplate);
+		getDynamicAttributes(node, atts);
 		return atts;
 	};
 
@@ -388,7 +396,7 @@ var Reef = (function () {
 
 		// Get attributes to remove
 		var remove = elemAtts.filter(function (att) {
-			if (dynamicAttributes.indexOf(att.att) > -1) return false;
+			// if (dynamicAttributes.indexOf(att.att) > -1) return false; // @temp
 			var getAtt = find(templateAtts, function (newAtt) {
 				return att.att === newAtt.att;
 			});
