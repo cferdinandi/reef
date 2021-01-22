@@ -370,15 +370,6 @@ define(function () { 'use strict';
 	 */
 	var getDynamicAttributes = function (node, atts, isTemplate) {
 		dynamicAttributes.forEach(function (prop) {
-
-			// if (node.id === 'name' && prop === 'value' && isTemplate) {
-			// 	console.log(prop, node, node[prop]);
-			// }
-
-			// if (!node[prop] && node[prop] !== 0) return;
-			// if (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') return;
-			// if (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value') return;
-
 			atts.push(getAttribute(prop, node.getAttribute(prop)));
 		});
 	};
@@ -421,7 +412,6 @@ define(function () { 'use strict';
 
 		// Get attributes to remove
 		var remove = elemAtts.filter(function (att) {
-			// if (dynamicAttributes.indexOf(att.att) > -1) return false; // @temp
 			var getAtt = find(templateAtts, function (newAtt) {
 				return att.att === newAtt.att;
 			});
