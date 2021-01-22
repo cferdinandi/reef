@@ -1,4 +1,4 @@
-/*! Reef v7.6.5 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v7.6.6 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 // If true, debug mode is enabled
@@ -285,7 +285,7 @@ var addAttributes = function (elem, atts) {
 				try {
 					elem[attribute.att] = attribute.value;
 					if (!elem[attribute.att] && elem[attribute.att] !== 0) {
-						elem[attribute.att] = true;
+						elem[attribute.att] = attribute.att === 'value' ? attribute.value : true;
 					}
 				} catch (e) {}
 			}
@@ -344,8 +344,7 @@ var getAttribute = function (name, value) {
  */
 var getDynamicAttributes = function (node, atts, isTemplate) {
 	dynamicAttributes.forEach(function (prop) {
-		if ((!node[prop] && node[prop] !== 0) || (isTemplate && node.tagName.toLowerCase() === 'option' && prop === 'selected') || (isTemplate && node.tagName.toLowerCase() === 'select' && prop === 'value')) return;
-		atts.push(getAttribute(prop, node[prop]));
+		atts.push(getAttribute(prop, node.getAttribute(prop)));
 	});
 };
 
@@ -371,7 +370,7 @@ var getBaseAttributes = function (node, isTemplate) {
 var getAttributes = function (node, isTemplate) {
 	if (node.nodeType !== 1) return [];
 	var atts = getBaseAttributes(node, isTemplate);
-	getDynamicAttributes(node, atts, isTemplate);
+	getDynamicAttributes(node, atts);
 	return atts;
 };
 
@@ -387,7 +386,6 @@ var diffAtts = function (template, elem) {
 
 	// Get attributes to remove
 	var remove = elemAtts.filter(function (att) {
-		if (dynamicAttributes.indexOf(att.att) > -1) return false;
 		var getAtt = find(templateAtts, function (newAtt) {
 			return att.att === newAtt.att;
 		});
