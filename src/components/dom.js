@@ -2,86 +2,22 @@ import * as _ from './utilities.js';
 
 
 // Attributes that might be changed dynamically
-var dynamicAttributes = ['checked', 'selected', 'value'];
-
-/**
- * Create an array map of style names and values
- * @param  {String} styles The styles
- * @return {Array}         The styles
- */
-var getStyleMap = function (styles) {
-	return styles.split(';').reduce(function (arr, style) {
-		var col = style.indexOf(':');
-		if (col) {
-			arr.push({
-				name: style.slice(0, col).trim(),
-				value: style.slice(col + 1).trim()
-			});
-		}
-		return arr;
-	}, []);
-};
-
-/**
- * Remove styles from an element
- * @param  {Node}  elem   The element
- * @param  {Array} styles The styles to remove
- */
-var removeStyles = function (elem, styles) {
-	styles.forEach(function (style) {
-		elem.style[style] = '';
-	});
-};
-
-/**
- * Add or updates styles on an element
- * @param  {Node}  elem   The element
- * @param  {Array} styles The styles to add or update
- */
-var changeStyles = function (elem, styles) {
-	styles.forEach(function (style) {
-		elem.style[style.name] = style.value;
-	});
-};
-
-/**
- * Diff existing styles from new ones
- * @param  {Node}   elem   The element
- * @param  {String} styles The styles the element should have
- */
-var diffStyles = function (elem, styles) {
-
-	// Get style map
-	var styleMap = getStyleMap(styles);
-
-	// Get styles to remove
-	var remove = Array.prototype.filter.call(elem.style, function (style) {
-		var findStyle = _.find(styleMap, function (newStyle) {
-			return newStyle.name === style && newStyle.value === elem.style[style];
-		});
-		return findStyle === null;
-	});
-
-	// Add and remove styles
-	removeStyles(elem, remove);
-	changeStyles(elem, styleMap);
-
-};
+let dynamicAttributes = ['checked', 'selected', 'value'];
 
 /**
  * Add attributes to an element
  * @param {Node}  elem The element
  * @param {Array} atts The attributes to add
  */
-var addAttributes = function (elem, atts) {
+function addAttributes (elem, atts) {
 	atts.forEach(function (attribute) {
 		// If the attribute is a class, use className
-		// Else if it's style, diff and update styles
+		// Else if it's style, add the styles
 		// Otherwise, set the attribute
 		if (attribute.att === 'class') {
 			elem.className = attribute.value;
 		} else if (attribute.att === 'style') {
-			diffStyles(elem, attribute.value);
+			elem.style.cssText = attribute.value;
 		} else {
 			if (attribute.att in elem) {
 				try {
@@ -96,14 +32,14 @@ var addAttributes = function (elem, atts) {
 			} catch (e) {}
 		}
 	});
-};
+}
 
 /**
  * Remove attributes from an element
  * @param {Node}  elem The element
  * @param {Array} atts The attributes to remove
  */
-var removeAttributes = function (elem, atts) {
+function removeAttributes (elem, atts) {
 	atts.forEach(function (attribute) {
 		// If the attribute is a class, use className
 		// Else if it's style, remove all styles
@@ -111,7 +47,7 @@ var removeAttributes = function (elem, atts) {
 		if (attribute.att === 'class') {
 			elem.className = '';
 		} else if (attribute.att === 'style') {
-			removeStyles(elem, _.arrayFrom(elem.style));
+			elem.style.cssText = '';
 		} else {
 			if (attribute.att in elem) {
 				try {
@@ -123,7 +59,7 @@ var removeAttributes = function (elem, atts) {
 			} catch (e) {}
 		}
 	});
-};
+}
 
 /**
  * Create an object with the attribute name and value
@@ -131,12 +67,12 @@ var removeAttributes = function (elem, atts) {
  * @param  {*}      value The attribute value
  * @return {Object}       The object of attribute details
  */
-var getAttribute = function (name, value) {
+function getAttribute (name, value) {
 	return {
 		att: name,
 		value: value
 	};
-};
+}
 
 /**
  * Get the dynamic attributes for a node
@@ -144,93 +80,94 @@ var getAttribute = function (name, value) {
  * @param  {Array}   atts       The static attributes
  * @param  {Boolean} isTemplate If true, these are for the template
  */
-var getDynamicAttributes = function (node, atts, isTemplate) {
+function getDynamicAttributes (node, atts, isTemplate) {
 	dynamicAttributes.forEach(function (prop) {
 		atts.push(getAttribute(prop, node.getAttribute(prop)));
 	});
-};
+}
 
 /**
  * Get base attributes for a node
  * @param  {Node} node The node
  * @return {Array}     The node's attributes
  */
-var getBaseAttributes = function (node, isTemplate) {
-	return Array.prototype.reduce.call(node.attributes, function (arr, attribute) {
-		if ((dynamicAttributes.indexOf(attribute.name) < 0 || (isTemplate && attribute.name === 'selected')) && (attribute.name.length > 7 ? attribute.name.slice(0, 7) !== 'default' : true)) {
+function getBaseAttributes (node, isTemplate) {
+	return Array.from(node.attributes).reduce(function (arr, attribute) {
+		if ((!dynamicAttributes.includes(attribute.name) || (isTemplate && attribute.name === 'selected')) && (attribute.name.length > 7 ? attribute.name.slice(0, 7) !== 'default' : true)) {
 			arr.push(getAttribute(attribute.name, attribute.value));
 		}
 		return arr;
 	}, []);
-};
+}
 
 /**
  * Create an array of the attributes on an element
  * @param  {Node}    node       The node to get attributes from
+ * @param  {Boolean} isTemplate If true, the node is in the template and not the DOM
  * @return {Array}              The attributes on an element as an array of key/value pairs
  */
-var getAttributes = function (node, isTemplate) {
+function getAttributes (node, isTemplate) {
 	if (node.nodeType !== 1) return [];
-	var atts = getBaseAttributes(node, isTemplate);
+	let atts = getBaseAttributes(node, isTemplate);
 	getDynamicAttributes(node, atts, isTemplate);
 	return atts;
-};
+}
 
 /**
  * Diff the attributes on an existing element versus the template
  * @param  {Object} template The new template
  * @param  {Object} elem     The existing DOM node
  */
-var diffAtts = function (template, elem) {
+function diffAtts (template, elem) {
 
-	var templateAtts = getAttributes(template, true);
-	var elemAtts = getAttributes(elem);
+	let templateAtts = getAttributes(template, true);
+	let elemAtts = getAttributes(elem);
 
 	// Get attributes to remove
-	var remove = elemAtts.filter(function (att) {
-		var getAtt = _.find(templateAtts, function (newAtt) {
+	let remove = elemAtts.filter(function (att) {
+		let getAtt = templateAtts.find(function (newAtt) {
 			return att.att === newAtt.att;
 		});
-		return getAtt === null;
+		return getAtt === undefined;
 	});
 
 	// Get attributes to change
-	var change = templateAtts.filter(function (att) {
-		var getAtt = _.find(elemAtts, function (elemAtt) {
+	let change = templateAtts.filter(function (att) {
+		let getAtt = elemAtts.find(function (elemAtt) {
 			return att.att === elemAtt.att;
 		});
-		return getAtt === null || getAtt.value !== att.value;
+		return getAtt === undefined || getAtt.value !== att.value;
 	});
 
 	// Add/remove any required attributes
 	addAttributes(elem, change);
 	removeAttributes(elem, remove);
 
-};
+}
 
 /**
  * Get the type for a node
  * @param  {Node}   node The node
  * @return {String}      The type
  */
-var getNodeType = function (node) {
+function getNodeType (node) {
 	return node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase());
-};
+}
 
 /**
  * Get the content from a node
  * @param  {Node}   node The node
- * @return {String}      The type
+ * @return {String}      The content
  */
-var getNodeContent = function (node) {
+function getNodeContent (node) {
 	return node.childNodes && node.childNodes.length > 0 ? null : node.textContent;
-};
+}
 
 /**
  * Add default attributes to a newly created node
  * @param  {Node}   node The node
  */
-var addDefaultAtts = function (node) {
+function addDefaultAtts (node) {
 
 	// Only run on elements
 	if (node.nodeType !== 1) return;
@@ -245,12 +182,25 @@ var addDefaultAtts = function (node) {
 
 	// If there are child nodes, recursively check them
 	if (node.childNodes) {
-		Array.prototype.forEach.call(node.childNodes, function (childNode) {
+		Array.from(node.childNodes).forEach(function (childNode) {
 			addDefaultAtts(childNode);
 		});
 	}
 
-};
+}
+
+/**
+ * If there are extra elements in DOM, remove them
+ * @param  {Array} domMap      The existing DOM
+ * @param  {Array} templateMap The template
+ */
+function trimExtraNodes (domMap, templateMap) {
+	let count = domMap.length - templateMap.length;
+	if (count < 1)  return;
+	for (; count > 0; count--) {
+		domMap[domMap.length - count].parentNode.removeChild(domMap[domMap.length - count]);
+	}
+}
 
 /**
  * Diff the existing DOM node versus the template
@@ -258,19 +208,14 @@ var addDefaultAtts = function (node) {
  * @param  {Node}  elem     The current DOM HTML
  * @param  {Array} polyps   Attached components for this element
  */
-var diff = function (template, elem, polyps) {
+function diff (template, elem, polyps) {
 
 	// Get arrays of child nodes
-	var domMap = _.arrayFrom(elem.childNodes);
-	var templateMap = _.arrayFrom(template.childNodes);
+	let domMap = Array.from(elem.childNodes);
+	let templateMap = Array.from(template.childNodes);
 
 	// If extra elements in DOM, remove them
-	var count = domMap.length - templateMap.length;
-	if (count > 0) {
-		for (; count > 0; count--) {
-			domMap[domMap.length - count].parentNode.removeChild(domMap[domMap.length - count]);
-		}
-	}
+	trimExtraNodes(domMap, templateMap);
 
 	// Diff each item in the templateMap
 	templateMap.forEach(function (node, index) {
@@ -292,13 +237,13 @@ var diff = function (template, elem, polyps) {
 		diffAtts(node, domMap[index]);
 
 		// If element is an attached component, skip it
-		var isPolyp = polyps.filter(function (polyp) {
-			return node.nodeType !== 3 && _.matches(node, polyp);
+		let isPolyp = polyps.filter(function (polyp) {
+			return node.nodeType !== 3 && node.matches(polyp);
 		});
 		if (isPolyp.length > 0) return;
 
 		// If content is different, update it
-		var templateContent = getNodeContent(node);
+		let templateContent = getNodeContent(node);
 		if (templateContent && templateContent !== getNodeContent(domMap[index])) {
 			domMap[index].textContent = templateContent;
 		}
@@ -312,7 +257,7 @@ var diff = function (template, elem, polyps) {
 		// If element is empty and shouldn't be, build it up
 		// This uses a document fragment to minimize reflows
 		if (domMap[index].childNodes.length < 1 && node.childNodes.length > 0) {
-			var fragment = document.createDocumentFragment();
+			let fragment = document.createDocumentFragment();
 			diff(node, fragment, polyps);
 			domMap[index].appendChild(fragment);
 			return;
@@ -325,19 +270,19 @@ var diff = function (template, elem, polyps) {
 
 	});
 
-};
+}
 
 /**
  * If there are linked Reefs, render them, too
  * @param  {Array} polyps Attached Reef components
  */
-var renderPolyps = function (polyps, reef) {
+function renderPolyps (polyps, reef) {
 	if (!polyps) return;
 	polyps.forEach(function (coral) {
-		if (coral.attached.indexOf(reef) > -1) return _.err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+		if (coral.attached.includes(reef)) return _.err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 		if ('render' in coral) coral.render();
 	});
-};
+}
 
 
 export {diff, renderPolyps};

@@ -2,65 +2,34 @@
 'use strict';
 
 // If true, debug mode is enabled
-var debug = false;
+let debug = false;
 
 /**
  * Turn debug mode on or off
  * @param  {Boolean} on If true, turn debug mode on
  */
-var setDebug = function (on) {
+function setDebug (on) {
 	debug = on ? true : false;
-};
-
-// Check browser support
-var support = (function () {
-	if (!window.DOMParser) return false;
-	var parser = new DOMParser();
-	try {
-		parser.parseFromString('x', 'text/html');
-	} catch(err) {
-		return false;
-	}
-	return true;
-})();
-
-/**
- * Check if element has selector
- * @param  {Node}    elem     The element
- * @param  {String}  selector The selector
- * @return {Boolean}          If true, the element has the selector
- */
-var matches = function (elem, selector) {
-	return (Element.prototype.matches && elem.matches(selector)) || (Element.prototype.msMatchesSelector && elem.msMatchesSelector(selector)) || (Element.prototype.webkitMatchesSelector && elem.webkitMatchesSelector(selector));
-};
-
-/**
- * Convert an iterable object into an array
- * @param  {*}     arr The NodeList, HTMLCollection, etc. to convert into an array
- * @return {Array}     The array
- */
-var arrayFrom = function (arr) {
-	return Array.prototype.slice.call(arr);
-};
+}
 
 /**
  * More accurately check the type of a JavaScript object
  * @param  {Object} obj The object
  * @return {String}     The object type
  */
-var trueTypeOf = function (obj) {
+function trueTypeOf (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
-};
+}
 
 /**
  * Throw an error message
  * @param  {String} msg The error message
  */
-var err = function (msg) {
+function err (msg) {
 	if (debug) {
 		throw new Error(msg);
 	}
-};
+}
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
@@ -68,47 +37,99 @@ var err = function (msg) {
  * @param  {Boolean} allowHTML If true, allow HTML in data strings
  * @return {*}                 The immutable, encoded object
  */
-var clone = function (obj, allowHTML) {
+function copy (obj, allowHTML) {
 
-	// Get the object type
-	var type = trueTypeOf(obj);
-
-	// If an object, loop through and recursively encode
-	if (type === 'object') {
-		var cloned = {};
-		for (var key in obj) {
+	/**
+	 * Copy properties from the original object to the clone
+	 * @param {Object|Function} clone The cloned object
+	 */
+	function copyProps (clone) {
+		for (let key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				cloned[key] = clone(obj[key], allowHTML);
+				clone[key] = copy(obj[key]);
 			}
 		}
-		return cloned;
 	}
 
-	// If an array, create a new array and recursively encode
-	if (type === 'array') {
+	/**
+	 * Create an immutable copy of an object
+	 * @return {Object}
+	 */
+	function cloneObj () {
+		let clone = {};
+		copyProps(clone);
+		return clone;
+	}
+
+	/**
+	 * Create an immutable copy of an array
+	 * @return {Array}
+	 */
+	function cloneArr () {
 		return obj.map(function (item) {
-			return clone(item, allowHTML);
+			return copy(item);
 		});
 	}
 
-	// If the data is a string, encode it
-	// https://portswigger.net/web-security/cross-site-scripting/preventing
-	if (type === 'string' && !allowHTML) {
+	/**
+	 * Create an immutable copy of a Map
+	 * @return {Map}
+	 */
+	function cloneMap () {
+		let clone = new Map();
+		for (let [key, val] of obj) {
+			clone.set(key, copy(val));
+		}
+		return clone;
+	}
+
+	/**
+	 * Create an immutable clone of a Set
+	 * @return {Set}
+	 */
+	function cloneSet () {
+		let clone = new Set();
+		for (let item of set) {
+			clone.add(copy(item));
+		}
+		return clone;
+	}
+
+	/**
+	 * Create an immutable copy of a function
+	 * @return {Function}
+	 */
+	function cloneFunction () {
+		let clone = obj.bind(this);
+		copyProps(clone);
+		return clone;
+	}
+
+	function sanitizeStr () {
 		return obj.replace(/[^\w-_. ]/gi, function(c){
 			return '&#' + c.charCodeAt(0) + ';';
 		}).replace(/javascript:/gi, '');
 	}
 
-	// Otherwise, return object as is
+	// Get object type
+	let type = trueTypeOf(obj);
+
+	// Return a clone based on the object type
+	if (type === 'object') return cloneObj();
+	if (type === 'array') return cloneArr();
+	if (type === 'map') return cloneMap();
+	if (type === 'set') return cloneSet();
+	if (type === 'function') return cloneFunction();
+	if (type === 'string' && !allowHTML) return sanitizeStr();
 	return obj;
 
-};
+}
 
 /**
  * Debounce rendering for better performance
  * @param  {Constructor} instance The current instantiation
  */
-var debounceRender = function (instance) {
+function debounceRender (instance) {
 
 	// If there's a pending render, cancel it
 	if (instance.debounce) {
@@ -120,14 +141,14 @@ var debounceRender = function (instance) {
 		instance.render();
 	});
 
-};
+}
 
 /**
  * Create settings and getters for data Proxy
  * @param  {Constructor} instance The current instantiation
  * @return {Object}               The setter and getter methods for the Proxy
  */
-var dataHandler = function (instance) {
+function dataHandler (instance) {
 	return {
 		get: function (obj, prop) {
 			if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
@@ -142,19 +163,7 @@ var dataHandler = function (instance) {
 			return true;
 		}
 	};
-};
-
-/**
- * Find the first matching item in an array
- * @param  {Array}    arr      The array to search in
- * @param  {Function} callback The callback to run to find a match
- * @return {*}                 The matching item
- */
-var find = function (arr, callback) {
-	var matches = arr.filter(callback);
-	if (matches.length < 1) return null;
-	return matches[0];
-};
+}
 
 /**
  * Create a proxy from a data object
@@ -162,124 +171,50 @@ var find = function (arr, callback) {
  * @param  {Contructor} instance The current Reef instantiation
  * @return {Proxy}               The Proxy
  */
-var makeProxy = function (options, instance) {
+function makeProxy (options, instance) {
 	if (options.setters) return !options.store ? options.data : null;
 	return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
-};
+}
 
 /**
  * Convert a template string into HTML DOM nodes
  * @param  {String} str The template string
  * @return {Node}       The template HTML
  */
-var stringToHTML = function (str) {
+function stringToHTML (str) {
 
-	// If DOMParser is supported, use it
-	if (support) {
+	// Create document
+	let parser = new DOMParser();
+	let doc = parser.parseFromString(str, 'text/html');
 
-		// Create document
-		var parser = new DOMParser();
-		var doc = parser.parseFromString(str, 'text/html');
-
-		// If there are items in the head, move them to the body
-		if (doc.head && doc.head.childNodes && doc.head.childNodes.length > 0) {
-			arrayFrom(doc.head.childNodes).reverse().forEach(function (node) {
-				doc.body.insertBefore(node, doc.body.firstChild);
-			});
-		}
-
-		return doc.body || document.createElement('body');
-
+	// If there are items in the head, move them to the body
+	if (doc.head && doc.head.childNodes && doc.head.childNodes.length > 0) {
+		Array.from(doc.head.childNodes).reverse().forEach(function (node) {
+			doc.body.insertBefore(node, doc.body.firstChild);
+		});
 	}
 
-	// Otherwise, fallback to old-school method
-	var dom = document.createElement('div');
-	dom.innerHTML = str;
-	return dom;
+	return doc.body || document.createElement('body');
 
-};
+}
 
 // Attributes that might be changed dynamically
-var dynamicAttributes = ['checked', 'selected', 'value'];
-
-/**
- * Create an array map of style names and values
- * @param  {String} styles The styles
- * @return {Array}         The styles
- */
-var getStyleMap = function (styles) {
-	return styles.split(';').reduce(function (arr, style) {
-		var col = style.indexOf(':');
-		if (col) {
-			arr.push({
-				name: style.slice(0, col).trim(),
-				value: style.slice(col + 1).trim()
-			});
-		}
-		return arr;
-	}, []);
-};
-
-/**
- * Remove styles from an element
- * @param  {Node}  elem   The element
- * @param  {Array} styles The styles to remove
- */
-var removeStyles = function (elem, styles) {
-	styles.forEach(function (style) {
-		elem.style[style] = '';
-	});
-};
-
-/**
- * Add or updates styles on an element
- * @param  {Node}  elem   The element
- * @param  {Array} styles The styles to add or update
- */
-var changeStyles = function (elem, styles) {
-	styles.forEach(function (style) {
-		elem.style[style.name] = style.value;
-	});
-};
-
-/**
- * Diff existing styles from new ones
- * @param  {Node}   elem   The element
- * @param  {String} styles The styles the element should have
- */
-var diffStyles = function (elem, styles) {
-
-	// Get style map
-	var styleMap = getStyleMap(styles);
-
-	// Get styles to remove
-	var remove = Array.prototype.filter.call(elem.style, function (style) {
-		var findStyle = find(styleMap, function (newStyle) {
-			return newStyle.name === style && newStyle.value === elem.style[style];
-		});
-		return findStyle === null;
-	});
-
-	// Add and remove styles
-	removeStyles(elem, remove);
-	changeStyles(elem, styleMap);
-
-};
+let dynamicAttributes = ['checked', 'selected', 'value'];
 
 /**
  * Add attributes to an element
  * @param {Node}  elem The element
  * @param {Array} atts The attributes to add
  */
-var addAttributes = function (elem, atts) {
+function addAttributes (elem, atts) {
 	atts.forEach(function (attribute) {
 		// If the attribute is a class, use className
-		// Else if it's style, diff and update styles
+		// Else if it's style, add the styles
 		// Otherwise, set the attribute
 		if (attribute.att === 'class') {
 			elem.className = attribute.value;
 		} else if (attribute.att === 'style') {
-			diffStyles(elem, attribute.value);
+			elem.style.cssText = attribute.value;
 		} else {
 			if (attribute.att in elem) {
 				try {
@@ -294,14 +229,14 @@ var addAttributes = function (elem, atts) {
 			} catch (e) {}
 		}
 	});
-};
+}
 
 /**
  * Remove attributes from an element
  * @param {Node}  elem The element
  * @param {Array} atts The attributes to remove
  */
-var removeAttributes = function (elem, atts) {
+function removeAttributes (elem, atts) {
 	atts.forEach(function (attribute) {
 		// If the attribute is a class, use className
 		// Else if it's style, remove all styles
@@ -309,7 +244,7 @@ var removeAttributes = function (elem, atts) {
 		if (attribute.att === 'class') {
 			elem.className = '';
 		} else if (attribute.att === 'style') {
-			removeStyles(elem, arrayFrom(elem.style));
+			elem.style.cssText = '';
 		} else {
 			if (attribute.att in elem) {
 				try {
@@ -321,7 +256,7 @@ var removeAttributes = function (elem, atts) {
 			} catch (e) {}
 		}
 	});
-};
+}
 
 /**
  * Create an object with the attribute name and value
@@ -329,12 +264,12 @@ var removeAttributes = function (elem, atts) {
  * @param  {*}      value The attribute value
  * @return {Object}       The object of attribute details
  */
-var getAttribute = function (name, value) {
+function getAttribute (name, value) {
 	return {
 		att: name,
 		value: value
 	};
-};
+}
 
 /**
  * Get the dynamic attributes for a node
@@ -342,93 +277,94 @@ var getAttribute = function (name, value) {
  * @param  {Array}   atts       The static attributes
  * @param  {Boolean} isTemplate If true, these are for the template
  */
-var getDynamicAttributes = function (node, atts, isTemplate) {
+function getDynamicAttributes (node, atts, isTemplate) {
 	dynamicAttributes.forEach(function (prop) {
 		atts.push(getAttribute(prop, node.getAttribute(prop)));
 	});
-};
+}
 
 /**
  * Get base attributes for a node
  * @param  {Node} node The node
  * @return {Array}     The node's attributes
  */
-var getBaseAttributes = function (node, isTemplate) {
-	return Array.prototype.reduce.call(node.attributes, function (arr, attribute) {
-		if ((dynamicAttributes.indexOf(attribute.name) < 0 || (isTemplate && attribute.name === 'selected')) && (attribute.name.length > 7 ? attribute.name.slice(0, 7) !== 'default' : true)) {
+function getBaseAttributes (node, isTemplate) {
+	return Array.from(node.attributes).reduce(function (arr, attribute) {
+		if ((!dynamicAttributes.includes(attribute.name) || (isTemplate && attribute.name === 'selected')) && (attribute.name.length > 7 ? attribute.name.slice(0, 7) !== 'default' : true)) {
 			arr.push(getAttribute(attribute.name, attribute.value));
 		}
 		return arr;
 	}, []);
-};
+}
 
 /**
  * Create an array of the attributes on an element
  * @param  {Node}    node       The node to get attributes from
+ * @param  {Boolean} isTemplate If true, the node is in the template and not the DOM
  * @return {Array}              The attributes on an element as an array of key/value pairs
  */
-var getAttributes = function (node, isTemplate) {
+function getAttributes (node, isTemplate) {
 	if (node.nodeType !== 1) return [];
-	var atts = getBaseAttributes(node, isTemplate);
+	let atts = getBaseAttributes(node, isTemplate);
 	getDynamicAttributes(node, atts);
 	return atts;
-};
+}
 
 /**
  * Diff the attributes on an existing element versus the template
  * @param  {Object} template The new template
  * @param  {Object} elem     The existing DOM node
  */
-var diffAtts = function (template, elem) {
+function diffAtts (template, elem) {
 
-	var templateAtts = getAttributes(template, true);
-	var elemAtts = getAttributes(elem);
+	let templateAtts = getAttributes(template, true);
+	let elemAtts = getAttributes(elem);
 
 	// Get attributes to remove
-	var remove = elemAtts.filter(function (att) {
-		var getAtt = find(templateAtts, function (newAtt) {
+	let remove = elemAtts.filter(function (att) {
+		let getAtt = templateAtts.find(function (newAtt) {
 			return att.att === newAtt.att;
 		});
-		return getAtt === null;
+		return getAtt === undefined;
 	});
 
 	// Get attributes to change
-	var change = templateAtts.filter(function (att) {
-		var getAtt = find(elemAtts, function (elemAtt) {
+	let change = templateAtts.filter(function (att) {
+		let getAtt = elemAtts.find(function (elemAtt) {
 			return att.att === elemAtt.att;
 		});
-		return getAtt === null || getAtt.value !== att.value;
+		return getAtt === undefined || getAtt.value !== att.value;
 	});
 
 	// Add/remove any required attributes
 	addAttributes(elem, change);
 	removeAttributes(elem, remove);
 
-};
+}
 
 /**
  * Get the type for a node
  * @param  {Node}   node The node
  * @return {String}      The type
  */
-var getNodeType = function (node) {
+function getNodeType (node) {
 	return node.nodeType === 3 ? 'text' : (node.nodeType === 8 ? 'comment' : node.tagName.toLowerCase());
-};
+}
 
 /**
  * Get the content from a node
  * @param  {Node}   node The node
- * @return {String}      The type
+ * @return {String}      The content
  */
-var getNodeContent = function (node) {
+function getNodeContent (node) {
 	return node.childNodes && node.childNodes.length > 0 ? null : node.textContent;
-};
+}
 
 /**
  * Add default attributes to a newly created node
  * @param  {Node}   node The node
  */
-var addDefaultAtts = function (node) {
+function addDefaultAtts (node) {
 
 	// Only run on elements
 	if (node.nodeType !== 1) return;
@@ -443,12 +379,25 @@ var addDefaultAtts = function (node) {
 
 	// If there are child nodes, recursively check them
 	if (node.childNodes) {
-		Array.prototype.forEach.call(node.childNodes, function (childNode) {
+		Array.from(node.childNodes).forEach(function (childNode) {
 			addDefaultAtts(childNode);
 		});
 	}
 
-};
+}
+
+/**
+ * If there are extra elements in DOM, remove them
+ * @param  {Array} domMap      The existing DOM
+ * @param  {Array} templateMap The template
+ */
+function trimExtraNodes (domMap, templateMap) {
+	let count = domMap.length - templateMap.length;
+	if (count < 1)  return;
+	for (; count > 0; count--) {
+		domMap[domMap.length - count].parentNode.removeChild(domMap[domMap.length - count]);
+	}
+}
 
 /**
  * Diff the existing DOM node versus the template
@@ -456,19 +405,14 @@ var addDefaultAtts = function (node) {
  * @param  {Node}  elem     The current DOM HTML
  * @param  {Array} polyps   Attached components for this element
  */
-var diff = function (template, elem, polyps) {
+function diff (template, elem, polyps) {
 
 	// Get arrays of child nodes
-	var domMap = arrayFrom(elem.childNodes);
-	var templateMap = arrayFrom(template.childNodes);
+	let domMap = Array.from(elem.childNodes);
+	let templateMap = Array.from(template.childNodes);
 
 	// If extra elements in DOM, remove them
-	var count = domMap.length - templateMap.length;
-	if (count > 0) {
-		for (; count > 0; count--) {
-			domMap[domMap.length - count].parentNode.removeChild(domMap[domMap.length - count]);
-		}
-	}
+	trimExtraNodes(domMap, templateMap);
 
 	// Diff each item in the templateMap
 	templateMap.forEach(function (node, index) {
@@ -490,13 +434,13 @@ var diff = function (template, elem, polyps) {
 		diffAtts(node, domMap[index]);
 
 		// If element is an attached component, skip it
-		var isPolyp = polyps.filter(function (polyp) {
-			return node.nodeType !== 3 && matches(node, polyp);
+		let isPolyp = polyps.filter(function (polyp) {
+			return node.nodeType !== 3 && node.matches(polyp);
 		});
 		if (isPolyp.length > 0) return;
 
 		// If content is different, update it
-		var templateContent = getNodeContent(node);
+		let templateContent = getNodeContent(node);
 		if (templateContent && templateContent !== getNodeContent(domMap[index])) {
 			domMap[index].textContent = templateContent;
 		}
@@ -510,7 +454,7 @@ var diff = function (template, elem, polyps) {
 		// If element is empty and shouldn't be, build it up
 		// This uses a document fragment to minimize reflows
 		if (domMap[index].childNodes.length < 1 && node.childNodes.length > 0) {
-			var fragment = document.createDocumentFragment();
+			let fragment = document.createDocumentFragment();
 			diff(node, fragment, polyps);
 			domMap[index].appendChild(fragment);
 			return;
@@ -523,26 +467,27 @@ var diff = function (template, elem, polyps) {
 
 	});
 
-};
+}
 
 /**
  * If there are linked Reefs, render them, too
  * @param  {Array} polyps Attached Reef components
  */
-var renderPolyps = function (polyps, reef) {
+function renderPolyps (polyps, reef) {
 	if (!polyps) return;
 	polyps.forEach(function (coral) {
-		if (coral.attached.indexOf(reef) > -1) return err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+		if (coral.attached.includes(reef)) return err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
 		if ('render' in coral) coral.render();
 	});
-};
+}
 
 /**
  * Create the Reef object
+ * @todo  switch to WeakMap() internal props
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-var Reef = function (elem, options) {
+function Reef (elem, options) {
 
 	// Make sure an element is provided
 	if (!elem && (!options || !options.lagoon)) return err('You did not provide an element to make into a component.');
@@ -551,12 +496,12 @@ var Reef = function (elem, options) {
 	if (!options || (!options.template && !options.lagoon)) return err('You did not provide a template for this component.');
 
 	// Set the component properties
-	var _this = this;
-	var _data = makeProxy(options, _this);
-	var _store = options.store;
-	var _router = options.router;
-	var _setters = options.setters;
-	var _getters = options.getters;
+	let _this = this;
+	let _data = makeProxy(options, _this);
+	let _store = options.store;
+	let _router = options.router;
+	let _setters = options.setters;
+	let _getters = options.getters;
 	_this.debounce = null;
 
 	// Create properties for stuff
@@ -573,7 +518,7 @@ var Reef = function (elem, options) {
 	// Define setter and getter for data
 	Object.defineProperty(_this, 'data', {
 		get: function () {
-			return _setters ? clone(_data, true) : _data;
+			return _setters ? copy(_data, true) : _data;
 		},
 		set: function (data) {
 			if (_store || _setters) return true;
@@ -583,11 +528,13 @@ var Reef = function (elem, options) {
 		}
 	});
 
+	// If there are settings, add do property
+	// @todo move to prototype
 	if (_setters && !_store) {
 		Object.defineProperty(_this, 'do', {
 			value: function (id) {
 				if (!_setters[id]) return err('There is no setter with this name.');
-				var args = arrayFrom(arguments);
+				let args = Array.from(arguments);
 				args[0] = _data;
 				_setters[id].apply(_this, args);
 				debounceRender(_this);
@@ -595,6 +542,8 @@ var Reef = function (elem, options) {
 		});
 	}
 
+	// If there are getters, add property
+	// @todo move to prototype
 	if (_getters && !_store) {
 		Object.defineProperty(_this, 'get', {
 			value: function (id) {
@@ -616,7 +565,7 @@ var Reef = function (elem, options) {
 
 	// Attach linked components
 	if (options.attachTo) {
-		var _attachTo = trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
+		let _attachTo = trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
 		_attachTo.forEach(function (coral) {
 			if ('attach' in coral) {
 				coral.attach(_this);
@@ -624,7 +573,7 @@ var Reef = function (elem, options) {
 		});
 	}
 
-};
+}
 
 /**
  * Store constructor
@@ -642,7 +591,7 @@ Reef.Store = function (options) {
  * @param  {*}      detail Details to attach to the event
  */
 Reef.emit = function (elem, name, detail) {
-	var event;
+	let event;
 	if (!elem || !name) return err('You did not provide an element or event name.');
 	event = new CustomEvent(name, {
 		bubbles: true,
@@ -668,18 +617,18 @@ Reef.prototype.render = function () {
 
 	// If elem is an element, use it.
 	// If it's a selector, get it.
-	var elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
+	let elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return err('The DOM element to render your template into was not found.');
 
 	// Get the data (if there is any)
-	var data = clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
+	let data = copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
-	var template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
-	if (['string', 'number'].indexOf(trueTypeOf(template)) < 0) return;
+	let template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
+	if (!['string', 'number'].includes(trueTypeOf(template))) return;
 
 	// Diff and update the DOM
-	var polyps = this.attached.map(function (polyp) { return polyp.elem; });
+	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
 	diff(stringToHTML(template), elem, polyps);
 
 	// Dispatch a render event
@@ -710,20 +659,22 @@ Reef.prototype.attach = function (coral) {
  * @param  {Function|Array} coral The linked component(s) to detach
  */
 Reef.prototype.detach = function (coral) {
-	var polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
-	var instance = this;
+	let polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
+	let instance = this;
 	polyps.forEach(function (polyp) {
-		var index = instance.attached.indexOf(polyp);
+		let index = instance.attached.indexOf(polyp);
 		if (index < 0) return;
 		instance.attached.splice(index, 1);
 	});
 };
 
 // External helper methods
+// @todo Consider what to expose here (add more items)
 Reef.debug = setDebug;
-Reef.clone = clone;
+Reef.clone = copy;
 
 // Internal helper methods
+// @todo approach this differently
 Reef._ = {
 	trueTypeOf: trueTypeOf,
 	err: err

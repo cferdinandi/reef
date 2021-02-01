@@ -1,63 +1,32 @@
 // If true, debug mode is enabled
-var debug = false;
+let debug = false;
 
 /**
  * Turn debug mode on or off
  * @param  {Boolean} on If true, turn debug mode on
  */
-var setDebug = function (on) {
+function setDebug (on) {
 	debug = on ? true : false;
-};
-
-// Check browser support
-var support = (function () {
-	if (!window.DOMParser) return false;
-	var parser = new DOMParser();
-	try {
-		parser.parseFromString('x', 'text/html');
-	} catch(err) {
-		return false;
-	}
-	return true;
-})();
-
-/**
- * Check if element has selector
- * @param  {Node}    elem     The element
- * @param  {String}  selector The selector
- * @return {Boolean}          If true, the element has the selector
- */
-var matches = function (elem, selector) {
-	return (Element.prototype.matches && elem.matches(selector)) || (Element.prototype.msMatchesSelector && elem.msMatchesSelector(selector)) || (Element.prototype.webkitMatchesSelector && elem.webkitMatchesSelector(selector));
-};
-
-/**
- * Convert an iterable object into an array
- * @param  {*}     arr The NodeList, HTMLCollection, etc. to convert into an array
- * @return {Array}     The array
- */
-var arrayFrom = function (arr) {
-	return Array.prototype.slice.call(arr);
-};
+}
 
 /**
  * More accurately check the type of a JavaScript object
  * @param  {Object} obj The object
  * @return {String}     The object type
  */
-var trueTypeOf = function (obj) {
+function trueTypeOf (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
-};
+}
 
 /**
  * Throw an error message
  * @param  {String} msg The error message
  */
-var err = function (msg) {
+function err (msg) {
 	if (debug) {
 		throw new Error(msg);
 	}
-};
+}
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
@@ -65,47 +34,99 @@ var err = function (msg) {
  * @param  {Boolean} allowHTML If true, allow HTML in data strings
  * @return {*}                 The immutable, encoded object
  */
-var clone = function (obj, allowHTML) {
+function copy (obj, allowHTML) {
 
-	// Get the object type
-	var type = trueTypeOf(obj);
-
-	// If an object, loop through and recursively encode
-	if (type === 'object') {
-		var cloned = {};
-		for (var key in obj) {
+	/**
+	 * Copy properties from the original object to the clone
+	 * @param {Object|Function} clone The cloned object
+	 */
+	function copyProps (clone) {
+		for (let key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				cloned[key] = clone(obj[key], allowHTML);
+				clone[key] = copy(obj[key]);
 			}
 		}
-		return cloned;
 	}
 
-	// If an array, create a new array and recursively encode
-	if (type === 'array') {
+	/**
+	 * Create an immutable copy of an object
+	 * @return {Object}
+	 */
+	function cloneObj () {
+		let clone = {};
+		copyProps(clone);
+		return clone;
+	}
+
+	/**
+	 * Create an immutable copy of an array
+	 * @return {Array}
+	 */
+	function cloneArr () {
 		return obj.map(function (item) {
-			return clone(item, allowHTML);
+			return copy(item);
 		});
 	}
 
-	// If the data is a string, encode it
-	// https://portswigger.net/web-security/cross-site-scripting/preventing
-	if (type === 'string' && !allowHTML) {
+	/**
+	 * Create an immutable copy of a Map
+	 * @return {Map}
+	 */
+	function cloneMap () {
+		let clone = new Map();
+		for (let [key, val] of obj) {
+			clone.set(key, copy(val));
+		}
+		return clone;
+	}
+
+	/**
+	 * Create an immutable clone of a Set
+	 * @return {Set}
+	 */
+	function cloneSet () {
+		let clone = new Set();
+		for (let item of set) {
+			clone.add(copy(item));
+		}
+		return clone;
+	}
+
+	/**
+	 * Create an immutable copy of a function
+	 * @return {Function}
+	 */
+	function cloneFunction () {
+		let clone = obj.bind(this);
+		copyProps(clone);
+		return clone;
+	}
+
+	function sanitizeStr () {
 		return obj.replace(/[^\w-_. ]/gi, function(c){
 			return '&#' + c.charCodeAt(0) + ';';
 		}).replace(/javascript:/gi, '');
 	}
 
-	// Otherwise, return object as is
+	// Get object type
+	let type = trueTypeOf(obj);
+
+	// Return a clone based on the object type
+	if (type === 'object') return cloneObj();
+	if (type === 'array') return cloneArr();
+	if (type === 'map') return cloneMap();
+	if (type === 'set') return cloneSet();
+	if (type === 'function') return cloneFunction();
+	if (type === 'string' && !allowHTML) return sanitizeStr();
 	return obj;
 
-};
+}
 
 /**
  * Debounce rendering for better performance
  * @param  {Constructor} instance The current instantiation
  */
-var debounceRender = function (instance) {
+function debounceRender (instance) {
 
 	// If there's a pending render, cancel it
 	if (instance.debounce) {
@@ -117,14 +138,14 @@ var debounceRender = function (instance) {
 		instance.render();
 	});
 
-};
+}
 
 /**
  * Create settings and getters for data Proxy
  * @param  {Constructor} instance The current instantiation
  * @return {Object}               The setter and getter methods for the Proxy
  */
-var dataHandler = function (instance) {
+function dataHandler (instance) {
 	return {
 		get: function (obj, prop) {
 			if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
@@ -139,19 +160,7 @@ var dataHandler = function (instance) {
 			return true;
 		}
 	};
-};
-
-/**
- * Find the first matching item in an array
- * @param  {Array}    arr      The array to search in
- * @param  {Function} callback The callback to run to find a match
- * @return {*}                 The matching item
- */
-var find = function (arr, callback) {
-	var matches = arr.filter(callback);
-	if (matches.length < 1) return null;
-	return matches[0];
-};
+}
 
 /**
  * Create a proxy from a data object
@@ -159,42 +168,32 @@ var find = function (arr, callback) {
  * @param  {Contructor} instance The current Reef instantiation
  * @return {Proxy}               The Proxy
  */
-var makeProxy = function (options, instance) {
+function makeProxy (options, instance) {
 	if (options.setters) return !options.store ? options.data : null;
 	return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
-};
+}
 
 /**
  * Convert a template string into HTML DOM nodes
  * @param  {String} str The template string
  * @return {Node}       The template HTML
  */
-var stringToHTML = function (str) {
+function stringToHTML (str) {
 
-	// If DOMParser is supported, use it
-	if (support) {
+	// Create document
+	let parser = new DOMParser();
+	let doc = parser.parseFromString(str, 'text/html');
 
-		// Create document
-		var parser = new DOMParser();
-		var doc = parser.parseFromString(str, 'text/html');
-
-		// If there are items in the head, move them to the body
-		if (doc.head && doc.head.childNodes && doc.head.childNodes.length > 0) {
-			arrayFrom(doc.head.childNodes).reverse().forEach(function (node) {
-				doc.body.insertBefore(node, doc.body.firstChild);
-			});
-		}
-
-		return doc.body || document.createElement('body');
-
+	// If there are items in the head, move them to the body
+	if (doc.head && doc.head.childNodes && doc.head.childNodes.length > 0) {
+		Array.from(doc.head.childNodes).reverse().forEach(function (node) {
+			doc.body.insertBefore(node, doc.body.firstChild);
+		});
 	}
 
-	// Otherwise, fallback to old-school method
-	var dom = document.createElement('div');
-	dom.innerHTML = str;
-	return dom;
+	return doc.body || document.createElement('body');
 
-};
+}
 
 
-export {setDebug, matches, arrayFrom, trueTypeOf, err, clone, debounceRender, dataHandler, find, makeProxy, stringToHTML};
+export {setDebug, trueTypeOf, err, copy, debounceRender, dataHandler, makeProxy, stringToHTML};

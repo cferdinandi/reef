@@ -4,10 +4,11 @@ import * as $ from './dom.js';
 
 /**
  * Create the Reef object
+ * @todo  switch to WeakMap() internal props
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-var Reef = function (elem, options) {
+function Reef (elem, options) {
 
 	// Make sure an element is provided
 	if (!elem && (!options || !options.lagoon)) return _.err('You did not provide an element to make into a component.');
@@ -16,12 +17,12 @@ var Reef = function (elem, options) {
 	if (!options || (!options.template && !options.lagoon)) return _.err('You did not provide a template for this component.');
 
 	// Set the component properties
-	var _this = this;
-	var _data = _.makeProxy(options, _this);
-	var _store = options.store;
-	var _router = options.router;
-	var _setters = options.setters;
-	var _getters = options.getters;
+	let _this = this;
+	let _data = _.makeProxy(options, _this);
+	let _store = options.store;
+	let _router = options.router;
+	let _setters = options.setters;
+	let _getters = options.getters;
 	_this.debounce = null;
 
 	// Create properties for stuff
@@ -38,7 +39,7 @@ var Reef = function (elem, options) {
 	// Define setter and getter for data
 	Object.defineProperty(_this, 'data', {
 		get: function () {
-			return _setters ? _.clone(_data, true) : _data;
+			return _setters ? _.copy(_data, true) : _data;
 		},
 		set: function (data) {
 			if (_store || _setters) return true;
@@ -48,11 +49,13 @@ var Reef = function (elem, options) {
 		}
 	});
 
+	// If there are settings, add do property
+	// @todo move to prototype
 	if (_setters && !_store) {
 		Object.defineProperty(_this, 'do', {
 			value: function (id) {
 				if (!_setters[id]) return _.err('There is no setter with this name.');
-				var args = _.arrayFrom(arguments);
+				let args = Array.from(arguments);
 				args[0] = _data;
 				_setters[id].apply(_this, args);
 				_.debounceRender(_this);
@@ -60,6 +63,8 @@ var Reef = function (elem, options) {
 		});
 	}
 
+	// If there are getters, add property
+	// @todo move to prototype
 	if (_getters && !_store) {
 		Object.defineProperty(_this, 'get', {
 			value: function (id) {
@@ -81,7 +86,7 @@ var Reef = function (elem, options) {
 
 	// Attach linked components
 	if (options.attachTo) {
-		var _attachTo = _.trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
+		let _attachTo = _.trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
 		_attachTo.forEach(function (coral) {
 			if ('attach' in coral) {
 				coral.attach(_this);
@@ -89,7 +94,7 @@ var Reef = function (elem, options) {
 		});
 	}
 
-};
+}
 
 /**
  * Store constructor
@@ -107,7 +112,7 @@ Reef.Store = function (options) {
  * @param  {*}      detail Details to attach to the event
  */
 Reef.emit = function (elem, name, detail) {
-	var event;
+	let event;
 	if (!elem || !name) return _.err('You did not provide an element or event name.');
 	event = new CustomEvent(name, {
 		bubbles: true,
@@ -133,18 +138,18 @@ Reef.prototype.render = function () {
 
 	// If elem is an element, use it.
 	// If it's a selector, get it.
-	var elem = _.trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
+	let elem = _.trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return _.err('The DOM element to render your template into was not found.');
 
 	// Get the data (if there is any)
-	var data = _.clone((this.store ? this.store.data : this.data) || {}, this.allowHTML);
+	let data = _.copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
-	var template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
-	if (['string', 'number'].indexOf(_.trueTypeOf(template)) < 0) return;
+	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
+	if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 	// Diff and update the DOM
-	var polyps = this.attached.map(function (polyp) { return polyp.elem; });
+	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
 	$.diff(_.stringToHTML(template), elem, polyps);
 
 	// Dispatch a render event
@@ -175,20 +180,22 @@ Reef.prototype.attach = function (coral) {
  * @param  {Function|Array} coral The linked component(s) to detach
  */
 Reef.prototype.detach = function (coral) {
-	var polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
-	var instance = this;
+	let polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
+	let instance = this;
 	polyps.forEach(function (polyp) {
-		var index = instance.attached.indexOf(polyp);
+		let index = instance.attached.indexOf(polyp);
 		if (index < 0) return;
 		instance.attached.splice(index, 1);
 	});
 };
 
 // External helper methods
+// @todo Consider what to expose here (add more items)
 Reef.debug = _.setDebug;
-Reef.clone = _.clone;
+Reef.clone = _.copy;
 
 // Internal helper methods
+// @todo approach this differently
 Reef._ = {
 	trueTypeOf: _.trueTypeOf,
 	err: _.err
