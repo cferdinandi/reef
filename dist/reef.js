@@ -106,9 +106,13 @@ var Reef = (function () {
 			return clone;
 		}
 
+		/**
+		 * Sanitize and encode HTML in a string
+		 * @return {String} The sanitized and encoded string
+		 */
 		function sanitizeStr () {
 			return obj.replace(/[^\w-_. ]/gi, function(c){
-				return '&#' + c.charCodeAt(0) + ';';
+				return `&#${c.charCodeAt(0)};`;
 			}).replace(/javascript:/gi, '');
 		}
 
@@ -199,8 +203,20 @@ var Reef = (function () {
 
 	}
 
-	// Attributes that might be changed dynamically
+	// Attributes that might be changed by users
+	// They also have implicit properties that make it hard to know if they were changed by the user or developer
 	let dynamicAttributes = ['checked', 'selected', 'value'];
+
+	// Attributes that are dynamic but have no required value
+	let dynamicAttributesNoValue = ['checked', 'selected'];
+
+	// Elements that have dynamic attributes
+	let dynamicFields = ['input', 'option', 'textarea'];
+
+	// Dynamic field value setters
+	// These help indicate intent for fields that have implicit properties whether set or not
+	let reefAttributes = ['reef-checked', 'reef-selected', 'reef-value'];
+	let reefAttributeDefaults = ['reef-default-checked', 'reef-default-selected', 'reef-default-value'];
 
 	/**
 	 * Add attributes to an element
@@ -273,42 +289,43 @@ var Reef = (function () {
 	}
 
 	/**
-	 * Get the dynamic attributes for a node
-	 * @param  {Node}    node       The node
-	 * @param  {Array}   atts       The static attributes
-	 * @param  {Boolean} isTemplate If true, these are for the template
-	 */
-	function getDynamicAttributes (node, atts, isTemplate) {
-		dynamicAttributes.forEach(function (prop) {
-			atts.push(getAttribute(prop, node.getAttribute(prop)));
-		});
-	}
-
-	/**
-	 * Get base attributes for a node
-	 * @param  {Node} node The node
-	 * @return {Array}     The node's attributes
-	 */
-	function getBaseAttributes (node, isTemplate) {
-		return Array.from(node.attributes).reduce(function (arr, attribute) {
-			if ((!dynamicAttributes.includes(attribute.name) || (isTemplate && attribute.name === 'selected')) && (attribute.name.length > 7 ? attribute.name.slice(0, 7) !== 'default' : true)) {
-				arr.push(getAttribute(attribute.name, attribute.value));
-			}
-			return arr;
-		}, []);
-	}
-
-	/**
 	 * Create an array of the attributes on an element
 	 * @param  {Node}    node       The node to get attributes from
 	 * @param  {Boolean} isTemplate If true, the node is in the template and not the DOM
 	 * @return {Array}              The attributes on an element as an array of key/value pairs
 	 */
 	function getAttributes (node, isTemplate) {
+
+		// If the node is not an element, return a empty array
 		if (node.nodeType !== 1) return [];
-		let atts = getBaseAttributes(node, isTemplate);
-		getDynamicAttributes(node, atts);
-		return atts;
+
+		// Otherwise, get an array of attributes
+		return Array.from(node.attributes).map(function (attribute) {
+
+			// If the node is a template with a dynamic attribute/field, skip it
+			if (isTemplate && dynamicAttributes.includes(attribute.name) && dynamicFields.includes(node.tagName.toLowerCase())) return;
+
+			// If the node is in the DOM with a "no value" dynamic field, get it
+			if (!isTemplate && dynamicAttributesNoValue.includes(attribute.name)) {
+				return getAttribute(attribute.name, node[attribute.name]);
+			}
+
+			// If the attribute is a [reef-default-*] attribute, skip it
+			if (reefAttributeDefaults.includes(attribute.name)) return;
+
+			// If it's a template node with a [reef-*] attribute, get the attribute from the reef att
+			if (isTemplate && reefAttributes.includes(attribute.name)) {
+				let attName = attribute.name.replace('reef-', '');
+				return dynamicAttributesNoValue.includes(attName) ? getAttribute(attName, attribute.value === 'false' ? null : attName) : getAttribute(attName, attribute.value);
+			}
+
+			// Otherwise, get the value as-is
+			return getAttribute(attribute.name, attribute.value);
+
+		}).filter(function (attribute) {
+			return !!attribute;
+		});
+
 	}
 
 	/**
@@ -326,11 +343,12 @@ var Reef = (function () {
 			let getAtt = templateAtts.find(function (newAtt) {
 				return att.att === newAtt.att;
 			});
-			return getAtt === undefined;
+			return (getAtt === undefined && !dynamicAttributes.includes(att.att)) || (getAtt && dynamicAttributesNoValue.includes(getAtt.att) && getAtt.value === null);
 		});
 
 		// Get attributes to change
 		let change = templateAtts.filter(function (att) {
+			if (dynamicAttributesNoValue.includes(att.att) && att.value === null) return false;
 			let getAtt = elemAtts.find(function (elemAtt) {
 				return att.att === elemAtt.att;
 			});
@@ -340,6 +358,34 @@ var Reef = (function () {
 		// Add/remove any required attributes
 		addAttributes(elem, change);
 		removeAttributes(elem, remove);
+
+	}
+
+	/**
+	 * Add default attributes to a newly created node
+	 * @param  {Node}   node The node
+	 */
+	function addDefaultAtts (node) {
+
+		// Only run on elements
+		if (node.nodeType !== 1) return;
+
+		// Remove [reef-*] attributes and replace with proper values
+		Array.from(node.attributes).forEach(function (attribute) {
+			if (!reefAttributes.includes(attribute.name) && !reefAttributeDefaults.includes(attribute.name)) return;
+			let attName = attribute.name.replace('reef-default-', '').replace('reef-', '');
+			let isNoVal = dynamicAttributesNoValue.includes(attName);
+			removeAttributes(node, [getAttribute(attribute.name, attribute.value)]);
+			if (isNoVal && attribute.value === 'false') return;
+			addAttributes(node, [isNoVal ? getAttribute(attName, attName) : getAttribute(attName, attribute.value)]);
+		});
+
+		// If there are child nodes, recursively check them
+		if (node.childNodes) {
+			Array.from(node.childNodes).forEach(function (childNode) {
+				addDefaultAtts(childNode);
+			});
+		}
 
 	}
 
@@ -359,32 +405,6 @@ var Reef = (function () {
 	 */
 	function getNodeContent (node) {
 		return node.childNodes && node.childNodes.length > 0 ? null : node.textContent;
-	}
-
-	/**
-	 * Add default attributes to a newly created node
-	 * @param  {Node}   node The node
-	 */
-	function addDefaultAtts (node) {
-
-		// Only run on elements
-		if (node.nodeType !== 1) return;
-
-		// Check for default attributes
-		// Add/remove as needed
-		Array.prototype.forEach.call(node.attributes, function (attribute) {
-			if (attribute.name.length < 8 || attribute.name.slice(0, 7) !== 'default') return;
-			addAttributes(node, [getAttribute(attribute.name.slice(7).toLowerCase(), attribute.value)]);
-			removeAttributes(node, [getAttribute(attribute.name, attribute.value)]);
-		});
-
-		// If there are child nodes, recursively check them
-		if (node.childNodes) {
-			Array.from(node.childNodes).forEach(function (childNode) {
-				addDefaultAtts(childNode);
-			});
-		}
-
 	}
 
 	/**
@@ -421,13 +441,13 @@ var Reef = (function () {
 			// If element doesn't exist, create it
 			if (!domMap[index]) {
 				addDefaultAtts(node);
-				elem.appendChild(node.cloneNode(true));
+				elem.append(node.cloneNode(true));
 				return;
 			}
 
 			// If element is not the same type, replace it with new element
 			if (getNodeType(node) !== getNodeType(domMap[index])) {
-				domMap[index].parentNode.replaceChild(node.cloneNode(true), domMap[index]);
+				domMap[index].replaceWith(node.cloneNode(true));
 				return;
 			}
 
@@ -477,14 +497,13 @@ var Reef = (function () {
 	function renderPolyps (polyps, reef) {
 		if (!polyps) return;
 		polyps.forEach(function (coral) {
-			if (coral.attached.includes(reef)) return err('' + reef.elem + ' has attached nodes that it is also attached to, creating an infinite loop.');
+			if (coral.attached.includes(reef)) return err(`"${reef.elem}" has attached nodes that it is also attached to, creating an infinite loop.`);
 			if ('render' in coral) coral.render();
 		});
 	}
 
 	/**
 	 * Create the Reef object
-	 * @todo  switch to WeakMap() internal props
 	 * @param {String|Node} elem    The element to make into a component
 	 * @param {Object}      options The component options
 	 */
@@ -496,63 +515,59 @@ var Reef = (function () {
 		// Make sure a template is provided
 		if (!options || (!options.template && !options.lagoon)) return err('You did not provide a template for this component.');
 
-		// Set the component properties
+		// Get the component properties
 		let _this = this;
 		let _data = makeProxy(options, _this);
-		let _store = options.store;
-		let _router = options.router;
-		let _setters = options.setters;
-		let _getters = options.getters;
+		let {store: _store, router: _router, setters: _setters, getters: _getters} = options;
 		_this.debounce = null;
 
-		// Create properties for stuff
+		// Set the component properties
 		Object.defineProperties(_this, {
+
+			// Read-only properties
 			elem: {value: elem},
 			template: {value: options.template},
 			allowHTML: {value: options.allowHTML},
 			lagoon: {value: options.lagoon},
 			store: {value: _store},
 			attached: {value: []},
-			router: {value: _router}
-		});
+			router: {value: _router},
 
-		// Define setter and getter for data
-		Object.defineProperty(_this, 'data', {
-			get: function () {
-				return _setters ? copy(_data, true) : _data;
+			// getter/setter for data
+			data: {
+				get: function () {
+					return _setters ? copy(_data, true) : _data;
+				},
+				set: function (data) {
+					if (_store || _setters) return true;
+					_data = new Proxy(data, dataHandler(_this));
+					debounceRender(_this);
+					return true;
+				}
 			},
-			set: function (data) {
-				if (_store || _setters) return true;
-				_data = new Proxy(data, dataHandler(_this));
-				debounceRender(_this);
-				return true;
-			}
-		});
 
-		// If there are settings, add do property
-		// @todo move to prototype
-		if (_setters && !_store) {
-			Object.defineProperty(_this, 'do', {
+			// do() method for options.setters
+			do: {
 				value: function (id) {
+					if (_store || !_setters) return err('There are no setters for this component.');
 					if (!_setters[id]) return err('There is no setter with this name.');
 					let args = Array.from(arguments);
 					args[0] = _data;
 					_setters[id].apply(_this, args);
 					debounceRender(_this);
 				}
-			});
-		}
+			},
 
-		// If there are getters, add property
-		// @todo move to prototype
-		if (_getters && !_store) {
-			Object.defineProperty(_this, 'get', {
+			// get() method for options.getters
+			get: {
 				value: function (id) {
+					if (_store || !_getters) return err('There are no getters for this component.');
 					if (!_getters[id]) return err('There is no getter with this name.');
 					return _getters[id](_data);
 				}
-			});
-		}
+			}
+
+		});
 
 		// Attach to router
 		if (_router && 'addComponent' in _router) {
@@ -575,31 +590,6 @@ var Reef = (function () {
 		}
 
 	}
-
-	/**
-	 * Store constructor
-	 * @param {Object} options The data store options
-	 */
-	Reef.Store = function (options) {
-		options.lagoon = true;
-		return new Reef(null, options);
-	};
-
-	/**
-	 * Emit a custom event
-	 * @param  {Node}   elem   The element to emit the custom event on
-	 * @param  {String} name   The name of the custom event
-	 * @param  {*}      detail Details to attach to the event
-	 */
-	Reef.emit = function (elem, name, detail) {
-		let event;
-		if (!elem || !name) return err('You did not provide an element or event name.');
-		event = new CustomEvent(name, {
-			bubbles: true,
-			detail: detail
-		});
-		elem.dispatchEvent(event);
-	};
 
 	/**
 	 * Render a template into the DOM
@@ -669,17 +659,36 @@ var Reef = (function () {
 		});
 	};
 
+	/**
+	 * Store constructor
+	 * @param {Object} options The data store options
+	 */
+	Reef.Store = function (options) {
+		options.lagoon = true;
+		return new Reef(null, options);
+	};
+
+	/**
+	 * Emit a custom event
+	 * @param  {Node}   elem   The element to emit the custom event on
+	 * @param  {String} name   The name of the custom event
+	 * @param  {*}      detail Details to attach to the event
+	 */
+	Reef.emit = function (elem, name, detail) {
+		let event;
+		if (!elem || !name) return err('You did not provide an element or event name.');
+		event = new CustomEvent(name, {
+			bubbles: true,
+			detail: detail
+		});
+		elem.dispatchEvent(event);
+	};
+
 	// External helper methods
-	// @todo Consider what to expose here (add more items)
 	Reef.debug = setDebug;
 	Reef.clone = copy;
-
-	// Internal helper methods
-	// @todo approach this differently
-	Reef._ = {
-		trueTypeOf: trueTypeOf,
-		err: err
-	};
+	Reef.trueTypeOf = trueTypeOf;
+	Reef.err = err;
 
 	return Reef;
 

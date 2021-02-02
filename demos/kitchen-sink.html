@@ -110,7 +110,6 @@
 						props.items.todos.forEach(function (todo) {
 							html += '<li' + styles + '>' + todo + '</li>';
 						});
-						console.log(props.heading);
 						html += '<input type="checkbox" defaultChecked>';
 						html += '<input type="text" id="heading"><br>';
 						html += '<strong>The title is:</strong> ' + (props.heading.length > 0 ? props.heading : 'Hello, world!');

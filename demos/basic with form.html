@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>ReefJS Test</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!-- stylesheets -->
+		<style type="text/css">
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+				font-size: 112.5%;
+				margin-left: auto;
+				margin-right: auto;
+				max-width: 40em;
+				width: 88%;
+			}
+		</style>
+
+		<!-- scripts -->
+		<script src="../dist/reef.js"></script>
+	</head>
+
+	<body>
+
+		<main>
+
+			<div id="app"></div>
+
+			<script>
+				// Turn on debug mode
+				Reef.debug(true);
+
+				// Create an app
+				var app = new Reef('#app', {
+					data: {
+						heading: 'My Todos',
+						todos: ['Swim', 'Climb', 'Jump', 'Play'],
+						wizard: 'hermione',
+						checked: false
+					},
+					template: function (props) {
+						return `
+							<h1>${props.heading}</h1>
+							<ul>
+								${props.todos.map(function (todo) {
+									return `<li>${todo}</li>`;
+								}).join('')}
+							</ul>
+							<label for="type">Type Something</label>
+							<input type="text" id="type" reef-value="${props.heading}">
+
+							<br><br>
+
+							<label>
+								<input type="checkbox" id="check" reef-default-checked="${props.checked}">
+								Awesome?
+							</label>
+
+							<br><br>
+
+							<label for="wizards">Who is the best wizard?</label>
+							<select id="wizards">
+								<option id="harry" value="harry" reef-default-selected="${props.wizard === 'harry'}">Harry</option>
+								<option id="hermione" value="hermione" reef-default-selected="${props.wizard === 'hermione'}">Hermione</option>
+								<option id="neville" value="neville" reef-default-selected="${props.wizard === 'neville'}">Neville</option>
+							</select>`;
+					}
+				});
+
+				// Render the app
+				app.render();
+
+				// After three seconds, add an item to the todo list
+				// setTimeout(function () {
+				// 	app.data.todos.push('Take a nap... zzzz');
+				// }, 3000);
+			</script>
+		</main>
+
+	</body>
+</html>

@@ -102,9 +102,13 @@ function copy (obj, allowHTML) {
 		return clone;
 	}
 
+	/**
+	 * Sanitize and encode HTML in a string
+	 * @return {String} The sanitized and encoded string
+	 */
 	function sanitizeStr () {
 		return obj.replace(/[^\w-_. ]/gi, function(c){
-			return '&#' + c.charCodeAt(0) + ';';
+			return `&#${c.charCodeAt(0)};`;
 		}).replace(/javascript:/gi, '');
 	}
 

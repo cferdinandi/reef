@@ -4,7 +4,6 @@ import * as $ from './dom.js';
 
 /**
  * Create the Reef object
- * @todo  switch to WeakMap() internal props
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
@@ -16,63 +15,59 @@ function Reef (elem, options) {
 	// Make sure a template is provided
 	if (!options || (!options.template && !options.lagoon)) return _.err('You did not provide a template for this component.');
 
-	// Set the component properties
+	// Get the component properties
 	let _this = this;
 	let _data = _.makeProxy(options, _this);
-	let _store = options.store;
-	let _router = options.router;
-	let _setters = options.setters;
-	let _getters = options.getters;
+	let {store: _store, router: _router, setters: _setters, getters: _getters} = options;
 	_this.debounce = null;
 
-	// Create properties for stuff
+	// Set the component properties
 	Object.defineProperties(_this, {
+
+		// Read-only properties
 		elem: {value: elem},
 		template: {value: options.template},
 		allowHTML: {value: options.allowHTML},
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
-		router: {value: _router}
-	});
+		router: {value: _router},
 
-	// Define setter and getter for data
-	Object.defineProperty(_this, 'data', {
-		get: function () {
-			return _setters ? _.copy(_data, true) : _data;
+		// getter/setter for data
+		data: {
+			get: function () {
+				return _setters ? _.copy(_data, true) : _data;
+			},
+			set: function (data) {
+				if (_store || _setters) return true;
+				_data = new Proxy(data, _.dataHandler(_this));
+				_.debounceRender(_this);
+				return true;
+			}
 		},
-		set: function (data) {
-			if (_store || _setters) return true;
-			_data = new Proxy(data, _.dataHandler(_this));
-			_.debounceRender(_this);
-			return true;
-		}
-	});
 
-	// If there are settings, add do property
-	// @todo move to prototype
-	if (_setters && !_store) {
-		Object.defineProperty(_this, 'do', {
+		// do() method for options.setters
+		do: {
 			value: function (id) {
+				if (_store || !_setters) return _.err('There are no setters for this component.');
 				if (!_setters[id]) return _.err('There is no setter with this name.');
 				let args = Array.from(arguments);
 				args[0] = _data;
 				_setters[id].apply(_this, args);
 				_.debounceRender(_this);
 			}
-		});
-	}
+		},
 
-	// If there are getters, add property
-	// @todo move to prototype
-	if (_getters && !_store) {
-		Object.defineProperty(_this, 'get', {
+		// get() method for options.getters
+		get: {
 			value: function (id) {
+				if (_store || !_getters) return _.err('There are no getters for this component.');
 				if (!_getters[id]) return _.err('There is no getter with this name.');
 				return _getters[id](_data);
 			}
-		});
-	}
+		}
+
+	});
 
 	// Attach to router
 	if (_router && 'addComponent' in _router) {
@@ -95,31 +90,6 @@ function Reef (elem, options) {
 	}
 
 }
-
-/**
- * Store constructor
- * @param {Object} options The data store options
- */
-Reef.Store = function (options) {
-	options.lagoon = true;
-	return new Reef(null, options);
-};
-
-/**
- * Emit a custom event
- * @param  {Node}   elem   The element to emit the custom event on
- * @param  {String} name   The name of the custom event
- * @param  {*}      detail Details to attach to the event
- */
-Reef.emit = function (elem, name, detail) {
-	let event;
-	if (!elem || !name) return _.err('You did not provide an element or event name.');
-	event = new CustomEvent(name, {
-		bubbles: true,
-		detail: detail
-	});
-	elem.dispatchEvent(event);
-};
 
 /**
  * Render a template into the DOM
@@ -189,17 +159,36 @@ Reef.prototype.detach = function (coral) {
 	});
 };
 
+/**
+ * Store constructor
+ * @param {Object} options The data store options
+ */
+Reef.Store = function (options) {
+	options.lagoon = true;
+	return new Reef(null, options);
+};
+
+/**
+ * Emit a custom event
+ * @param  {Node}   elem   The element to emit the custom event on
+ * @param  {String} name   The name of the custom event
+ * @param  {*}      detail Details to attach to the event
+ */
+Reef.emit = function (elem, name, detail) {
+	let event;
+	if (!elem || !name) return _.err('You did not provide an element or event name.');
+	event = new CustomEvent(name, {
+		bubbles: true,
+		detail: detail
+	});
+	elem.dispatchEvent(event);
+};
+
 // External helper methods
-// @todo Consider what to expose here (add more items)
 Reef.debug = _.setDebug;
 Reef.clone = _.copy;
-
-// Internal helper methods
-// @todo approach this differently
-Reef._ = {
-	trueTypeOf: _.trueTypeOf,
-	err: _.err
-};
+Reef.trueTypeOf = _.trueTypeOf;
+Reef.err = _.err;
 
 
 export default Reef;
