@@ -1,4 +1,4 @@
-/*! Reef v8.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.0.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 // If true, debug mode is enabled
 let debug = false;
 
@@ -34,8 +34,8 @@ function trueTypeOf (obj) {
  * @param  {String}  str The string
  * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
  */
-function isFalsy (str) {
-	return !str || ['false', '0', '-0', 'null', 'undefined', 'NaN', '0n', '-0n'].includes(str);
+function isFalsy (str = '') {
+	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
 }
 
 /**
