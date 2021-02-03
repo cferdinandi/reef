@@ -18,6 +18,7 @@ function Reef (elem, options) {
 	// Get the component properties
 	let _this = this;
 	let _data = _.makeProxy(options, _this);
+	let _attachTo = options.attachTo ? (_.trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo]) : [];
 	let {store: _store, router: _router, setters: _setters, getters: _getters} = options;
 	_this.debounce = null;
 
@@ -43,7 +44,8 @@ function Reef (elem, options) {
 				_data = new Proxy(data, _.dataHandler(_this));
 				_.debounceRender(_this);
 				return true;
-			}
+			},
+			configurable: true
 		},
 
 		// do() method for options.setters
@@ -55,7 +57,8 @@ function Reef (elem, options) {
 				args[0] = _data;
 				_setters[id].apply(_this, args);
 				_.debounceRender(_this);
-			}
+			},
+			configurable: true
 		},
 
 		// get() method for options.getters
@@ -64,7 +67,8 @@ function Reef (elem, options) {
 				if (_store || !_getters) return _.err('There are no getters for this component.');
 				if (!_getters[id]) return _.err('There is no getter with this name.');
 				return _getters[id](_data);
-			}
+			},
+			configurable: true
 		}
 
 	});
@@ -80,8 +84,7 @@ function Reef (elem, options) {
 	}
 
 	// Attach linked components
-	if (options.attachTo) {
-		let _attachTo = _.trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
+	if (_attachTo.length) {
 		_attachTo.forEach(function (coral) {
 			if ('attach' in coral) {
 				coral.attach(_this);
@@ -160,15 +163,6 @@ Reef.prototype.detach = function (coral) {
 };
 
 /**
- * Store constructor
- * @param {Object} options The data store options
- */
-Reef.Store = function (options) {
-	options.lagoon = true;
-	return new Reef(null, options);
-};
-
-/**
  * Emit a custom event
  * @param  {Node}   elem   The element to emit the custom event on
  * @param  {String} name   The name of the custom event
@@ -182,6 +176,15 @@ Reef.emit = function (elem, name, detail) {
 		detail: detail
 	});
 	elem.dispatchEvent(event);
+};
+
+/**
+ * Store constructor
+ * @param {Object} options The data store options
+ */
+Reef.Store = function (options) {
+	options.lagoon = true;
+	return new Reef(null, options);
 };
 
 // External helper methods

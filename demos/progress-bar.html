@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Working with Numbers</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src='../dist/reef.js'></script>
+	<script>
+		// Turn on debug mode
+		Reef.debug(true);
+
+		// Create a component
+		var app = new Reef('#app', {
+			data: {
+				percentage: 0
+			},
+			template: function (props) {
+				return `
+					<label for="progress">App progress:</label>
+					<progress id="progress" max="100" value="${props.percentage}"> ${props.percentage}% </progress>`;
+			}
+		});
+
+		// Render the component into the DOM
+		app.render();
+
+		// Automatically increase the percentage every second
+		let int = setInterval(function () {
+
+			// Increase the percentage
+			app.data.percentage += 10;
+
+			// Once it hits 100%, clear it
+			if (app.data.percentage > 99) {
+				clearInterval(int);
+			}
+
+		}, 1000);
+	</script>
+
+</body>
+</html>

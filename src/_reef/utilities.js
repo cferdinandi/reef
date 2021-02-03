@@ -10,6 +10,16 @@ function setDebug (on) {
 }
 
 /**
+ * Throw an error message
+ * @param  {String} msg The error message
+ */
+function err (msg) {
+	if (debug) {
+		throw new Error(msg);
+	}
+}
+
+/**
  * More accurately check the type of a JavaScript object
  * @param  {Object} obj The object
  * @return {String}     The object type
@@ -19,13 +29,12 @@ function trueTypeOf (obj) {
 }
 
 /**
- * Throw an error message
- * @param  {String} msg The error message
+ * Check if an attribute string has a stringified falsy value
+ * @param  {String}  str The string
+ * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
  */
-function err (msg) {
-	if (debug) {
-		throw new Error(msg);
-	}
+function isFalsy (str) {
+	return !str || ['false', '0', '-0', 'null', 'undefined', 'NaN', '0n', '-0n'].includes(str);
 }
 
 /**
@@ -43,7 +52,7 @@ function copy (obj, allowHTML) {
 	function copyProps (clone) {
 		for (let key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				clone[key] = copy(obj[key]);
+				clone[key] = copy(obj[key], allowHTML);
 			}
 		}
 	}
@@ -64,7 +73,7 @@ function copy (obj, allowHTML) {
 	 */
 	function cloneArr () {
 		return obj.map(function (item) {
-			return copy(item);
+			return copy(item, allowHTML);
 		});
 	}
 
@@ -75,7 +84,7 @@ function copy (obj, allowHTML) {
 	function cloneMap () {
 		let clone = new Map();
 		for (let [key, val] of obj) {
-			clone.set(key, copy(val));
+			clone.set(key, copy(val, allowHTML));
 		}
 		return clone;
 	}
@@ -87,7 +96,7 @@ function copy (obj, allowHTML) {
 	function cloneSet () {
 		let clone = new Set();
 		for (let item of set) {
-			clone.add(copy(item));
+			clone.add(copy(item, allowHTML));
 		}
 		return clone;
 	}
@@ -200,4 +209,4 @@ function stringToHTML (str) {
 }
 
 
-export {setDebug, trueTypeOf, err, copy, debounceRender, dataHandler, makeProxy, stringToHTML};
+export {setDebug, err, trueTypeOf, isFalsy, copy, debounceRender, dataHandler, makeProxy, stringToHTML};

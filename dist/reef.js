@@ -1,4 +1,4 @@
-/*! Reef v7.6.6 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -14,6 +14,16 @@ var Reef = (function () {
 	}
 
 	/**
+	 * Throw an error message
+	 * @param  {String} msg The error message
+	 */
+	function err (msg) {
+		if (debug) {
+			throw new Error(msg);
+		}
+	}
+
+	/**
 	 * More accurately check the type of a JavaScript object
 	 * @param  {Object} obj The object
 	 * @return {String}     The object type
@@ -23,13 +33,12 @@ var Reef = (function () {
 	}
 
 	/**
-	 * Throw an error message
-	 * @param  {String} msg The error message
+	 * Check if an attribute string has a stringified falsy value
+	 * @param  {String}  str The string
+	 * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
 	 */
-	function err (msg) {
-		if (debug) {
-			throw new Error(msg);
-		}
+	function isFalsy (str) {
+		return !str || ['false', '0', '-0', 'null', 'undefined', 'NaN', '0n', '-0n'].includes(str);
 	}
 
 	/**
@@ -47,7 +56,7 @@ var Reef = (function () {
 		function copyProps (clone) {
 			for (let key in obj) {
 				if (obj.hasOwnProperty(key)) {
-					clone[key] = copy(obj[key]);
+					clone[key] = copy(obj[key], allowHTML);
 				}
 			}
 		}
@@ -68,7 +77,7 @@ var Reef = (function () {
 		 */
 		function cloneArr () {
 			return obj.map(function (item) {
-				return copy(item);
+				return copy(item, allowHTML);
 			});
 		}
 
@@ -79,7 +88,7 @@ var Reef = (function () {
 		function cloneMap () {
 			let clone = new Map();
 			for (let [key, val] of obj) {
-				clone.set(key, copy(val));
+				clone.set(key, copy(val, allowHTML));
 			}
 			return clone;
 		}
@@ -91,7 +100,7 @@ var Reef = (function () {
 		function cloneSet () {
 			let clone = new Set();
 			for (let item of set) {
-				clone.add(copy(item));
+				clone.add(copy(item, allowHTML));
 			}
 			return clone;
 		}
@@ -305,8 +314,8 @@ var Reef = (function () {
 			// If the node is a template with a dynamic attribute/field, skip it
 			if (isTemplate && dynamicAttributes.includes(attribute.name) && dynamicFields.includes(node.tagName.toLowerCase())) return;
 
-			// If the node is in the DOM with a "no value" dynamic field, get it
-			if (!isTemplate && dynamicAttributesNoValue.includes(attribute.name)) {
+			// If the node is in the DOM with a dynamic field, get it
+			if (!isTemplate && dynamicAttributes.includes(attribute.name)) {
 				return getAttribute(attribute.name, node[attribute.name]);
 			}
 
@@ -316,7 +325,7 @@ var Reef = (function () {
 			// If it's a template node with a [reef-*] attribute, get the attribute from the reef att
 			if (isTemplate && reefAttributes.includes(attribute.name)) {
 				let attName = attribute.name.replace('reef-', '');
-				return dynamicAttributesNoValue.includes(attName) ? getAttribute(attName, attribute.value === 'false' ? null : attName) : getAttribute(attName, attribute.value);
+				return dynamicAttributesNoValue.includes(attName) ? getAttribute(attName, isFalsy(attribute.value) ? null : attName) : getAttribute(attName, attribute.value);
 			}
 
 			// Otherwise, get the value as-is
@@ -376,7 +385,7 @@ var Reef = (function () {
 			let attName = attribute.name.replace('reef-default-', '').replace('reef-', '');
 			let isNoVal = dynamicAttributesNoValue.includes(attName);
 			removeAttributes(node, [getAttribute(attribute.name, attribute.value)]);
-			if (isNoVal && attribute.value === 'false') return;
+			if (isNoVal && isFalsy(attribute.value)) return;
 			addAttributes(node, [isNoVal ? getAttribute(attName, attName) : getAttribute(attName, attribute.value)]);
 		});
 
@@ -518,6 +527,7 @@ var Reef = (function () {
 		// Get the component properties
 		let _this = this;
 		let _data = makeProxy(options, _this);
+		let _attachTo = options.attachTo ? (trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo]) : [];
 		let {store: _store, router: _router, setters: _setters, getters: _getters} = options;
 		_this.debounce = null;
 
@@ -543,7 +553,8 @@ var Reef = (function () {
 					_data = new Proxy(data, dataHandler(_this));
 					debounceRender(_this);
 					return true;
-				}
+				},
+				configurable: true
 			},
 
 			// do() method for options.setters
@@ -555,7 +566,8 @@ var Reef = (function () {
 					args[0] = _data;
 					_setters[id].apply(_this, args);
 					debounceRender(_this);
-				}
+				},
+				configurable: true
 			},
 
 			// get() method for options.getters
@@ -564,7 +576,8 @@ var Reef = (function () {
 					if (_store || !_getters) return err('There are no getters for this component.');
 					if (!_getters[id]) return err('There is no getter with this name.');
 					return _getters[id](_data);
-				}
+				},
+				configurable: true
 			}
 
 		});
@@ -580,8 +593,7 @@ var Reef = (function () {
 		}
 
 		// Attach linked components
-		if (options.attachTo) {
-			let _attachTo = trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo];
+		if (_attachTo.length) {
 			_attachTo.forEach(function (coral) {
 				if ('attach' in coral) {
 					coral.attach(_this);
@@ -660,15 +672,6 @@ var Reef = (function () {
 	};
 
 	/**
-	 * Store constructor
-	 * @param {Object} options The data store options
-	 */
-	Reef.Store = function (options) {
-		options.lagoon = true;
-		return new Reef(null, options);
-	};
-
-	/**
 	 * Emit a custom event
 	 * @param  {Node}   elem   The element to emit the custom event on
 	 * @param  {String} name   The name of the custom event
@@ -682,6 +685,15 @@ var Reef = (function () {
 			detail: detail
 		});
 		elem.dispatchEvent(event);
+	};
+
+	/**
+	 * Store constructor
+	 * @param {Object} options The data store options
+	 */
+	Reef.Store = function (options) {
+		options.lagoon = true;
+		return new Reef(null, options);
 	};
 
 	// External helper methods

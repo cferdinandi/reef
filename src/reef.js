@@ -1,3 +1,3 @@
-import Reef from './components/reef.js';
-
+import Reef from './_reef/constructor.js';
+// @todo add destroy method
 export default Reef;

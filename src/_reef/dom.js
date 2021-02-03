@@ -103,8 +103,8 @@ function getAttributes (node, isTemplate) {
 		// If the node is a template with a dynamic attribute/field, skip it
 		if (isTemplate && dynamicAttributes.includes(attribute.name) && dynamicFields.includes(node.tagName.toLowerCase())) return;
 
-		// If the node is in the DOM with a "no value" dynamic field, get it
-		if (!isTemplate && dynamicAttributesNoValue.includes(attribute.name)) {
+		// If the node is in the DOM with a dynamic field, get it
+		if (!isTemplate && dynamicAttributes.includes(attribute.name)) {
 			return getAttribute(attribute.name, node[attribute.name]);
 		}
 
@@ -114,7 +114,7 @@ function getAttributes (node, isTemplate) {
 		// If it's a template node with a [reef-*] attribute, get the attribute from the reef att
 		if (isTemplate && reefAttributes.includes(attribute.name)) {
 			let attName = attribute.name.replace('reef-', '');
-			return dynamicAttributesNoValue.includes(attName) ? getAttribute(attName, attribute.value === 'false' ? null : attName) : getAttribute(attName, attribute.value);
+			return dynamicAttributesNoValue.includes(attName) ? getAttribute(attName, _.isFalsy(attribute.value) ? null : attName) : getAttribute(attName, attribute.value);
 		}
 
 		// Otherwise, get the value as-is
@@ -174,7 +174,7 @@ function addDefaultAtts (node) {
 		let attName = attribute.name.replace('reef-default-', '').replace('reef-', '');
 		let isNoVal = dynamicAttributesNoValue.includes(attName);
 		removeAttributes(node, [getAttribute(attribute.name, attribute.value)]);
-		if (isNoVal && attribute.value === 'false') return;
+		if (isNoVal && _.isFalsy(attribute.value)) return;
 		addAttributes(node, [isNoVal ? getAttribute(attName, attName) : getAttribute(attName, attribute.value)]);
 	});
 

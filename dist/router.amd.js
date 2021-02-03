@@ -1,12 +1,11 @@
-/*! Reef v7.6.6 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
-	//
-	// Variables
-	//
+	// The global Reef instance
+	let Reef;
 
 	// RegExp patterns
-	var regPatterns = {
+	let regPatterns = {
 		parameterRegex: /([:*])(\w+)/g,
 		wildcardRegex: /\*/g,
 		replaceVarRegex: '([^\/]+)',
@@ -15,58 +14,58 @@ define(function () { 'use strict';
 		matchRegexFlags: ''
 	};
 
-	// Check for pushState() support
-	var support = !!window.history && !!window.history.pushState;
 
-
-	//
-	// Methods
-	//
+	function setReef (reef) {
+		Reef = reef;
+	}
 
 	/**
 	 * Get the URL parameters
-	 * source: https://css-tricks.com/snippets/javascript/get-url-variables/
 	 * @param  {String} url The URL
 	 * @return {Object}     The URL parameters
 	 */
-	var getParams = function (url) {
-		var params = {};
-		var query = url.search.substring(1);
-		var vars = query.split('&');
-		if (vars.length < 1 || vars[0].length < 1) return params;
-		for (var i = 0; i < vars.length; i++) {
-			var pair = vars[i].split('=');
-			params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+	function getParams (url) {
+		let search = new URL(url).searchParams;
+		let obj = {};
+		for (let [key, value] of search) {
+			if (obj[key] !== undefined) {
+				if (!Array.isArray(obj[key])) {
+					obj[key] = [obj[key]];
+				}
+				obj[key].push(value);
+			} else {
+				obj[key] = value;
+			}
 		}
-		return params;
-	};
+		return obj;
+	}
 
 	/**
 	 * Remove hashbang (#!) from a string
 	 * @param  {String} str The string
 	 * @return {String}     The string with the hashbang removed
 	 */
-	var removeHashBang = function (str) {
+	function removeHashBang (str) {
 		return str.replace(/^(#!)\/?/g, '');
-	};
+	}
 
 	/**
 	 * Remove leading and trailing slashes from a string
 	 * @param  {String} str The string
 	 * @return {String}     The string with slashes removed
 	 */
-	var removeSlashes = function (str) {
+	function removeSlashes (str) {
 		return str.replace(/^\/|\/$/g, '');
-	};
+	}
 
 	/**
 	 * Remove slashes and hashbangs from a URL
 	 * @param  {String} str The string
 	 * @return {String}     The string with slashes and hashbangs removed
 	 */
-	var cleanURL = function (str) {
+	function cleanURL$1 (str) {
 		return '/' + removeHashBang(removeSlashes(str));
-	};
+	}
 
 	/**
 	 * Extract parameters from URL
@@ -74,26 +73,26 @@ define(function () { 'use strict';
 	 * @param  {Array}  names The parameter names
 	 * @return {Object}       The parameters as key/value pairs
 	 */
-	var regExpResultToParams = function (match, names) {
+	function regExpResultToParams (match, names) {
 		if (!match || names.length === 0) return {};
 		return match.slice(1, match.length).reduce(function (params, value, index) {
 			params[names[index]] = decodeURIComponent(value);
 			return params;
 		}, {});
-	};
+	}
 
 	/**
 	 * Replace dynamic parts of a URL
 	 * @param  {String} route The URL path
 	 * @return {Object}       The regex and parameter names
 	 */
-	var replaceDynamicURLParts = function (route) {
+	function replaceDynamicURLParts (route) {
 
 		// Setup parameter names array
-		var paramNames = [];
+		let paramNames = [];
 
 		// Parse route
-		var regexp = new RegExp(route.replace(regPatterns.parameterRegex, function (full, dots, name) {
+		let regexp = new RegExp(route.replace(regPatterns.parameterRegex, function (full, dots, name) {
 			paramNames.push(name);
 			return regPatterns.replaceVarRegex;
 		}).replace(regPatterns.wildcardRegex, regPatterns.replaceWildcard) + regPatterns.followedBySlashRegex, regPatterns.matchRegexFlags);
@@ -103,23 +102,22 @@ define(function () { 'use strict';
 			paramNames: paramNames
 		};
 
-	};
+	}
 
 	/**
 	 * If the URL points to '/', check for home route
 	 * @param  {Array} routes The routes
 	 * @return {Array}        The homepage route
 	 */
-	var getHome = function (routes) {
-		var home = routes.filter(function (route) {
+	function getHome (routes) {
+		let home = routes.find(function (route) {
 			return route.url === '/';
 		});
-		if (!home.length) return;
-		return [{
-			route: home[0],
+		return home ? [{
+			route: home,
 			params: {}
-		}];
-	};
+		}] : null;
+	}
 
 	/**
 	 * Find routes that match the pattern
@@ -127,17 +125,23 @@ define(function () { 'use strict';
 	 * @param  {Array} routes The routes
 	 * @return {Array}        The matching routes
 	 */
-	var findMatchedRoutes = function (url, routes) {
-		if (!routes || Reef._.trueTypeOf(routes) !== 'array') return [];
+	function findMatchedRoutes (url, routes) {
+
+		// If there are no routes, or the routes are not an array
+		if (!routes || Reef.trueTypeOf(routes) !== 'array') return [];
+
+		// Check for a home route if the url is a single slash
 		if (url === '/') {
-			var home = getHome(routes);
+			let home = getHome(routes);
 			if (home) return home;
 		}
+
+		// Otherwise, find any routes that match the pattern
 		return routes.map(function (route) {
-			var parts = replaceDynamicURLParts(cleanURL(route.url));
-			var match = url.replace(/^\/+/, '/').match(parts.regexp);
+			let parts = replaceDynamicURLParts(cleanURL$1(route.url));
+			let match = url.replace(/^\/+/, '/').match(parts.regexp);
 			if (!match) return;
-			var params = regExpResultToParams(match, parts.paramNames);
+			let params = regExpResultToParams(match, parts.paramNames);
 			return {
 				route: route,
 				params: params
@@ -145,25 +149,31 @@ define(function () { 'use strict';
 		}).filter(function (match) {
 			return match;
 		});
-	};
+
+	}
 
 	/**
-	 * Scroll to an anchor link
-	 * @param  {String} hash The anchor to scroll to
-	 * @param  {String} url  The URL to update [optional]
+	 * Get the link from the event
+	 * @todo  move to top of page
+	 * @param  {Event} event The event object
+	 * @return {Node}        The link
 	 */
-	var scrollToAnchor = function (hash, url) {
-		if (url) {
-			window.location.hash = '!' + cleanURL(url) + hash;
-		}
-		console.log(hash);
-		var elem = document.getElementById(hash.slice(1));
-		if (!elem) return;
-		elem.scrollIntoView();
-		if (document.activeElement === elem) return;
-		elem.setAttribute('tabindex', '-1');
-		elem.focus();
-	};
+	function getLink (event, router) {
+		if (!('closest' in event.target)) return;
+		return event.target.closest('a');
+	}
+
+	/**
+	 * Create a link element from a URL
+	 * @param  {String} url  The URL
+	 * @param  {String} root The root for the domain
+	 * @return {Node}       The element
+	 */
+	function getLinkElem$1 (url, root) {
+		let link = document.createElement('a');
+		link.href = (root.length ? cleanURL$1(root) : '') + cleanURL$1(url);
+		return link;
+	}
 
 	/**
 	 * Get the href from a full URL, excluding hashes and query strings
@@ -172,15 +182,18 @@ define(function () { 'use strict';
 	 * @param  {Boolean} hash If true, as hash is used
 	 * @return {String}      The href
 	 */
-	var getHref = function (url, root, hash) {
-		var href = cleanURL(url.pathname);
+	function getHref (url, root, hash) {
+		let href = cleanURL$1(url.pathname);
 		if (!root.length) return href;
-		root = cleanURL(root);
-		if (href.indexOf(root) === 0) {
+		root = cleanURL$1(root);
+		if (href.startsWith(root)) {
 			href = href.slice(root.length);
 		}
+		if (!href.length) {
+			href = '/';
+		}
 		return href;
-	};
+	}
 
 	/**
 	 * Get a cleaned up URL object
@@ -189,12 +202,12 @@ define(function () { 'use strict';
 	 * @param  {Boolean} hash If true, as hash is used
 	 * @return {URL}          The URL object
 	 */
-	var getURL = function (url, root, hash) {
-		if ((hash && url.pathname.slice(-5) === '.html') || url.hash.indexOf('#!') === 0) {
-			url = getLinkElem(url.hash.slice(2), root);
+	function getURL (url, root, hash) {
+		if ((hash && url.pathname.slice(-5) === '.html') || url.hash.startsWith('#!')) {
+			url = getLinkElem$1(url.hash.slice(2), root);
 		}
 		return url;
-	};
+	}
 
 	/**
 	 * Get the route from the URL
@@ -203,75 +216,121 @@ define(function () { 'use strict';
 	 * @param  {String} root  The domain root
 	 * @return {Object}       The matching route
 	 */
-	var getRoute = function (url, routes, root, hash) {
+	function getRoute (url, routes, root, hash) {
 		url = getURL(url, root, hash);
-		var href = getHref(url, root);
-		var matches = findMatchedRoutes(href, routes);
+		let href = getHref(url, root);
+		let matches = findMatchedRoutes(href, routes);
 		if (!matches.length) return;
-		var route = Reef.clone(matches[0].route);
+		let route = Reef.clone(matches[0].route, true);
 		if (route.redirect) {
-			return getRoute(getLinkElem(typeof route.redirect === 'function' ? route.redirect(route) : route.redirect, root), routes, root, hash);
+			return getRoute(getLinkElem$1(typeof route.redirect === 'function' ? route.redirect(route) : route.redirect, root), routes, root, hash);
 		}
 		route.params = matches[0].params;
 		route.search = getParams(url);
 		return route;
-	};
+	}
+
+	/**
+	 * Get true hash from hashbang (#!) string
+	 * @param  {String} str The string
+	 * @return {String}     The hash
+	 */
+	function getHash (str) {
+		let parts = str.split('#');
+		return parts[2] ? '#' + parts[2] : '';
+	}
+
+	/**
+	 * Check if URL matches current location
+	 * @param  {String}  url  The URL path
+	 * @param  {Boolean} hash If true, using hashbang routing
+	 * @return {Boolean}      If true, points to current location
+	 */
+	function isSamePath (url, hash) {
+		return url.pathname === window.location.pathname && url.search === window.location.search;
+	}
+
+	/**
+	 * Scroll to an anchor link
+	 * @param  {String} hash The anchor to scroll to
+	 * @param  {String} url  The URL to update [optional]
+	 */
+	function scrollToAnchor (hash, url) {
+
+		// Update the URL
+		if (url) {
+			window.location.hash = '!' + cleanURL(url) + hash;
+		}
+
+		// Get the element from its hash
+		let elem = document.getElementById(hash.slice(1));
+		if (!elem) return;
+
+		// Scroll to the element
+		elem.scrollIntoView();
+
+		// If the element is not in focus, focus it
+		if (document.activeElement === elem) return;
+		elem.setAttribute('tabindex', '-1');
+		elem.focus();
+
+	}
 
 	/**
 	 * Emit an event before routing
-	 * @param  {Object} current The current route
-	 * @param  {Object} next    The next route
+	 * @param  {Object}      current The current route
+	 * @param  {Object}      next    The next route
 	 */
-	var preEvent = function (current, next) {
+	function preEvent (current, next) {
 		Reef.emit(window, 'beforeRouteUpdated', {
 			current: current,
 			next: next
 		});
-	};
+	}
 
 	/**
 	 * Emit an event after routing
-	 * @param  {Object} current  The current route
-	 * @param  {Object} previous The previous route
+	 * @param  {Object}      current  The current route
+	 * @param  {Object}      previous The previous route
 	 */
-	var postEvent = function (current, previous) {
+	function postEvent (current, previous) {
 		Reef.emit(window, 'routeUpdated', {
 			current: current,
 			previous: previous
 		});
-	};
+	}
 
 	/**
 	 * Render any components using this router
 	 * @param  {Array} components Attached components
 	 */
-	var renderComponents = function (components) {
+	function renderComponents (components) {
 		components.forEach(function (component) {
 			if (!('render' in component)) return;
 			component.render();
 		});
-	};
+	}
 
 	/**
 	 * Update the document title
 	 * @param  {Object}      route  The route object
 	 * @param  {Constructor} router The router component
 	 */
-	var updateTitle = function (route, router) {
+	function updateTitle (route, router) {
 		if (!route || !route.title) return;
-		var title = typeof router.title === 'function' ? router.title(route) : router.title;
-		document.title = title.replace('{{title}}', route.title);
-	};
+		let title = typeof route.title === 'function' ? route.title(route) : route.title;
+		document.title = typeof router.title === 'function' ? router.title(route, title) : router.title;
+	}
 
 	/**
 	 * Bring heading into focus for AT announcements
 	 */
-	var focusHeading = function () {
-		var heading = document.querySelector('h1, h2, h3, h4, h5, h6');
+	function focusHeading () {
+		let heading = document.querySelector('h1, h2, h3, h4, h5, h6');
 		if (!heading) return;
 		if (!heading.hasAttribute('tabindex')) { heading.setAttribute('tabindex', '-1'); }
 		heading.focus();
-	};
+	}
 
 	/**
 	 * Render an updated UI
@@ -279,7 +338,7 @@ define(function () { 'use strict';
 	 * @param  {Constructor} router The router component
 	 * @param  {String}      hash   An anchor link to scroll to [optional]
 	 */
-	var render = function (route, router, hash) {
+	function render (route, router, hash) {
 
 		// Render each component
 		renderComponents(router._components);
@@ -292,25 +351,25 @@ define(function () { 'use strict';
 			focusHeading();
 		}
 
-	};
+	}
 
 	/**
 	 * Update the route
 	 * @param  {URL}         link   The URL object
 	 * @param  {Constructor} router The router component
 	 */
-	var updateRoute = function (link, router) {
+	function updateRoute (link, router) {
 
 		// Get the route
-		var route = getRoute(link, router.routes, router.root, router.hash);
+		let route = getRoute(link, router.routes, router.root, router.hash);
 
-		// If redirect, switch up
+		// If redirect, recursively grab it
 		if (route.redirect) return updateRoute(getLinkElem(typeof route.redirect === 'function' ? route.redirect(route) : route.redirect, router.root), router);
 
 		// If hash enabled, handle anchors on URLs
 		if (router.hash) {
 			router.hashing = true;
-			var hash = getHash(link.hash);
+			let hash = getHash(link.hash);
 			if (route.url === router.current.url && hash.length) {
 				scrollToAnchor(hash, route.url);
 				return;
@@ -318,14 +377,14 @@ define(function () { 'use strict';
 		}
 
 		// Emit pre-routing event
-		var previous = router.current;
+		let previous = router.current;
 		preEvent(previous, route);
 
 		// Update the route
 		router.current = route;
 
 		// Get the href
-		var href = cleanURL(link.getAttribute('href'));
+		let href = cleanURL$1(link.getAttribute('href'));
 
 		// Update the URL
 		if (router.hash) {
@@ -340,71 +399,14 @@ define(function () { 'use strict';
 		// Emit post-routing event
 		postEvent(route, previous);
 
-	};
-
-	/**
-	 * Get the link from the event
-	 * @param  {Event} event The event object
-	 * @return {Node}        The link
-	 */
-	var getLink = function (event, router) {
-
-		// Cache for better minification
-		var elem = event.target;
-
-		// If closest method is available, use it
-		if ('closest' in elem) {
-			return elem.closest('a');
-		}
-
-		// Otherwise, fallback to loop
-		var eventPath = event.path || (event.composedPath ? event.composedPath() : null);
-		if (!eventPath) return;
-		for (var i = 0; i < eventPath.length; i++) {
-			if (!eventPath[i].nodeName || eventPath[i].nodeName.toLowerCase() !== 'a' || !eventPath[i].href) continue;
-			return eventPath[i];
-		}
-
-	};
-
-	/**
-	 * Create a link element from a URL
-	 * @param  {String} url  The URL
-	 * @param  {String} root The root for the domain
-	 * @return {Node}       The element
-	 */
-	var getLinkElem = function (url, root) {
-		var link = document.createElement('a');
-		link.href = (root.length ? cleanURL(root) : '') + cleanURL(url);
-		return link;
-	};
-
-	/**
-	 * Get true hash from hashbang (#!) string
-	 * @param  {String} str The string
-	 * @return {String}     The hash
-	 */
-	var getHash = function (str) {
-		var parts = str.split('#');
-		return parts[2] ? '#' + parts[2] : '';
-	};
-
-	/**
-	 * Check if URL matches current location
-	 * @param  {String}  url  The URL path
-	 * @param  {Boolean} hash If true, using hashbang routing
-	 * @return {Boolean}      If true, points to current location
-	 */
-	var isSamePath = function (url, hash) {
-		return url.pathname === window.location.pathname && url.search === window.location.search;
-	};
+	}
 
 	/**
 	 * Handle click events
 	 * @param  {Event}       event  The event object
 	 * @param  {Constructor} router The router component
 	 */
-	var clickHandler = function (event, router) {
+	function clickHandler (event, router) {
 
 		// Ignore for right-click or control/command click
 		// Ignore if event was prevented
@@ -413,8 +415,8 @@ define(function () { 'use strict';
 		// Check if a link was clicked
 		// Ignore if link points to external location
 		// Ignore if link has "download", rel="external", or "mailto:"
-		var link = getLink(event);
-		if (!link || link.host !== window.location.host || link.hasAttribute('download') || link.getAttribute('rel') === 'external' || link.href.indexOf('mailto:') > -1) return;
+		let link = getLink(event);
+		if (!link || link.host !== window.location.host || link.hasAttribute('download') || link.getAttribute('rel') === 'external' || link.href.includes('mailto:')) return;
 
 		// Make sure link isn't hash pointing to hash at current URL
 		if (isSamePath(link) && !router.hash && link.hash.length) return;
@@ -425,20 +427,20 @@ define(function () { 'use strict';
 		// Update the route
 		updateRoute(link, router);
 
-	};
+	}
 
 	/**
 	 * Handle popstate events
 	 * @param  {Event}       event  The event object
 	 * @param  {Constructor} router The router component
 	 */
-	var popHandler = function (event, router) {
+	function popHandler (event, router) {
 		if (!event.state) {
 			history.replaceState(router.current, document.title, window.location.href);
 		} else {
 
 			// Emit pre-routing event
-			var previous = router.current;
+			let previous = router.current;
 			preEvent(previous, event.state);
 
 			// Update the UI
@@ -449,14 +451,14 @@ define(function () { 'use strict';
 			postEvent(event.state, previous);
 
 		}
-	};
+	}
 
 	/**
 	 * Handle hashchange events
 	 * @param  {Event}       event  The event object
 	 * @param  {Constructor} router The router component
 	 */
-	var hashHandler = function (event, router) {
+	function hashHandler (event, router) {
 
 		// Don't run on hashchange transitions
 		if (router.hashing) {
@@ -465,12 +467,12 @@ define(function () { 'use strict';
 		}
 
 		// Parse a link from the URL
-		var link = getLinkElem(window.location.hash.slice(2), router.root);
-		var href = link.getAttribute('href');
-		var route = getRoute(link, router.routes, router.root, router.hash);
+		let link = getLinkElem$1(window.location.hash.slice(2), router.root);
+		let href = link.getAttribute('href');
+		let route = getRoute(link, router.routes, router.root, router.hash);
 
 		// Emit pre-routing event
-		var previous = router.current;
+		let previous = router.current;
 		preEvent(previous, route);
 
 		// Update the UI
@@ -480,104 +482,141 @@ define(function () { 'use strict';
 		// Emit post-routing event
 		postEvent(route, previous);
 
-	};
+	}
 
+	/**
+	 * Get a click event callback function for a specific instance
+	 * @param  {Constructor} instance The ReefRouter instance
+	 * @param  {Constructor} Reef     The Reef Constructor
+	 * @return {Function}             The callback function
+	 */
+	function click (instance) {
+		return function (event) { clickHandler(event, instance); };
+	}
 
-	//
-	// Constructor
-	//
+	/**
+	 * Get a pop event callback function for a specific instance
+	 * @param  {Constructor} instance The ReefRouter instance
+	 * @param  {Constructor} Reef     The Reef Constructor
+	 * @return {Function}             The callback function
+	 */
+	function pop (instance) {
+		return function (event) { popHandler(event, instance); };
+	}
+
+	/**
+	 * Get a hash change event callback function for a specific instance
+	 * @param  {Constructor} instance The ReefRouter instance
+	 * @param  {Constructor} Reef     The Reef Constructor
+	 * @return {Function}             The callback function
+	 */
+	function hash (instance) {
+		return function (event) { hashHandler(event, instance); };
+	}
 
 	/**
 	 * Router constructor
 	 * @param {Object} options The data store options
 	 */
-	Reef.Router = function (options) {
+	function ReefRouter (options) {
+
+		// Make sure there's a Reef instance
+		if (!Reef || !Reef.err) {
+			throw new Error('Reef not found. Use ReefRouter.install(Reef) to define your global Reef library.');
+		}
 
 		// Make sure routes are provided
-		if (!options || !options.routes || Reef._.trueTypeOf(options.routes) !== 'array' || !options.routes.length) return Reef._.err('Please provide an array of routes.');
+		if (!options || !options.routes || Reef.trueTypeOf(options.routes) !== 'array' || !options.routes.length) return Reef.err('Please provide an array of routes.');
 
 		// Properties
-		var _this = this;
-		var _routes = options.routes;
-		var _root = options.root ? options.root : '';
-		var _title = options.title ? options.title : '{{title}}';
-		var _components = [];
-		var _hash = options.useHash || !support || window.location.protocol === 'file:';
-		var _current = getRoute(window.location, _routes, _root, _hash);
+		let _this = this;
+		let _routes = options.routes;
+		let _root = options.root ? options.root : '';
+		let _title = options.title ? options.title : '{{title}}';
+		let _components = [];
+		let _hash = options.useHash || window.location.protocol === 'file:';
+		let _current = getRoute(window.location, _routes, _root, _hash);
 		_this._hashing = false;
-
-		// Event Handlers
-		var _clickHandler = function (event) { clickHandler(event, _this); };
-		var _popHandler = function (event) { popHandler(event, _this); };
-		var _hashHandler = function (event) { hashHandler(event, _this); };
 
 		// Create immutable property getters
 		Object.defineProperties(_this, {
+
+			// Read-only properties
 			routes: {value: Reef.clone(_routes, true)},
 			root: {value: _root},
 			title: {value: _title},
-			hash: {value: _hash}
-		});
+			hash: {value: _hash},
 
-		// Define setter and getter for current
-		Object.defineProperty(_this, 'current', {
-			get: function () {
-				return Reef.clone(_current, true);
+			// Current route
+			// Return immutable copy
+			current: {
+				get: function () {
+					return Reef.clone(_current, true);
+				},
+				set: function (route) {
+					_current = route;
+					return true;
+				}
 			},
-			set: function (route) {
-				_current = route;
-				return true;
-			}
-		});
 
-		// Define setter for _routes
-		Object.defineProperty(_this, '_routes', {
-			set: function (routes) {
-				_routes = routes;
-				return true;
-			}
-		});
+			// Settings for _routes
+			// @todo is this needed?
+			_routes: {
+				set: function (routes) {
+					_routes = routes;
+					return true;
+				}
+			},
 
-		// Define setter for _routes
-		Object.defineProperty(_this, '_components', {
-			get: function () {
-				return _components;
+			// Getter for _components
+			// returns immutable copy
+			_components: {
+				get: function () {
+					return _components;
+				}
 			}
+
 		});
 
 		// Initial setup
 		updateTitle(_current, _this);
 
 		// Listen for clicks and popstate events
-		document.addEventListener('click', _clickHandler);
+		document.addEventListener('click', click(_this));
 		if (_hash) {
-			window.addEventListener('hashchange', _hashHandler);
+			window.addEventListener('hashchange', hash(_this));
 		} else {
 			history.replaceState(_current, document.title, window.location.href);
-			window.addEventListener('popstate', _popHandler);
+			window.addEventListener('popstate', pop(_this));
 		}
 
-	};
+	}
 
 	/**
 	 * Add routes to the router
 	 * @param {Array|Object} routes The route or routes to add
 	 */
-	Reef.Router.prototype.addRoutes = function (routes) {
-		var type = Reef._.trueTypeOf(routes);
-		if (['array', 'object'].indexOf(type) < 0) return Reef._.err('Please provide a valid route or routes.');
+	ReefRouter.prototype.addRoutes = function (routes) {
+
+		// Make sure the routes are an array or object
+		let type = Reef.trueTypeOf(routes);
+		if (!['array', 'object'].includes(type)) return Reef.err('Please provide a valid route or routes.');
+
+		// If it's an object, push it
+		// Otherwise, merge them
 		if (type === 'object') {
 			this.routes.push(routes);
 		} else {
 			this.routes.push.apply(this.routes, routes);
 		}
+
 	};
 
 	/**
 	 * Add a component to the router
 	 * @param {Reef} component A Reef component
 	 */
-	Reef.Router.prototype.addComponent = function (component) {
+	ReefRouter.prototype.addComponent = function (component) {
 		this._components.push(component);
 	};
 
@@ -585,15 +624,30 @@ define(function () { 'use strict';
 	 * Navigate to a path
 	 * @param  {String} url The URL to navigate to
 	 */
-	Reef.Router.prototype.navigate = function (url) {
-		updateRoute(getLinkElem(url, this.root), this);
+	ReefRouter.prototype.navigate = function (url) {
+		updateRoute(getLinkElem$1(url, this.root), this);
 	};
 
 	/**
 	 * Update the title
 	 */
-	Reef.Router.prototype.updateTitle = function () {
+	ReefRouter.prototype.updateTitle = function () {
 		updateTitle(this.current, this);
 	};
+
+	/**
+	 * Define the Reef instance and attach the Router to it
+	 * @param  {Constructor} reef The Reef instance
+	 */
+	ReefRouter.install = function (reef) {
+		setReef(reef);
+	};
+
+	// Auto-install when used as a global script
+	if (typeof window !== 'undefined' && window.Reef) {
+		ReefRouter.install(window.Reef);
+	}
+
+	return ReefRouter;
 
 });
