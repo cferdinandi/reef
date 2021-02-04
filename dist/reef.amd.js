@@ -1,4 +1,4 @@
-/*! Reef v8.0.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.1.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
@@ -416,6 +416,41 @@ define(function () { 'use strict';
 	}
 
 	/**
+	 * Check if two nodes are different
+	 * @param  {Node}  node1 The first node
+	 * @param  {Node}  node2 The second node
+	 * @return {Boolean}     If true, they're not the same node
+	 */
+	function isDifferentNode (node1, node2) {
+		let isDifferentType = getNodeType(node1) !== getNodeType(node2);
+		let isDifferentID = node1.id !== undefined && node2.id !== undefined && node1.id !== node2.id;
+		return isDifferentType || isDifferentID;
+	}
+
+	/**
+	 * Check if the desired node is further ahead in the DOM tree
+	 * @param  {Node}     node  The node to look for
+	 * @param  {NodeList} tree  The DOM tree
+	 * @param  {Integer}  start The starting index
+	 * @return {Integer}        How many nodes ahead the target node is
+	 */
+	function aheadInTree (node, tree, start) {
+
+		// Start at a specific branch
+		let branches = Array.from(tree).slice(start + 1);
+		let ahead = 1;
+
+		// Loop through each branch
+		// If the ndoes are a match, return how far ahead it is
+		// Otherwise, increase and loop again
+		for (let branch of branches) {
+			if (!isDifferentNode(node, branch)) return ahead;
+			ahead++;
+		}
+
+	}
+
+	/**
 	 * If there are extra elements in DOM, remove them
 	 * @param  {Array} domMap      The existing DOM
 	 * @param  {Array} templateMap The template
@@ -437,11 +472,8 @@ define(function () { 'use strict';
 	function diff (template, elem, polyps) {
 
 		// Get arrays of child nodes
-		let domMap = Array.from(elem.childNodes);
-		let templateMap = Array.from(template.childNodes);
-
-		// If extra elements in DOM, remove them
-		trimExtraNodes(domMap, templateMap);
+		let domMap = elem.childNodes;
+		let templateMap = template.childNodes;
 
 		// Diff each item in the templateMap
 		templateMap.forEach(function (node, index) {
@@ -453,11 +485,22 @@ define(function () { 'use strict';
 				return;
 			}
 
-			// If element is not the same type, replace it with new element
-			if (getNodeType(node) !== getNodeType(domMap[index])) {
-				addDefaultAtts(node);
-				domMap[index].replaceWith(node.cloneNode(true));
-				return;
+			// If element is not the same type, update the DOM accordingly
+			if (isDifferentNode(node, domMap[index])) {
+
+				// Check if node exists further in the tree
+				let ahead = aheadInTree(node, domMap, index);
+
+				// If not, insert the node before the current one
+				if (!ahead) {
+					addDefaultAtts(node);
+					domMap[index].before(node.cloneNode(true));
+					return;
+				}
+
+				// Otherwise, move it to the current spot
+				domMap[index].before(domMap[index + ahead]);
+
 			}
 
 			// If attributes are different, update them
@@ -496,6 +539,9 @@ define(function () { 'use strict';
 			}
 
 		});
+
+		// If extra elements in DOM, remove them
+		trimExtraNodes(domMap, templateMap);
 
 	}
 
