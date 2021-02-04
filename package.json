@@ -1,6 +1,6 @@
 {
 	"name": "reefjs",
-	"version": "8.1.0",
+	"version": "8.1.1",
 	"description": "A lightweight helper function for creating reactive, state-based components and UI",
 	"main": "./dist/reef.cjs.min.js",
 	"module": "./dist/reef.es.min.js",

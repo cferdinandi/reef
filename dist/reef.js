@@ -1,4 +1,4 @@
-/*! Reef v8.1.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.1.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -423,9 +423,7 @@ var Reef = (function () {
 	 * @return {Boolean}     If true, they're not the same node
 	 */
 	function isDifferentNode (node1, node2) {
-		let isDifferentType = getNodeType(node1) !== getNodeType(node2);
-		let isDifferentID = node1.id !== undefined && node2.id !== undefined && node1.id !== node2.id;
-		return isDifferentType || isDifferentID;
+		return getNodeType(node1) !== getNodeType(node2) || node1.id !== node2.id || node1.src !== node1.src;
 	}
 
 	/**
