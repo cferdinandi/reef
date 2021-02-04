@@ -1,4 +1,4 @@
-/*! Reef v8.0.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.0.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -456,6 +456,7 @@ var Reef = (function () {
 
 			// If element is not the same type, replace it with new element
 			if (getNodeType(node) !== getNodeType(domMap[index])) {
+				addDefaultAtts(node);
 				domMap[index].replaceWith(node.cloneNode(true));
 				return;
 			}

@@ -245,6 +245,7 @@ function diff (template, elem, polyps) {
 
 		// If element is not the same type, replace it with new element
 		if (getNodeType(node) !== getNodeType(domMap[index])) {
+			addDefaultAtts(node);
 			domMap[index].replaceWith(node.cloneNode(true));
 			return;
 		}
