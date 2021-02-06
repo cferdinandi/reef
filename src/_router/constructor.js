@@ -3,28 +3,36 @@ import * as $ from './dom.js';
 import * as events from './events.js';
 
 
+// Default settings
+let defaults = {
+	routes: [],
+	root: '',
+	title: function (route, title) {
+		return title;
+	},
+	components: [],
+	useHash: false
+};
+
 /**
  * Router constructor
- * @param {Object} options The data store options
+ * @param {Object} options The router options
  */
-function ReefRouter (options) {
+function ReefRouter (options = {}) {
 
 	// Make sure there's a Reef instance
 	if (!_.Reef || !_.Reef.err) {
-		throw new Error('Reef not found. Use ReefRouter.install(Reef) to define your global Reef library.');
+		throw new Error('Reef not found. Use Reef.use(ReefRouter) to define your global Reef library.');
 	}
 
-	// Make sure routes are provided
-	if (!options || !options.routes || _.Reef.trueTypeOf(options.routes) !== 'array' || !options.routes.length) return _.Reef.err('Please provide an array of routes.');
+	// Merge user options into defaults
+	let _settings = Object.assign({}, defaults, options);
 
 	// Properties
 	let _this = this;
-	let _routes = options.routes;
-	let _root = options.root ? options.root : '';
-	let _title = options.title ? options.title : '{{title}}';
-	let _components = [];
-	let _hash = options.useHash || window.location.protocol === 'file:';
-	let _current = _.getRoute(window.location, _routes, _root, _hash);
+	let _routes = _settings.routes;
+	let _hash = _settings.useHash || window.location.protocol === 'file:';
+	let _current = _.getRoute(window.location, _routes, _settings.root, _hash);
 	_this._hashing = false;
 
 	// Create immutable property getters
@@ -32,9 +40,10 @@ function ReefRouter (options) {
 
 		// Read-only properties
 		routes: {value: _.Reef.clone(_routes, true)},
-		root: {value: _root},
-		title: {value: _title},
+		root: {value: _settings.root},
+		title: {value: _settings.title},
 		hash: {value: _hash},
+		_components: {value: _settings.components},
 
 		// Current route
 		// Return immutable copy
@@ -49,19 +58,10 @@ function ReefRouter (options) {
 		},
 
 		// Settings for _routes
-		// @todo is this needed?
 		_routes: {
 			set: function (routes) {
 				_routes = routes;
 				return true;
-			}
-		},
-
-		// Getter for _components
-		// returns immutable copy
-		_components: {
-			get: function () {
-				return _components;
 			}
 		}
 
@@ -79,6 +79,9 @@ function ReefRouter (options) {
 		window.addEventListener('popstate', events.pop(_this));
 	}
 
+	// Emit initialized event
+	_.Reef.emit(document, 'router:initialized', _this);
+
 }
 
 /**
@@ -91,13 +94,46 @@ ReefRouter.prototype.addRoutes = function (routes) {
 	let type = _.Reef.trueTypeOf(routes);
 	if (!['array', 'object'].includes(type)) return _.Reef.err('Please provide a valid route or routes.');
 
+	// Merge them into the routes
+	let arr = type === 'array' ? routes : [routes];
+	for (let route of arr) {
+		this.routes.push(route);
+	}
+
+	// Emit routes added event
+	_.Reef.emit(document, 'router:routes-added', {
+		router: this,
+		routes: arr
+	});
+
+};
+
+/**
+ * Remove route from the router
+ * @param {Array|Object} routes The route or routes to add
+ */
+ReefRouter.prototype.removeRoutes = function (routes) {
+
+	// Make sure the routes are an array or object
+	let type = _.Reef.trueTypeOf(routes);
+	if (!['array', 'object'].includes(type)) return _.Reef.err('Please provide a valid route or routes.');
+
 	// If it's an object, push it
 	// Otherwise, merge them
-	if (type === 'object') {
-		this.routes.push(routes);
-	} else {
-		this.routes.push.apply(this.routes, routes);
+	let arr = type === 'array' ? routes : [routes];
+	for (let route of arr) {
+		let index = this.routes.findIndex(function (r) {
+			return r.url === route.url;
+		});
+		if (index < 0) return;
+		this.routes.splice(index, 1);
 	}
+
+	// Emit routes removed event
+	_.Reef.emit(document, 'router:routes-removed', {
+		router: this,
+		routes: arr
+	});
 
 };
 
@@ -106,16 +142,53 @@ ReefRouter.prototype.addRoutes = function (routes) {
  * @param {Reef} component A Reef component
  */
 ReefRouter.prototype.addComponent = function (component) {
-	this._components.push(component);
+
+	// Add components
+	let components = type === 'array' ? component : [component];
+	for (let comp of components) {
+		this._components.push(comp);
+	}
+
+	// Emit event
+	_.Reef.emit(document, 'router:components-added', {
+		router: this,
+		components
+	});
+
 };
 
 /**
- * Navigate to a path
- * @param  {String} url The URL to navigate to
+ * Remove a component to the router
+ * @param {Reef} component A Reef component
  */
-ReefRouter.prototype.navigate = function (url) {
+ReefRouter.prototype.removeComponent = function (component) {
+
+	// Remove components
+	let components = type === 'array' ? component : [component];
+	for (let comp of components) {
+		let index = this._components.indexOf(comp);
+		if (index < 0) return;
+		this._components.splice(index, 1);
+	}
+
+	// Emit event
+	_.Reef.emit(document, 'router:components-removed', {
+		router: this,
+		components
+	});
+
+};
+
+/**
+ * Go to a path
+ * @param  {String} url The URL to visit
+ */
+ReefRouter.prototype.visit = function (url) {
 	$.updateRoute(_.getLinkElem(url, this.root), this);
 };
+
+// @deprecated Will be removed in v9
+ReefRouter.prototype.navigate = ReefRouter.prototype.visit;
 
 /**
  * Update the title
@@ -129,12 +202,18 @@ ReefRouter.prototype.updateTitle = function () {
  * @param  {Constructor} reef The Reef instance
  */
 ReefRouter.install = function (reef) {
+
+	// Define the Reef object
 	_.setReef(reef);
+
+	// Emit ready event
+	_.Reef.emit(document, 'router:ready');
+
 };
 
 // Auto-install when used as a global script
 if (typeof window !== 'undefined' && window.Reef) {
-	ReefRouter.install(window.Reef);
+	window.Reef.use(ReefRouter);
 }
 
 

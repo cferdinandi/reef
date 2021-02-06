@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>About | Reef Snorkel Test</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		html {
+			scroll-behavior: smooth;
+		}
+
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			min-height: 100vh;
+			width: 88%;
+		}
+
+		h1 {
+			background-color: rebeccapurple;
+			color: white;
+		}
+	</style>
+</head>
+<body>
+
+	<ul>
+		<li><a href="/reef/demos/snorkel/">Home</a></li>
+		<li><a href="/reef/demos/snorkel/about.html">About</a></li>
+		<li><a snorkel="replace" href="/reef/demos/snorkel/about.html">About Replace</a></li>
+		<li><a href="/reef/demos/snorkel/contact.html">Contact</a></li>
+		<li><a href="/reef/demos/snorkel/contact.html#anchor">Anchor</a></li>
+		<li><a href="/reef/demos/snorkel/404.html#anchor">Busted</a></li>
+		<li><a href="https://gomakethings.com">Go Make Things</a></li>
+	</ul>
+
+	<div data-app="about"></div>
+
+	<script src="http://localhost:8888/reef/dist/reef.js"></script>
+	<script src="http://localhost:8888/reef/dist/snorkel.js"></script>
+	<script>
+		// Turn on debug mode
+		Reef.debug(true);
+
+		// Create a snorkel
+		let snorkel = new ReefSnorkel();
+
+		let home = new Reef('[data-app="home"]', {
+			router: snorkel,
+			template: function () {
+				return `<h1>Home</h1>`;
+			}
+		});
+
+		let about = new Reef('[data-app="about"]', {
+			router: snorkel,
+			template: function () {
+				return `<h1>About</h1>`;
+			}
+		});
+
+		let contact = new Reef('[data-app="contact"]', {
+			router: snorkel,
+			template: function () {
+				return `<h1>Contact</h1>
+
+				.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
+				.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
+				.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
+				.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
+				.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
+				<div id="anchor">⚓︎</div>`;
+			}
+		});
+
+		home.render();
+		about.render();
+		contact.render();
+	</script>
+
+</body>
+</html>

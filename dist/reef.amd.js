@@ -1,4 +1,4 @@
-/*! Reef v8.1.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
@@ -14,11 +14,11 @@ define(function () { 'use strict';
 
 	/**
 	 * Throw an error message
-	 * @param  {String} msg The error message
+	 * @param  {String} msg  The error message
 	 */
 	function err (msg) {
 		if (debug) {
-			throw new Error(msg);
+			console.warn(msg);
 		}
 	}
 
@@ -38,6 +38,24 @@ define(function () { 'use strict';
 	 */
 	function isFalsy (str = '') {
 		return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
+	}
+
+	/**
+	 * Emit a custom event
+	 * @param  {Node}    elem     The element to emit the custom event on
+	 * @param  {String}  name     The name of the custom event
+	 * @param  {*}       detail   Details to attach to the event
+	 * @param  {Boolean} noCancel If false, event cannot be cancelled
+	 */
+	function emit (elem, name, detail, noCancel) {
+		let event;
+		if (!elem || !name) return _.err('You did not provide an element or event name.');
+		event = new CustomEvent(name, {
+			bubbles: true,
+			cancelable: !noCancel,
+			detail: detail
+		});
+		return elem.dispatchEvent(event);
 	}
 
 	/**
@@ -433,19 +451,9 @@ define(function () { 'use strict';
 	 * @return {Integer}        How many nodes ahead the target node is
 	 */
 	function aheadInTree (node, tree, start) {
-
-		// Start at a specific branch
-		let branches = Array.from(tree).slice(start + 1);
-		let ahead = 1;
-
-		// Loop through each branch
-		// If the ndoes are a match, return how far ahead it is
-		// Otherwise, increase and loop again
-		for (let branch of branches) {
-			if (!isDifferentNode(node, branch)) return ahead;
-			ahead++;
-		}
-
+		return Array.from(tree).slice(start + 1).find(function (branch) {
+			return !isDifferentNode(node, branch);
+		});
 	}
 
 	/**
@@ -457,7 +465,7 @@ define(function () { 'use strict';
 		let count = domMap.length - templateMap.length;
 		if (count < 1)  return;
 		for (; count > 0; count--) {
-			domMap[domMap.length - count].parentNode.removeChild(domMap[domMap.length - count]);
+			domMap[domMap.length - count].remove(domMap[domMap.length - count]);
 		}
 	}
 
@@ -467,7 +475,7 @@ define(function () { 'use strict';
 	 * @param  {Node}  elem     The current DOM HTML
 	 * @param  {Array} polyps   Attached components for this element
 	 */
-	function diff (template, elem, polyps) {
+	function diff (template, elem, polyps = []) {
 
 		// Get arrays of child nodes
 		let domMap = elem.childNodes;
@@ -497,7 +505,7 @@ define(function () { 'use strict';
 				}
 
 				// Otherwise, move it to the current spot
-				domMap[index].before(domMap[index + ahead]);
+				domMap[index].before(ahead);
 
 			}
 
@@ -619,7 +627,9 @@ define(function () { 'use strict';
 				value: function (id) {
 					if (_store || !_getters) return err('There are no getters for this component.');
 					if (!_getters[id]) return err('There is no getter with this name.');
-					return _getters[id](_data);
+					let args = Array.from(arguments);
+					args[0] = _data;
+					return _getters[id].apply(_this, args);
 				},
 				configurable: true
 			}
@@ -644,6 +654,9 @@ define(function () { 'use strict';
 				}
 			});
 		}
+
+		// Emit initialized event
+		emit(document, 'reef:initialized', _this);
 
 	}
 
@@ -674,12 +687,21 @@ define(function () { 'use strict';
 		let template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
 		if (!['string', 'number'].includes(trueTypeOf(template))) return;
 
+		// Emit pre-render event
+		let cancelled = !emit(elem, 'reef:before-render', data);
+
+		// If the event was cancelled, bail
+		if (cancelled) return;
+
 		// Diff and update the DOM
 		let polyps = this.attached.map(function (polyp) { return polyp.elem; });
 		diff(stringToHTML(template), elem, polyps);
 
 		// Dispatch a render event
-		Reef.emit(elem, 'render', data);
+		emit(elem, 'reef:render', data);
+
+		// @deprecated Will be removed in v9
+		emit(elem, 'render', data);
 
 		// If there are linked Reefs, render them, too
 		renderPolyps(this.attached, this);
@@ -694,11 +716,19 @@ define(function () { 'use strict';
 	 * @param  {Function|Array} coral The component(s) to attach
 	 */
 	Reef.prototype.attach = function (coral) {
-		if (trueTypeOf(coral) === 'array') {
-			this.attached.push.apply(this.attached, coral);
-		} else {
-			this.attached.push(coral);
+
+		// Attach components
+		let polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
+		for (let polyp of polyps) {
+			this.attached.push(polyp);
 		}
+
+		// Emit attached event
+		emit(document, 'reef:attached', {
+			component: this,
+			attached: polyps
+		});
+
 	};
 
 	/**
@@ -706,29 +736,21 @@ define(function () { 'use strict';
 	 * @param  {Function|Array} coral The linked component(s) to detach
 	 */
 	Reef.prototype.detach = function (coral) {
-		let polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
-		let instance = this;
-		polyps.forEach(function (polyp) {
-			let index = instance.attached.indexOf(polyp);
-			if (index < 0) return;
-			instance.attached.splice(index, 1);
-		});
-	};
 
-	/**
-	 * Emit a custom event
-	 * @param  {Node}   elem   The element to emit the custom event on
-	 * @param  {String} name   The name of the custom event
-	 * @param  {*}      detail Details to attach to the event
-	 */
-	Reef.emit = function (elem, name, detail) {
-		let event;
-		if (!elem || !name) return err('You did not provide an element or event name.');
-		event = new CustomEvent(name, {
-			bubbles: true,
-			detail: detail
+		// Detach components
+		let polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
+		for (let polyp of polyps) {
+			let index = this.attached.indexOf(polyp);
+			if (index < 0) return;
+			this.attached.splice(index, 1);
+		}
+
+		// Emit detached event
+		emit(document, 'reef:detached', {
+			component: this,
+			detached: polyps
 		});
-		elem.dispatchEvent(event);
+
 	};
 
 	/**
@@ -740,11 +762,25 @@ define(function () { 'use strict';
 		return new Reef(null, options);
 	};
 
+	/**
+	 * Install a Reef plugin
+	 * @param  {Constructor} plugin The Reef plugin
+	 */
+	Reef.use = function (plugin) {
+		if (!plugin.install || typeof plugin.install !== 'function') return;
+		plugin.install(Reef, {diff: diff});
+		emit(document, 'reef:plugin-added', plugin);
+	};
+
 	// External helper methods
 	Reef.debug = setDebug;
 	Reef.clone = copy;
 	Reef.trueTypeOf = trueTypeOf;
 	Reef.err = err;
+	Reef.emit = emit;
+
+	// Emit ready event
+	emit(document, 'reef:ready');
 
 	return Reef;
 

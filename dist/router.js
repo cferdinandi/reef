@@ -1,4 +1,4 @@
-/*! ReefRouter v8.1.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.2.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var ReefRouter = (function () {
 	'use strict';
 
@@ -283,10 +283,13 @@ var ReefRouter = (function () {
 	 * @param  {Object}      next    The next route
 	 */
 	function preEvent (current, next) {
-		Reef.emit(window, 'beforeRouteUpdated', {
+		let details = {
 			current: current,
 			next: next
-		});
+		};
+		// @deprecated Will be removed in v9
+		Reef.emit(window, 'beforeRouteUpdated', details);
+		return Reef.emit(window, 'router:before', details);
 	}
 
 	/**
@@ -295,10 +298,13 @@ var ReefRouter = (function () {
 	 * @param  {Object}      previous The previous route
 	 */
 	function postEvent (current, previous) {
-		Reef.emit(window, 'routeUpdated', {
+		let details = {
 			current: current,
 			previous: previous
-		});
+		};
+		// @deprecated Will be removed in v9
+		Reef.emit(window, 'routeUpdated', details);
+		return Reef.emit(window, 'router:after', details);
 	}
 
 	/**
@@ -474,7 +480,10 @@ var ReefRouter = (function () {
 
 		// Emit pre-routing event
 		let previous = router.current;
-		preEvent(previous, route);
+		let cancelled = !preEvent(previous, route);
+
+		// If the event was cancelled, bail
+		if (cancelled) return;
 
 		// Update the UI
 		router.current = route;
@@ -515,28 +524,36 @@ var ReefRouter = (function () {
 		return function (event) { hashHandler(event, instance); };
 	}
 
+	// Default settings
+	let defaults = {
+		routes: [],
+		root: '',
+		title: function (route, title) {
+			return title;
+		},
+		components: [],
+		useHash: false
+	};
+
 	/**
 	 * Router constructor
-	 * @param {Object} options The data store options
+	 * @param {Object} options The router options
 	 */
-	function ReefRouter (options) {
+	function ReefRouter (options = {}) {
 
 		// Make sure there's a Reef instance
 		if (!Reef || !Reef.err) {
-			throw new Error('Reef not found. Use ReefRouter.install(Reef) to define your global Reef library.');
+			throw new Error('Reef not found. Use Reef.use(ReefRouter) to define your global Reef library.');
 		}
 
-		// Make sure routes are provided
-		if (!options || !options.routes || Reef.trueTypeOf(options.routes) !== 'array' || !options.routes.length) return Reef.err('Please provide an array of routes.');
+		// Merge user options into defaults
+		let _settings = Object.assign({}, defaults, options);
 
 		// Properties
 		let _this = this;
-		let _routes = options.routes;
-		let _root = options.root ? options.root : '';
-		let _title = options.title ? options.title : '{{title}}';
-		let _components = [];
-		let _hash = options.useHash || window.location.protocol === 'file:';
-		let _current = getRoute(window.location, _routes, _root, _hash);
+		let _routes = _settings.routes;
+		let _hash = _settings.useHash || window.location.protocol === 'file:';
+		let _current = getRoute(window.location, _routes, _settings.root, _hash);
 		_this._hashing = false;
 
 		// Create immutable property getters
@@ -544,9 +561,10 @@ var ReefRouter = (function () {
 
 			// Read-only properties
 			routes: {value: Reef.clone(_routes, true)},
-			root: {value: _root},
-			title: {value: _title},
+			root: {value: _settings.root},
+			title: {value: _settings.title},
 			hash: {value: _hash},
+			_components: {value: _settings.components},
 
 			// Current route
 			// Return immutable copy
@@ -561,19 +579,10 @@ var ReefRouter = (function () {
 			},
 
 			// Settings for _routes
-			// @todo is this needed?
 			_routes: {
 				set: function (routes) {
 					_routes = routes;
 					return true;
-				}
-			},
-
-			// Getter for _components
-			// returns immutable copy
-			_components: {
-				get: function () {
-					return _components;
 				}
 			}
 
@@ -591,6 +600,9 @@ var ReefRouter = (function () {
 			window.addEventListener('popstate', pop(_this));
 		}
 
+		// Emit initialized event
+		Reef.emit(document, 'router:initialized', _this);
+
 	}
 
 	/**
@@ -603,13 +615,46 @@ var ReefRouter = (function () {
 		let type = Reef.trueTypeOf(routes);
 		if (!['array', 'object'].includes(type)) return Reef.err('Please provide a valid route or routes.');
 
+		// Merge them into the routes
+		let arr = type === 'array' ? routes : [routes];
+		for (let route of arr) {
+			this.routes.push(route);
+		}
+
+		// Emit routes added event
+		Reef.emit(document, 'router:routes-added', {
+			router: this,
+			routes: arr
+		});
+
+	};
+
+	/**
+	 * Remove route from the router
+	 * @param {Array|Object} routes The route or routes to add
+	 */
+	ReefRouter.prototype.removeRoutes = function (routes) {
+
+		// Make sure the routes are an array or object
+		let type = Reef.trueTypeOf(routes);
+		if (!['array', 'object'].includes(type)) return Reef.err('Please provide a valid route or routes.');
+
 		// If it's an object, push it
 		// Otherwise, merge them
-		if (type === 'object') {
-			this.routes.push(routes);
-		} else {
-			this.routes.push.apply(this.routes, routes);
+		let arr = type === 'array' ? routes : [routes];
+		for (let route of arr) {
+			let index = this.routes.findIndex(function (r) {
+				return r.url === route.url;
+			});
+			if (index < 0) return;
+			this.routes.splice(index, 1);
 		}
+
+		// Emit routes removed event
+		Reef.emit(document, 'router:routes-removed', {
+			router: this,
+			routes: arr
+		});
 
 	};
 
@@ -618,16 +663,53 @@ var ReefRouter = (function () {
 	 * @param {Reef} component A Reef component
 	 */
 	ReefRouter.prototype.addComponent = function (component) {
-		this._components.push(component);
+
+		// Add components
+		let components = type === 'array' ? component : [component];
+		for (let comp of components) {
+			this._components.push(comp);
+		}
+
+		// Emit event
+		Reef.emit(document, 'router:components-added', {
+			router: this,
+			components
+		});
+
 	};
 
 	/**
-	 * Navigate to a path
-	 * @param  {String} url The URL to navigate to
+	 * Remove a component to the router
+	 * @param {Reef} component A Reef component
 	 */
-	ReefRouter.prototype.navigate = function (url) {
+	ReefRouter.prototype.removeComponent = function (component) {
+
+		// Remove components
+		let components = type === 'array' ? component : [component];
+		for (let comp of components) {
+			let index = this._components.indexOf(comp);
+			if (index < 0) return;
+			this._components.splice(index, 1);
+		}
+
+		// Emit event
+		Reef.emit(document, 'router:components-removed', {
+			router: this,
+			components
+		});
+
+	};
+
+	/**
+	 * Go to a path
+	 * @param  {String} url The URL to visit
+	 */
+	ReefRouter.prototype.visit = function (url) {
 		updateRoute(getLinkElem$1(url, this.root), this);
 	};
+
+	// @deprecated Will be removed in v9
+	ReefRouter.prototype.navigate = ReefRouter.prototype.visit;
 
 	/**
 	 * Update the title
@@ -641,12 +723,18 @@ var ReefRouter = (function () {
 	 * @param  {Constructor} reef The Reef instance
 	 */
 	ReefRouter.install = function (reef) {
+
+		// Define the Reef object
 		setReef(reef);
+
+		// Emit ready event
+		Reef.emit(document, 'router:ready');
+
 	};
 
 	// Auto-install when used as a global script
 	if (typeof window !== 'undefined' && window.Reef) {
-		ReefRouter.install(window.Reef);
+		window.Reef.use(ReefRouter);
 	}
 
 	return ReefRouter;

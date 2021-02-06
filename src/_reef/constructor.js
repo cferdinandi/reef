@@ -66,7 +66,9 @@ function Reef (elem, options) {
 			value: function (id) {
 				if (_store || !_getters) return _.err('There are no getters for this component.');
 				if (!_getters[id]) return _.err('There is no getter with this name.');
-				return _getters[id](_data);
+				let args = Array.from(arguments);
+				args[0] = _data;
+				return _getters[id].apply(_this, args);
 			},
 			configurable: true
 		}
@@ -91,6 +93,9 @@ function Reef (elem, options) {
 			}
 		});
 	}
+
+	// Emit initialized event
+	_.emit(document, 'reef:initialized', _this);
 
 }
 
@@ -121,12 +126,21 @@ Reef.prototype.render = function () {
 	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
 	if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
+	// Emit pre-render event
+	let cancelled = !_.emit(elem, 'reef:before-render', data);
+
+	// If the event was cancelled, bail
+	if (cancelled) return;
+
 	// Diff and update the DOM
 	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
 	$.diff(_.stringToHTML(template), elem, polyps);
 
 	// Dispatch a render event
-	Reef.emit(elem, 'render', data);
+	_.emit(elem, 'reef:render', data);
+
+	// @deprecated Will be removed in v9
+	_.emit(elem, 'render', data);
 
 	// If there are linked Reefs, render them, too
 	$.renderPolyps(this.attached, this);
@@ -141,11 +155,19 @@ Reef.prototype.render = function () {
  * @param  {Function|Array} coral The component(s) to attach
  */
 Reef.prototype.attach = function (coral) {
-	if (_.trueTypeOf(coral) === 'array') {
-		this.attached.push.apply(this.attached, coral);
-	} else {
-		this.attached.push(coral);
+
+	// Attach components
+	let polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
+	for (let polyp of polyps) {
+		this.attached.push(polyp);
 	}
+
+	// Emit attached event
+	_.emit(document, 'reef:attached', {
+		component: this,
+		attached: polyps
+	});
+
 };
 
 /**
@@ -153,29 +175,21 @@ Reef.prototype.attach = function (coral) {
  * @param  {Function|Array} coral The linked component(s) to detach
  */
 Reef.prototype.detach = function (coral) {
-	let polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
-	let instance = this;
-	polyps.forEach(function (polyp) {
-		let index = instance.attached.indexOf(polyp);
-		if (index < 0) return;
-		instance.attached.splice(index, 1);
-	});
-};
 
-/**
- * Emit a custom event
- * @param  {Node}   elem   The element to emit the custom event on
- * @param  {String} name   The name of the custom event
- * @param  {*}      detail Details to attach to the event
- */
-Reef.emit = function (elem, name, detail) {
-	let event;
-	if (!elem || !name) return _.err('You did not provide an element or event name.');
-	event = new CustomEvent(name, {
-		bubbles: true,
-		detail: detail
+	// Detach components
+	let polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
+	for (let polyp of polyps) {
+		let index = this.attached.indexOf(polyp);
+		if (index < 0) return;
+		this.attached.splice(index, 1);
+	}
+
+	// Emit detached event
+	_.emit(document, 'reef:detached', {
+		component: this,
+		detached: polyps
 	});
-	elem.dispatchEvent(event);
+
 };
 
 /**
@@ -187,11 +201,25 @@ Reef.Store = function (options) {
 	return new Reef(null, options);
 };
 
+/**
+ * Install a Reef plugin
+ * @param  {Constructor} plugin The Reef plugin
+ */
+Reef.use = function (plugin) {
+	if (!plugin.install || typeof plugin.install !== 'function') return;
+	plugin.install(Reef, {diff: $.diff});
+	_.emit(document, 'reef:plugin-added', plugin);
+};
+
 // External helper methods
 Reef.debug = _.setDebug;
 Reef.clone = _.copy;
 Reef.trueTypeOf = _.trueTypeOf;
 Reef.err = _.err;
+Reef.emit = _.emit;
+
+// Emit ready event
+_.emit(document, 'reef:ready');
 
 
 export default Reef;

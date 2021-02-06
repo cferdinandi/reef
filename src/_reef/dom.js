@@ -223,19 +223,9 @@ function isDifferentNode (node1, node2) {
  * @return {Integer}        How many nodes ahead the target node is
  */
 function aheadInTree (node, tree, start) {
-
-	// Start at a specific branch
-	let branches = Array.from(tree).slice(start + 1);
-	let ahead = 1;
-
-	// Loop through each branch
-	// If the ndoes are a match, return how far ahead it is
-	// Otherwise, increase and loop again
-	for (let branch of branches) {
-		if (!isDifferentNode(node, branch)) return ahead;
-		ahead++;
-	}
-
+	return Array.from(tree).slice(start + 1).find(function (branch) {
+		return !isDifferentNode(node, branch);
+	});
 }
 
 /**
@@ -247,7 +237,7 @@ function trimExtraNodes (domMap, templateMap) {
 	let count = domMap.length - templateMap.length;
 	if (count < 1)  return;
 	for (; count > 0; count--) {
-		domMap[domMap.length - count].parentNode.removeChild(domMap[domMap.length - count]);
+		domMap[domMap.length - count].remove(domMap[domMap.length - count]);
 	}
 }
 
@@ -257,7 +247,7 @@ function trimExtraNodes (domMap, templateMap) {
  * @param  {Node}  elem     The current DOM HTML
  * @param  {Array} polyps   Attached components for this element
  */
-function diff (template, elem, polyps) {
+function diff (template, elem, polyps = []) {
 
 	// Get arrays of child nodes
 	let domMap = elem.childNodes;
@@ -287,7 +277,7 @@ function diff (template, elem, polyps) {
 			}
 
 			// Otherwise, move it to the current spot
-			domMap[index].before(domMap[index + ahead]);
+			domMap[index].before(ahead);
 
 		}
 

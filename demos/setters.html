@@ -19,7 +19,6 @@
 	<div id="app"></div>
 
 	<script src="../dist/reef.js"></script>
-	<script src="../dist/store.js"></script>
 	<script>
 		// Turn on debug mode
 		Reef.debug(true);
@@ -28,7 +27,7 @@
 		// You can use setters directly on a component, too
 		// The first argument on a setter is the store/component data
 		// You can pass in as many other arguments as you'd like
-		var store = new ReefStore({
+		var store = new Reef.Store({
 			data: {
 				heading: 'My Todos',
 				todos: ['Swim', 'Climb', 'Jump', 'Play']

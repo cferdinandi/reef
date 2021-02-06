@@ -6,7 +6,7 @@ import pkg from './package.json';
 // Configs
 let configs = {
 	name: 'Reef',
-	files: ['reef.js', 'router.js'],
+	files: ['reef.js', 'router.js', 'snorkel.js'],
 	formats: ['iife', 'es', 'amd', 'cjs'],
 	default: 'iife',
 	pathIn: 'src',
@@ -17,7 +17,8 @@ let configs = {
 // Filename mapping
 let filenames = {
 	reef: 'Reef',
-	router: 'ReefRouter'
+	router: 'ReefRouter',
+	snorkel: 'ReefSnorkel'
 };
 
 // Banner

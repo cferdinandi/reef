@@ -33,10 +33,13 @@ function scrollToAnchor (hash, url) {
  * @param  {Object}      next    The next route
  */
 function preEvent (current, next) {
-	_.Reef.emit(window, 'beforeRouteUpdated', {
+	let details = {
 		current: current,
 		next: next
-	});
+	};
+	// @deprecated Will be removed in v9
+	_.Reef.emit(window, 'beforeRouteUpdated', details);
+	return _.Reef.emit(window, 'router:before', details);
 }
 
 /**
@@ -45,10 +48,13 @@ function preEvent (current, next) {
  * @param  {Object}      previous The previous route
  */
 function postEvent (current, previous) {
-	_.Reef.emit(window, 'routeUpdated', {
+	let details = {
 		current: current,
 		previous: previous
-	});
+	};
+	// @deprecated Will be removed in v9
+	_.Reef.emit(window, 'routeUpdated', details);
+	return _.Reef.emit(window, 'router:after', details);
 }
 
 /**

@@ -11,11 +11,11 @@ function setDebug (on) {
 
 /**
  * Throw an error message
- * @param  {String} msg The error message
+ * @param  {String} msg  The error message
  */
 function err (msg) {
 	if (debug) {
-		throw new Error(msg);
+		console.warn(msg);
 	}
 }
 
@@ -35,6 +35,24 @@ function trueTypeOf (obj) {
  */
 function isFalsy (str = '') {
 	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
+}
+
+/**
+ * Emit a custom event
+ * @param  {Node}    elem     The element to emit the custom event on
+ * @param  {String}  name     The name of the custom event
+ * @param  {*}       detail   Details to attach to the event
+ * @param  {Boolean} noCancel If false, event cannot be cancelled
+ */
+function emit (elem, name, detail, noCancel) {
+	let event;
+	if (!elem || !name) return _.err('You did not provide an element or event name.');
+	event = new CustomEvent(name, {
+		bubbles: true,
+		cancelable: !noCancel,
+		detail: detail
+	});
+	return elem.dispatchEvent(event);
 }
 
 /**
@@ -209,4 +227,4 @@ function stringToHTML (str) {
 }
 
 
-export {setDebug, err, trueTypeOf, isFalsy, copy, debounceRender, dataHandler, makeProxy, stringToHTML};
+export {setDebug, err, trueTypeOf, isFalsy, emit, copy, debounceRender, dataHandler, makeProxy, stringToHTML};

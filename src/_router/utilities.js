@@ -13,7 +13,7 @@ let regPatterns = {
 
 
 function setReef (reef) {
-	Reef = reef
+	Reef = reef;
 }
 
 /**
