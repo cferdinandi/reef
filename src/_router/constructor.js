@@ -144,7 +144,7 @@ ReefRouter.prototype.removeRoutes = function (routes) {
 ReefRouter.prototype.addComponent = function (component) {
 
 	// Add components
-	let components = type === 'array' ? component : [component];
+	let components = _.Reef.trueTypeOf(component) === 'array' ? component : [component];
 	for (let comp of components) {
 		this._components.push(comp);
 	}
@@ -164,7 +164,7 @@ ReefRouter.prototype.addComponent = function (component) {
 ReefRouter.prototype.removeComponent = function (component) {
 
 	// Remove components
-	let components = type === 'array' ? component : [component];
+	let components = _.Reef.trueTypeOf(component) === 'array' ? component : [component];
 	for (let comp of components) {
 		let index = this._components.indexOf(comp);
 		if (index < 0) return;

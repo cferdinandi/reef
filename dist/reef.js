@@ -1,4 +1,4 @@
-/*! Reef v8.2.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -685,7 +685,7 @@ var Reef = (function () {
 		let data = copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 		// Get the template
-		let template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
+		let template = (trueTypeOf(this.template) === 'function' ? this.template(data, this.router && this.router.current ? this.router.current : elem, elem) : this.template);
 		if (!['string', 'number'].includes(trueTypeOf(template))) return;
 
 		// Emit pre-render event

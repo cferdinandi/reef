@@ -123,7 +123,7 @@ Reef.prototype.render = function () {
 	let data = _.copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
-	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, this.router ? this.router.current : elem, elem) : this.template);
+	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, this.router && this.router.current ? this.router.current : elem, elem) : this.template);
 	if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 	// Emit pre-render event

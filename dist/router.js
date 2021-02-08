@@ -1,4 +1,4 @@
-/*! ReefRouter v8.2.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.2.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var ReefRouter = (function () {
 	'use strict';
 
@@ -665,7 +665,7 @@ var ReefRouter = (function () {
 	ReefRouter.prototype.addComponent = function (component) {
 
 		// Add components
-		let components = type === 'array' ? component : [component];
+		let components = Reef.trueTypeOf(component) === 'array' ? component : [component];
 		for (let comp of components) {
 			this._components.push(comp);
 		}
@@ -685,7 +685,7 @@ var ReefRouter = (function () {
 	ReefRouter.prototype.removeComponent = function (component) {
 
 		// Remove components
-		let components = type === 'array' ? component : [component];
+		let components = Reef.trueTypeOf(component) === 'array' ? component : [component];
 		for (let comp of components) {
 			let index = this._components.indexOf(comp);
 			if (index < 0) return;
