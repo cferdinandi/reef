@@ -1,4 +1,4 @@
-/*! ReefRouter v8.2.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var ReefRouter = (function () {
 	'use strict';
 

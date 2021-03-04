@@ -134,9 +134,9 @@ function copy (obj, allowHTML) {
 	 * @return {String} The sanitized and encoded string
 	 */
 	function sanitizeStr () {
-		return obj.replace(/[^\w-_. ]/gi, function(c){
+		return obj.replace(/javascript:/gi, '').replace(/[^\w-_. ]/gi, function(c){
 			return `&#${c.charCodeAt(0)};`;
-		}).replace(/javascript:/gi, '');
+		});
 	}
 
 	// Get object type

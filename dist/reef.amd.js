@@ -1,4 +1,4 @@
-/*! Reef v8.2.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
@@ -137,9 +137,9 @@ define(function () { 'use strict';
 		 * @return {String} The sanitized and encoded string
 		 */
 		function sanitizeStr () {
-			return obj.replace(/[^\w-_. ]/gi, function(c){
+			return obj.replace(/javascript:/gi, '').replace(/[^\w-_. ]/gi, function(c){
 				return `&#${c.charCodeAt(0)};`;
-			}).replace(/javascript:/gi, '');
+			});
 		}
 
 		// Get object type
