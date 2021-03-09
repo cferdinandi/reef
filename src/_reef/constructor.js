@@ -32,7 +32,6 @@ function Reef (elem, options) {
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
-		router: {value: _router},
 
 		// getter/setter for data
 		data: {

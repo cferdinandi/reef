@@ -1,4 +1,4 @@
-/*! ReefRouter v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 // The global Reef instance
@@ -667,6 +667,7 @@ ReefRouter.prototype.addComponent = function (component) {
 	let components = Reef.trueTypeOf(component) === 'array' ? component : [component];
 	for (let comp of components) {
 		this._components.push(comp);
+		comp.router = this;
 	}
 
 	// Emit event
@@ -689,6 +690,7 @@ ReefRouter.prototype.removeComponent = function (component) {
 		let index = this._components.indexOf(comp);
 		if (index < 0) return;
 		this._components.splice(index, 1);
+		comp.router = null;
 	}
 
 	// Emit event

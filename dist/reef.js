@@ -1,4 +1,4 @@
-/*! Reef v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -594,7 +594,6 @@ var Reef = (function () {
 			lagoon: {value: options.lagoon},
 			store: {value: _store},
 			attached: {value: []},
-			router: {value: _router},
 
 			// getter/setter for data
 			data: {

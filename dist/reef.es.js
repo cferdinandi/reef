@@ -1,4 +1,4 @@
-/*! Reef v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 // If true, debug mode is enabled
 let debug = false;
 
@@ -591,7 +591,6 @@ function Reef (elem, options) {
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
-		router: {value: _router},
 
 		// getter/setter for data
 		data: {

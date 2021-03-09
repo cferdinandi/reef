@@ -1,4 +1,4 @@
-/*! ReefSnorkel v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefSnorkel v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// The global Reef instance

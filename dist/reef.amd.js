@@ -1,4 +1,4 @@
-/*! Reef v8.2.2 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
@@ -593,7 +593,6 @@ define(function () { 'use strict';
 			lagoon: {value: options.lagoon},
 			store: {value: _store},
 			attached: {value: []},
-			router: {value: _router},
 
 			// getter/setter for data
 			data: {
