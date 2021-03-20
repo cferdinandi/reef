@@ -1,4 +1,4 @@
-/*! ReefRouter v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.2.4 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 // The global Reef instance
@@ -384,7 +384,10 @@ function updateRoute (link, router) {
 
 	// Emit pre-routing event
 	let previous = router.current;
-	preEvent(previous, route);
+	let cancelled = !preEvent(previous, route);
+
+	// If the event was cancelled, bail
+	if (cancelled) return;
 
 	// Update the route
 	router.current = route;

@@ -1,4 +1,4 @@
-/*! ReefSnorkel v8.2.3 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefSnorkel v8.2.4 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 // The global Reef instance
 let Reef$1;
 let diff;
