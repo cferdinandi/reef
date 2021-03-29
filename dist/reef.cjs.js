@@ -1,4 +1,4 @@
-/*! Reef v8.2.4 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v8.2.5 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 // If true, debug mode is enabled
@@ -514,7 +514,7 @@ function diff (template, elem, polyps = []) {
 
 		// If element is an attached component, skip it
 		let isPolyp = polyps.filter(function (polyp) {
-			return node.nodeType !== 3 && node.matches(polyp);
+			return ![3, 8].includes(node.nodeType) && node.matches(polyp);
 		});
 		if (isPolyp.length > 0) return;
 

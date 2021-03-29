@@ -286,7 +286,7 @@ function diff (template, elem, polyps = []) {
 
 		// If element is an attached component, skip it
 		let isPolyp = polyps.filter(function (polyp) {
-			return node.nodeType !== 3 && node.matches(polyp);
+			return ![3, 8].includes(node.nodeType) && node.matches(polyp);
 		});
 		if (isPolyp.length > 0) return;
 

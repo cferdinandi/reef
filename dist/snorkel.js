@@ -1,4 +1,4 @@
-/*! ReefSnorkel v8.2.4 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefSnorkel v8.2.5 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var ReefSnorkel = (function () {
 	'use strict';
 

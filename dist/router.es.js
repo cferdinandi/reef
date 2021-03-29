@@ -1,4 +1,4 @@
-/*! ReefRouter v8.2.4 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! ReefRouter v8.2.5 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 // The global Reef instance
 let Reef;
 
