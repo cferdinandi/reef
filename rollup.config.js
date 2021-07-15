@@ -6,7 +6,7 @@ import pkg from './package.json';
 // Configs
 let configs = {
 	name: 'Reef',
-	files: ['reef.js', 'router.js', 'snorkel.js'],
+	files: ['reef.js'],
 	formats: ['iife', 'es', 'amd', 'cjs'],
 	default: 'iife',
 	pathIn: 'src',
@@ -14,16 +14,9 @@ let configs = {
 	minify: true
 };
 
-// Filename mapping
-let filenames = {
-	reef: 'Reef',
-	router: 'ReefRouter',
-	snorkel: 'ReefSnorkel'
-};
-
 // Banner
 function banner (filename) {
-	return `/*! ${filenames[filename]} v${pkg.version} | (c) ${new Date().getFullYear()} ${pkg.author.name} | ${pkg.license} License | ${pkg.repository.url} */`;
+	return `/*! ${configs.name} v${pkg.version} | (c) ${new Date().getFullYear()} ${pkg.author.name} | ${pkg.license} License | ${pkg.repository.url} */`;
 }
 
 function createOutput (filename, minify) {
@@ -34,7 +27,7 @@ function createOutput (filename, minify) {
 			banner: banner(filename)
 		};
 		if (format === 'iife') {
-			output.name = filenames[filename];
+			output.name = configs.name;
 		}
 		if (minify) {
 			output.plugins = [terser()];

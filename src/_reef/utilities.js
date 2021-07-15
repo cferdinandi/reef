@@ -33,7 +33,7 @@ function trueTypeOf (obj) {
  * @param  {String}  str The string
  * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
  */
-function isFalsy (str = '') {
+function isFalsy (str) {
 	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
 }
 
@@ -187,6 +187,11 @@ function dataHandler (instance) {
 		set: function (obj, prop, value) {
 			if (obj[prop] === value) return true;
 			obj[prop] = value;
+			debounceRender(instance);
+			return true;
+		},
+		deleteProperty: function (obj, prop) {
+			delete obj[prop];
 			debounceRender(instance);
 			return true;
 		}

@@ -44,7 +44,7 @@
 				typed: 'This field is overwritten on each update',
 				typed2: 'This field has a default value by keeps your changes on future renders',
 				wizard: 'hermione',
-				checked: 0
+				checked: true
 			},
 			template: function (props) {
 				return `
@@ -93,7 +93,7 @@
 		document.addEventListener('click', function (event) {
 			if (!event.target.matches('button')) return;
 			app.render();
-		})
+		});
 	</script>
 
 </body>

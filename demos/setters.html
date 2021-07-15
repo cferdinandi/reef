@@ -68,7 +68,7 @@
 		// After 6 seconds, add a todo using the addTodo setter
 		// This WILL update the state and render an updated UI
 		setTimeout(function () {
-			store.do('addTodo' ,'Take a nap... zzzz');
+			store.do('addTodo', 'Take a nap... zzzz');
 			console.log('Update state with setter', store.data.todos);
 		}, 6000);
 	</script>
