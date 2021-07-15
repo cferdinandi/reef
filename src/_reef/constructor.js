@@ -1,25 +1,24 @@
 import * as _ from './utilities.js';
 import * as $ from './dom.js';
 
-
 /**
  * Create the Reef object
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-function Reef (elem, options) {
+function Reef (elem, options = {}) {
 
 	// Make sure an element is provided
-	if (!elem && (!options || !options.lagoon)) return _.err('You did not provide an element to make into a component.');
+	if (!elem && !options.lagoon) return _.err('You did not provide an element to make into a component.');
 
 	// Make sure a template is provided
-	if (!options || (!options.template && !options.lagoon)) return _.err('You did not provide a template for this component.');
+	if (!options.template && !options.lagoon) return _.err('You did not provide a template for this component.');
 
 	// Get the component properties
 	let _this = this;
 	let _data = _.makeProxy(options, _this);
 	let _attachTo = options.attachTo ? (_.trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo]) : [];
-	let {store: _store, router: _router, setters: _setters, getters: _getters} = options;
+	let {store: _store, setters: _setters, getters: _getters} = options;
 	_this.debounce = null;
 
 	// Set the component properties
@@ -56,8 +55,7 @@ function Reef (elem, options) {
 				args[0] = _data;
 				_setters[id].apply(_this, args);
 				_.debounceRender(_this);
-			},
-			configurable: true
+			}
 		},
 
 		// get() method for options.getters
@@ -68,16 +66,10 @@ function Reef (elem, options) {
 				let args = Array.from(arguments);
 				args[0] = _data;
 				return _getters[id].apply(_this, args);
-			},
-			configurable: true
+			}
 		}
 
 	});
-
-	// Attach to router
-	if (_router && 'addComponent' in _router) {
-		_router.addComponent(_this);
-	}
 
 	// Attach to store
 	if (_store && 'attach' in _store) {
@@ -113,8 +105,8 @@ Reef.prototype.render = function () {
 	// Make sure there's a template
 	if (!this.template) return _.err('No template was provided.');
 
-	// If elem is an element, use it.
-	// If it's a selector, get it.
+	// If elem is an element, use it
+	// If it's a selector, get it
 	let elem = _.trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return _.err('The DOM element to render your template into was not found.');
 
@@ -122,7 +114,7 @@ Reef.prototype.render = function () {
 	let data = _.copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
 
 	// Get the template
-	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, this.router && this.router.current ? this.router.current : elem, elem) : this.template);
+	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
 	if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 	// Emit pre-render event
@@ -137,9 +129,6 @@ Reef.prototype.render = function () {
 
 	// Dispatch a render event
 	_.emit(elem, 'reef:render', data);
-
-	// @deprecated Will be removed in v9
-	_.emit(elem, 'render', data);
 
 	// If there are linked Reefs, render them, too
 	$.renderPolyps(this.attached, this);
@@ -200,21 +189,9 @@ Reef.Store = function (options) {
 	return new Reef(null, options);
 };
 
-/**
- * Install a Reef plugin
- * @param  {Constructor} plugin The Reef plugin
- */
-Reef.use = function (plugin) {
-	if (!plugin.install || typeof plugin.install !== 'function') return;
-	plugin.install(Reef, {diff: $.diff});
-	_.emit(document, 'reef:plugin-added', plugin);
-};
-
 // External helper methods
 Reef.debug = _.setDebug;
 Reef.clone = _.copy;
-Reef.trueTypeOf = _.trueTypeOf;
-Reef.err = _.err;
 Reef.emit = _.emit;
 
 // Emit ready event
