@@ -193,6 +193,7 @@ Reef.Store = function (options) {
 Reef.debug = _.setDebug;
 Reef.clone = _.copy;
 Reef.emit = _.emit;
+Reef.err = _.err;
 
 // Emit ready event
 _.emit(document, 'reef:ready');

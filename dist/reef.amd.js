@@ -1,4 +1,4 @@
-/*! Reef v9.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v9.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
@@ -705,6 +705,7 @@ define(function () { 'use strict';
 	Reef.debug = setDebug;
 	Reef.clone = copy;
 	Reef.emit = emit;
+	Reef.err = err;
 
 	// Emit ready event
 	emit(document, 'reef:ready');
