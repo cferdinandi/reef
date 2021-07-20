@@ -18,24 +18,20 @@
 	<div id="app"></div>
 
 	<script src="../dist/reef.js"></script>
+	<script src="xss.js"></script>
 	<script>
 		// Turn on debug mode
 		Reef.debug(true);
 
 		// Setup a cross-site scripting attack
+		// The data object is in xss.js
 		// If you uncomment allowHTML: true, the alert will run
 		var app = new Reef('#app', {
-			data: {
-				xss: `<img onerror="alert('XSS Attack')" src=x>`,
-				xss2: `x" onerror="alert('Another XSS Attack')"`,
-				html: `<p>Hello, there</p>`
-			},
+			data: data,
 			template: function (props) {
-				return `
-					<p>${props.xss}</p>
-					<p><img src="${props.xss2}"></p>
-					<div reef-html>${props.html}</div>
-				`;
+				return props.map(function (elem) {
+					return elem;
+				}).join('');
 			},
 			// allowHTML: true
 		});

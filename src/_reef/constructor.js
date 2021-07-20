@@ -27,7 +27,7 @@ function Reef (elem, options = {}) {
 		// Read-only properties
 		elem: {value: elem},
 		template: {value: options.template},
-		allowHTML: {value: options.allowHTML},
+		unsafeHTML: {value: options.unsafeHTML},
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
@@ -35,7 +35,7 @@ function Reef (elem, options = {}) {
 		// getter/setter for data
 		data: {
 			get: function () {
-				return _setters ? _.copy(_data, true) : _data;
+				return _setters ? _.copy(_data) : _data;
 			},
 			set: function (data) {
 				if (_store || _setters) return true;
@@ -111,7 +111,7 @@ Reef.prototype.render = function () {
 	if (!elem) return _.err('The DOM element to render your template into was not found.');
 
 	// Get the data (if there is any)
-	let data = _.copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
+	let data = (this.store ? this.store.data : this.data) || {};
 
 	// Get the template
 	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);

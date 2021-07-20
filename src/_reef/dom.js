@@ -13,12 +13,29 @@ let reefAtts = ['reef-checked', 'reef-selected', 'reef-value'];
 let reefAttsDef = ['reef-default-checked', 'reef-default-selected', 'reef-default-value'];
 
 /**
+ * Check if attribute should be skipped (sanitize properties)
+ * @param  {String}  name  The attribute name
+ * @param  {String}  value The attribute value
+ * @return {Boolean}       If true, skip the attribute
+ */
+function skipAttribute (name, value) {
+	let val = value.replace(/\s+/g, '').toLowerCase();
+	if (['src', 'href', 'xlink:href'].includes(name)) {
+		if (val.includes('javascript:') || val.includes('data:text/html')) return true;
+	}
+	if (name.startsWith('on')) return true;
+}
+
+/**
  * Add an attribute to an element
  * @param {Node}   elem The element
  * @param {String} att  The attribute
  * @param {String} val  The value
  */
 function addAttribute (elem, att, val) {
+
+	// Sanitize dangerous attributes
+	if (skipAttribute(att, val)) return;
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -63,39 +80,39 @@ function diffAttributes (template, existing) {
 	let existingAtts = existing.attributes;
 
 	// Add and update attributes from the template into the DOM
-	for (let attribute of templateAtts) {
+	for (let {name, value} of templateAtts) {
 
 		// Skip [reef-default-*] attributes
-		if (attribute.name.slice(0, 13) === 'reef-default-') continue;
+		if (name.slice(0, 13) === 'reef-default-') continue;
 
 		// Skip user-editable form field attributes
-		if (formAtts.includes(attribute.name) && formFields.includes(template.tagName.toLowerCase())) continue;
+		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) continue;
 
 		// Convert [reef-*] names to their real attribute name
-		let attName = attribute.name.replace('reef-', '');
+		let attName = name.replace('reef-', '');
 
 		// If its a no-value property and it's falsey remove it
-		if (formAttsNoVal.includes(attName) && _.isFalsy(attribute.value)) {
+		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) {
 			removeAttribute(existing, attName);
-			return;
+			continue;
 		}
 
 		// Otherwise, add the attribute
-		addAttribute(existing, attName, attribute.value);
+		addAttribute(existing, attName, value);
 
 	}
 
 	// Remove attributes from the DOM that shouldn't be there
-	for (let attribute of existingAtts) {
+	for (let {name, value} of existingAtts) {
 
 		// If the attribute exists in the template, skip it
-		if (templateAtts[attribute.name]) continue;
+		if (templateAtts[name]) continue;
 
 		// Skip user-editable form field attributes
-		if (formAtts.includes(attribute.name) && formFields.includes(existing.tagName.toLowerCase())) continue;
+		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) continue;
 
 		// Otherwise, remove it
-		removeAttribute(existing, attribute.name);
+		removeAttribute(existing, name);
 
 	}
 
@@ -111,22 +128,28 @@ function addDefaultAtts (elem) {
 	if (elem.nodeType !== 1) return;
 
 	// Remove [reef-default-*] and [reef-*] attributes and replace them with the plain attributes
-	for (let attribute of elem.attributes) {
+	for (let {name, value} of elem.attributes) {
+
+		// If the attribute should be skipped, remove it
+		if (skipAttribute(name, value)) {
+			removeAttribute(elem, name);
+			continue;
+		}
 
 		// If the attribute isn't a [reef-default-*] or [reef-*], skip it
-		if (attribute.name.slice(0, 5) !== 'reef-') continue;
+		if (name.slice(0, 5) !== 'reef-') continue;
 
 		// Get the plain attribute name
-		let attName = attribute.name.replace('reef-default-', '').replace('reef-', '');
+		let attName = name.replace('reef-default-', '').replace('reef-', '');
 
 		// Remove the [reef-default-*] or [reef-*] attribute
-		removeAttribute(elem, attribute.name);
+		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
-		if (formAttsNoVal.includes(attName) && _.isFalsy(attribute.value)) continue;
+		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) continue;
 
 		// Add the plain attribute
-		addAttribute(elem, attName, attribute.value);
+		addAttribute(elem, attName, value);
 
 	}
 
@@ -190,6 +213,21 @@ function trimExtraNodes (existingNodes, templateNodes) {
 }
 
 /**
+ * Remove scripts from HTML
+ * @param  {Node}    elem The element to remove scripts from
+ * @return {Boolean}      Returns true if element is a script
+ */
+function removeScripts (elem) {
+	if (elem.nodeType === 1 && elem.tagName.toLowerCase() === 'script') return true;
+	if (!elem.childNodes.length) return;
+	for (let node of elem.childNodes) {
+		if (removeScripts(node)) {
+			node.remove();
+		}
+	}
+}
+
+/**
  * Diff the existing DOM node versus the template
  * @param  {Array} template The template HTML
  * @param  {Node}  existing The current DOM HTML
@@ -203,6 +241,9 @@ function diff (template, existing, polyps = []) {
 
 	// Loop through each node in the template and compare it to the matching element in the UI
 	templateNodes.forEach(function (node, index) {
+
+		// Don't inject scripts
+		if (removeScripts(node)) return;
 
 		// If element doesn't exist, create it
 		if (!existingNodes[index]) {
