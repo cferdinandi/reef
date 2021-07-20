@@ -167,7 +167,7 @@ function debounceRender (instance) {
 function dataHandler (instance) {
 	return {
 		get: function (obj, prop) {
-			if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
+			if (['object', 'array'].includes(trueTypeOf(obj[prop]))) {
 				return new Proxy(obj[prop], dataHandler(instance));
 			}
 			return obj[prop];
@@ -194,7 +194,7 @@ function dataHandler (instance) {
  */
 function makeProxy (options, instance) {
 	if (options.setters) return !options.store ? options.data : null;
-	return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
+	return options.data ? new Proxy(options.data, dataHandler(instance)) : null;
 }
 
 /**

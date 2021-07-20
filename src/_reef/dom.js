@@ -28,14 +28,15 @@ function skipAttribute (name, value) {
 
 /**
  * Add an attribute to an element
- * @param {Node}   elem The element
- * @param {String} att  The attribute
- * @param {String} val  The value
+ * @param {Node}    elem       The element
+ * @param {String}  att        The attribute
+ * @param {String}  val        The value
+ * @param {Boolean} unsafeHTML If true, allow unsafe HTML in render
  */
-function addAttribute (elem, att, val) {
+function addAttribute (elem, att, val, unsafeHTML) {
 
 	// Sanitize dangerous attributes
-	if (skipAttribute(att, val)) return;
+	if (!unsafeHTML && skipAttribute(att, val)) return;
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -67,10 +68,11 @@ function removeAttribute (elem, att) {
 
 /**
  * Compare the existing node attributes to the template node attributes and make updates
- * @param  {Node} template The new template
- * @param  {Node} existing The existing DOM node
+ * @param  {Node}    template   The new template
+ * @param  {Node}    existing   The existing DOM node
+ * @param  {Boolean} unsafeHTML If true, allow unsafe HTML in render
  */
-function diffAttributes (template, existing) {
+function diffAttributes (template, existing, unsafeHTML) {
 
 	// If the node is not an element, bail
 	if (template.nodeType !== 1) return;
@@ -98,7 +100,7 @@ function diffAttributes (template, existing) {
 		}
 
 		// Otherwise, add the attribute
-		addAttribute(existing, attName, value);
+		addAttribute(existing, attName, value, unsafeHTML);
 
 	}
 
@@ -120,18 +122,20 @@ function diffAttributes (template, existing) {
 
 /**
  * Add default attributes to a newly created element
- * @param  {Node} elem The element
+ * @param  {Node}    elem       The element
+ * @param  {Boolean} unsafeHTML If true, allow unsafeHTML in render
  */
-function addDefaultAtts (elem) {
+function addDefaultAtts (elem, unsafeHTML) {
 
 	// Only run on elements
 	if (elem.nodeType !== 1) return;
 
 	// Remove [reef-default-*] and [reef-*] attributes and replace them with the plain attributes
+	// Remove unsafe HTML attributes
 	for (let {name, value} of elem.attributes) {
 
 		// If the attribute should be skipped, remove it
-		if (skipAttribute(name, value)) {
+		if (!unsafeHTML && skipAttribute(name, value)) {
 			removeAttribute(elem, name);
 			continue;
 		}
@@ -149,14 +153,14 @@ function addDefaultAtts (elem) {
 		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) continue;
 
 		// Add the plain attribute
-		addAttribute(elem, attName, value);
+		addAttribute(elem, attName, value, unsafeHTML);
 
 	}
 
 	// If there are child elems, recursively add defaults to them
 	if (elem.childNodes) {
 		for (let node of elem.childNodes) {
-			addDefaultAtts(node);
+			addDefaultAtts(node, unsafeHTML);
 		}
 	}
 
@@ -215,39 +219,36 @@ function trimExtraNodes (existingNodes, templateNodes) {
 /**
  * Remove scripts from HTML
  * @param  {Node}    elem The element to remove scripts from
- * @return {Boolean}      Returns true if element is a script
  */
 function removeScripts (elem) {
-	if (elem.nodeType === 1 && elem.tagName.toLowerCase() === 'script') return true;
-	if (!elem.childNodes.length) return;
-	for (let node of elem.childNodes) {
-		if (removeScripts(node)) {
-			node.remove();
-		}
+	let scripts = elem.querySelectorAll('script');
+	for (let script of scripts) {
+		script.remove();
 	}
 }
 
 /**
  * Diff the existing DOM node versus the template
- * @param  {Array} template The template HTML
- * @param  {Node}  existing The current DOM HTML
- * @param  {Array} polyps   Attached components for this element
+ * @param  {Array}   template   The template HTML
+ * @param  {Node}    existing   The current DOM HTML
+ * @param  {Array}   polyps     Attached components for this element
+ * @param  {Boolean} unsafeHTML If true, allow unsafe HTML in render
  */
-function diff (template, existing, polyps = []) {
+function diff (template, existing, polyps, unsafeHTML) {
 
 	// Get the nodes in the template and existing UI
 	let templateNodes = template.childNodes;
 	let existingNodes = existing.childNodes;
 
+	// Don't inject scripts
+	if (removeScripts(template)) return;
+
 	// Loop through each node in the template and compare it to the matching element in the UI
 	templateNodes.forEach(function (node, index) {
 
-		// Don't inject scripts
-		if (removeScripts(node)) return;
-
 		// If element doesn't exist, create it
 		if (!existingNodes[index]) {
-			addDefaultAtts(node);
+			addDefaultAtts(node, unsafeHTML);
 			existing.append(node.cloneNode(true));
 			return;
 		}
@@ -260,7 +261,7 @@ function diff (template, existing, polyps = []) {
 
 			// If not, insert the node before the current one
 			if (!ahead) {
-				addDefaultAtts(node);
+				addDefaultAtts(node, unsafeHTML);
 				existingNodes[index].before(node.cloneNode(true));
 				return;
 			}
@@ -283,7 +284,7 @@ function diff (template, existing, polyps = []) {
 		}
 
 		// If attributes are different, update them
-		diffAttributes(node, existingNodes[index]);
+		diffAttributes(node, existingNodes[index], unsafeHTML);
 
 		// If there shouldn't be child nodes but there are, remove them
 		if (!node.childNodes.length && existingNodes[index].childNodes.length) {
@@ -295,14 +296,14 @@ function diff (template, existing, polyps = []) {
 		// This uses a document fragment to minimize reflows
 		if (!existingNodes[index].childNodes.length && node.childNodes.length) {
 			let fragment = document.createDocumentFragment();
-			diff(node, fragment, polyps);
+			diff(node, fragment, polyps, unsafeHTML);
 			existingNodes[index].appendChild(fragment);
 			return;
 		}
 
 		// If there are nodes within it, recursively diff those
 		if (node.childNodes.length) {
-			diff(node, existingNodes[index], polyps);
+			diff(node, existingNodes[index], polyps, unsafeHTML);
 		}
 
 	});

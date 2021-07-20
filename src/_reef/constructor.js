@@ -110,22 +110,22 @@ Reef.prototype.render = function () {
 	let elem = _.trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return _.err('The DOM element to render your template into was not found.');
 
-	// Get the data (if there is any)
-	let data = (this.store ? this.store.data : this.data) || {};
+	// Merge store and local data into a single object
+	let data = Object.assign({}, (this.store ? this.store.data : {}), (this.data ? this.data : {}));
 
 	// Get the template
 	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
-	if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
+	// @deprecated
+	// if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 	// Emit pre-render event
-	let cancelled = !_.emit(elem, 'reef:before-render', data);
-
 	// If the event was cancelled, bail
-	if (cancelled) return;
+	let canceled = !_.emit(elem, 'reef:before-render', data);
+	if (canceled) return;
 
 	// Diff and update the DOM
 	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
-	$.diff(_.stringToHTML(template), elem, polyps);
+	$.diff(_.stringToHTML(template), elem, polyps, this.unsafeHTML);
 
 	// Dispatch a render event
 	_.emit(elem, 'reef:render', data);

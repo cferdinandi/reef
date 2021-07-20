@@ -25,15 +25,17 @@
 
 		// Setup a cross-site scripting attack
 		// The data object is in xss.js
-		// If you uncomment allowHTML: true, the alert will run
+		// If you uncomment unsafeHTML: true, the alert will run
 		var app = new Reef('#app', {
-			data: data,
+			data: {
+				xss: data
+			},
 			template: function (props) {
-				return props.map(function (elem) {
+				return props.xss.map(function (elem) {
 					return elem;
 				}).join('');
 			},
-			// allowHTML: true
+			// unsafeHTML: true
 		});
 
 		app.render();
