@@ -27,7 +27,6 @@ function Reef (elem, options = {}) {
 		// Read-only properties
 		elem: {value: elem},
 		template: {value: options.template},
-		unsafeHTML: {value: options.unsafeHTML},
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
@@ -115,8 +114,6 @@ Reef.prototype.render = function () {
 
 	// Get the template
 	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
-	// @deprecated
-	// if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 	// Emit pre-render event
 	// If the event was cancelled, bail
@@ -125,7 +122,7 @@ Reef.prototype.render = function () {
 
 	// Diff and update the DOM
 	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
-	$.diff(_.stringToHTML(template), elem, polyps, this.unsafeHTML);
+	$.diff(_.stringToHTML(template), elem, polyps);
 
 	// Dispatch a render event
 	_.emit(elem, 'reef:render', data);

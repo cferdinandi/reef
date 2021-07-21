@@ -245,15 +245,14 @@ var Reef = (function () {
 
 	/**
 	 * Add an attribute to an element
-	 * @param {Node}    elem       The element
-	 * @param {String}  att        The attribute
-	 * @param {String}  val        The value
-	 * @param {Boolean} unsafeHTML If true, allow unsafe HTML in render
+	 * @param {Node}   elem The element
+	 * @param {String} att  The attribute
+	 * @param {String} val  The value
 	 */
-	function addAttribute (elem, att, val, unsafeHTML) {
+	function addAttribute (elem, att, val) {
 
 		// Sanitize dangerous attributes
-		if (!unsafeHTML && skipAttribute(att, val)) return;
+		if (skipAttribute(att, val)) return;
 
 		// If it's a form attribute, set the property directly
 		if (formAtts.includes(att)) {
@@ -285,11 +284,10 @@ var Reef = (function () {
 
 	/**
 	 * Compare the existing node attributes to the template node attributes and make updates
-	 * @param  {Node}    template   The new template
-	 * @param  {Node}    existing   The existing DOM node
-	 * @param  {Boolean} unsafeHTML If true, allow unsafe HTML in render
+	 * @param  {Node} template The new template
+	 * @param  {Node} existing The existing DOM node
 	 */
-	function diffAttributes (template, existing, unsafeHTML) {
+	function diffAttributes (template, existing) {
 
 		// If the node is not an element, bail
 		if (template.nodeType !== 1) return;
@@ -317,7 +315,7 @@ var Reef = (function () {
 			}
 
 			// Otherwise, add the attribute
-			addAttribute(existing, attName, value, unsafeHTML);
+			addAttribute(existing, attName, value);
 
 		}
 
@@ -339,10 +337,9 @@ var Reef = (function () {
 
 	/**
 	 * Add default attributes to a newly created element
-	 * @param  {Node}    elem       The element
-	 * @param  {Boolean} unsafeHTML If true, allow unsafeHTML in render
+	 * @param  {Node} elem The element
 	 */
-	function addDefaultAtts (elem, unsafeHTML) {
+	function addDefaultAtts (elem) {
 
 		// Only run on elements
 		if (elem.nodeType !== 1) return;
@@ -352,7 +349,7 @@ var Reef = (function () {
 		for (let {name, value} of elem.attributes) {
 
 			// If the attribute should be skipped, remove it
-			if (!unsafeHTML && skipAttribute(name, value)) {
+			if (skipAttribute(name, value)) {
 				removeAttribute(elem, name);
 				continue;
 			}
@@ -370,14 +367,14 @@ var Reef = (function () {
 			if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
 
 			// Add the plain attribute
-			addAttribute(elem, attName, value, unsafeHTML);
+			addAttribute(elem, attName, value);
 
 		}
 
 		// If there are child elems, recursively add defaults to them
 		if (elem.childNodes) {
 			for (let node of elem.childNodes) {
-				addDefaultAtts(node, unsafeHTML);
+				addDefaultAtts(node);
 			}
 		}
 
@@ -446,12 +443,11 @@ var Reef = (function () {
 
 	/**
 	 * Diff the existing DOM node versus the template
-	 * @param  {Array}   template   The template HTML
-	 * @param  {Node}    existing   The current DOM HTML
-	 * @param  {Array}   polyps     Attached components for this element
-	 * @param  {Boolean} unsafeHTML If true, allow unsafe HTML in render
+	 * @param  {Array} template The template HTML
+	 * @param  {Node}  existing The current DOM HTML
+	 * @param  {Array} polyps   Attached components for this element
 	 */
-	function diff (template, existing, polyps, unsafeHTML) {
+	function diff (template, existing, polyps) {
 
 		// Get the nodes in the template and existing UI
 		let templateNodes = template.childNodes;
@@ -465,7 +461,7 @@ var Reef = (function () {
 
 			// If element doesn't exist, create it
 			if (!existingNodes[index]) {
-				addDefaultAtts(node, unsafeHTML);
+				addDefaultAtts(node);
 				existing.append(node.cloneNode(true));
 				return;
 			}
@@ -478,7 +474,7 @@ var Reef = (function () {
 
 				// If not, insert the node before the current one
 				if (!ahead) {
-					addDefaultAtts(node, unsafeHTML);
+					addDefaultAtts(node);
 					existingNodes[index].before(node.cloneNode(true));
 					return;
 				}
@@ -501,7 +497,7 @@ var Reef = (function () {
 			}
 
 			// If attributes are different, update them
-			diffAttributes(node, existingNodes[index], unsafeHTML);
+			diffAttributes(node, existingNodes[index]);
 
 			// If there shouldn't be child nodes but there are, remove them
 			if (!node.childNodes.length && existingNodes[index].childNodes.length) {
@@ -513,14 +509,14 @@ var Reef = (function () {
 			// This uses a document fragment to minimize reflows
 			if (!existingNodes[index].childNodes.length && node.childNodes.length) {
 				let fragment = document.createDocumentFragment();
-				diff(node, fragment, polyps, unsafeHTML);
+				diff(node, fragment, polyps);
 				existingNodes[index].appendChild(fragment);
 				return;
 			}
 
 			// If there are nodes within it, recursively diff those
 			if (node.childNodes.length) {
-				diff(node, existingNodes[index], polyps, unsafeHTML);
+				diff(node, existingNodes[index], polyps);
 			}
 
 		});
@@ -570,7 +566,6 @@ var Reef = (function () {
 			// Read-only properties
 			elem: {value: elem},
 			template: {value: options.template},
-			unsafeHTML: {value: options.unsafeHTML},
 			lagoon: {value: options.lagoon},
 			store: {value: _store},
 			attached: {value: []},
@@ -658,8 +653,6 @@ var Reef = (function () {
 
 		// Get the template
 		let template = (trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
-		// @deprecated
-		// if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 		// Emit pre-render event
 		// If the event was cancelled, bail
@@ -668,7 +661,7 @@ var Reef = (function () {
 
 		// Diff and update the DOM
 		let polyps = this.attached.map(function (polyp) { return polyp.elem; });
-		diff(stringToHTML(template), elem, polyps, this.unsafeHTML);
+		diff(stringToHTML(template), elem, polyps);
 
 		// Dispatch a render event
 		emit(elem, 'reef:render', data);
