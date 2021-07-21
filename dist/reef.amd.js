@@ -1,4 +1,4 @@
-/*! Reef v9.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v10.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
 	// If true, debug mode is enabled
