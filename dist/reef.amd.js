@@ -583,6 +583,13 @@ define(function () { 'use strict';
 				configurable: true
 			},
 
+			// immutable data getter
+			dataCopy: {
+				get: function () {
+					return copy(_data);
+				}
+			},
+
 			// do() method for options.setters
 			do: {
 				value: function (id) {

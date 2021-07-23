@@ -45,6 +45,13 @@ function Reef (elem, options = {}) {
 			configurable: true
 		},
 
+		// immutable data getter
+		dataCopy: {
+			get: function () {
+				return _.copy(_data);
+			}
+		},
+
 		// do() method for options.setters
 		do: {
 			value: function (id) {

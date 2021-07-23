@@ -51,12 +51,10 @@
 
 		app.render();
 
-		// The app has no direct data/state
-		console.log('app.data:', app.data);
-
 		// After 3 seconds, update the store data
 		// The app will re-render with the new data
 		setTimeout(function () {
+			app.data.heading = 'Stuff to do';
 			store.data.todos.push('Take a nap... zzzz');
 		}, 3000);
 	</script>
