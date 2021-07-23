@@ -27,7 +27,6 @@
 		// Updating the store data automatically triggers renders in any component using it
 		var store = Reef.Store({
 			data: {
-				heading: 'My Todos',
 				todos: ['Swim', 'Climb', 'Jump', 'Play']
 			}
 		});
@@ -35,6 +34,9 @@
 		// Use the store in the app instead of a data object
 		var app = new Reef('#app', {
 			store: store,
+			data: {
+				heading: 'My Todos'
+			},
 			template: function (props) {
 				return `
 					<h1>${props.heading}</h1>
@@ -49,12 +51,10 @@
 
 		app.render();
 
-		// The app has no direct data/state
-		console.log('app.data:', app.data);
-
 		// After 3 seconds, update the store data
 		// The app will re-render with the new data
 		setTimeout(function () {
+			app.data.heading = 'Stuff to do';
 			store.data.todos.push('Take a nap... zzzz');
 		}, 3000);
 	</script>

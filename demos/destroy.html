@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Basic Setup</title>
+	<title>Destroy a Component</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -23,16 +23,15 @@
 		Reef.debug(true);
 
 		// Create an app
-		var app = new Reef('#app', {
+		let app = new Reef('#app', {
 			data: {
 				heading: 'My Todos',
-				todos: ['Swim', 'Climb', 'Jump', 'Play'],
-				emoji: '👋🎉'
+				todos: ['Swim', 'Climb', 'Jump', 'Play']
 			},
 			template: function (props) {
-				let {heading, todos, emoji} = props;
+				let {heading, todos} = props;
 				return `
-					<h1>${heading} ${emoji}</h1>
+					<h1>${heading}</h1>
 					<ul>
 						${todos.map(function (todo) {
 							return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
@@ -41,17 +40,11 @@
 			}
 		});
 
-		// Log a message to the console whenever a render happens
-		document.addEventListener('reef:render', function (event) {
-			console.log('rendered!');
-		});
-
-		// Render the app
 		app.render();
 
-		// After three seconds, add an item to the todo list
+		// Destroy the instance after 3 seconds
 		setTimeout(function () {
-			app.data.todos.push('Take a nap... zzzz');
+			app.destroy();
 		}, 3000);
 	</script>
 

@@ -41,18 +41,22 @@
 			}
 		});
 
+		let count = 0;
+
 		// Log a message to the console whenever a render happens
-		document.addEventListener('reef:render', function (event) {
-			console.log('rendered!');
+		document.addEventListener('reef:render', function render (event) {
+			app.data.todos.push('Swim');
+			app.data.todos.push('Climb');
+			app.data.todos.push('Jump');
+			app.data.todos.push('Play');
+			count++;
+			if (count > 199) {
+				document.removeEventListener('reef:render', render);
+			}
 		});
 
 		// Render the app
 		app.render();
-
-		// After three seconds, add an item to the todo list
-		setTimeout(function () {
-			app.data.todos.push('Take a nap... zzzz');
-		}, 3000);
 	</script>
 
 </body>

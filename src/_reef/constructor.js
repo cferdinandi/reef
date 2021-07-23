@@ -27,7 +27,6 @@ function Reef (elem, options = {}) {
 		// Read-only properties
 		elem: {value: elem},
 		template: {value: options.template},
-		allowHTML: {value: options.allowHTML},
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
@@ -35,7 +34,7 @@ function Reef (elem, options = {}) {
 		// getter/setter for data
 		data: {
 			get: function () {
-				return _setters ? _.copy(_data, true) : _data;
+				return _setters ? _.copy(_data) : _data;
 			},
 			set: function (data) {
 				if (_store || _setters) return true;
@@ -44,6 +43,13 @@ function Reef (elem, options = {}) {
 				return true;
 			},
 			configurable: true
+		},
+
+		// immutable data getter
+		dataCopy: {
+			get: function () {
+				return _.copy(_data);
+			}
 		},
 
 		// do() method for options.setters
@@ -110,18 +116,16 @@ Reef.prototype.render = function () {
 	let elem = _.trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return _.err('The DOM element to render your template into was not found.');
 
-	// Get the data (if there is any)
-	let data = _.copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
+	// Merge store and local data into a single object
+	let data = Object.assign({}, (this.store ? this.store.data : {}), (this.data ? this.data : {}));
 
 	// Get the template
 	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
-	if (!['string', 'number'].includes(_.trueTypeOf(template))) return;
 
 	// Emit pre-render event
-	let cancelled = !_.emit(elem, 'reef:before-render', data);
-
 	// If the event was cancelled, bail
-	if (cancelled) return;
+	let canceled = !_.emit(elem, 'reef:before-render', data);
+	if (canceled) return;
 
 	// Diff and update the DOM
 	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
@@ -136,6 +140,14 @@ Reef.prototype.render = function () {
 	// Return the elem for use elsewhere
 	return elem;
 
+};
+
+/**
+ * Get an immutable copy of the data
+ * @return {Object} The app data
+ */
+Reef.prototype.immutableData = function () {
+	return _.copy(this.data);
 };
 
 /**

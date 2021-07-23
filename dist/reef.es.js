@@ -1,4 +1,4 @@
-/*! Reef v9.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v10.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 // If true, debug mode is enabled
 let debug = false;
 
@@ -58,11 +58,10 @@ function emit (elem, name, detail, noCancel) {
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
- * @param  {*}       obj       The object to clone
- * @param  {Boolean} allowHTML If true, allow HTML in data strings
- * @return {*}                 The immutable, encoded object
+ * @param  {*} obj The object to clone
+ * @return {*}     The immutable, encoded object
  */
-function copy (obj, allowHTML) {
+function copy (obj) {
 
 	/**
 	 * Copy properties from the original object to the clone
@@ -71,7 +70,7 @@ function copy (obj, allowHTML) {
 	function copyProps (clone) {
 		for (let key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				clone[key] = copy(obj[key], allowHTML);
+				clone[key] = copy(obj[key]);
 			}
 		}
 	}
@@ -92,7 +91,7 @@ function copy (obj, allowHTML) {
 	 */
 	function cloneArr () {
 		return obj.map(function (item) {
-			return copy(item, allowHTML);
+			return copy(item);
 		});
 	}
 
@@ -103,7 +102,7 @@ function copy (obj, allowHTML) {
 	function cloneMap () {
 		let clone = new Map();
 		for (let [key, val] of obj) {
-			clone.set(key, copy(val, allowHTML));
+			clone.set(key, copy(val));
 		}
 		return clone;
 	}
@@ -115,7 +114,7 @@ function copy (obj, allowHTML) {
 	function cloneSet () {
 		let clone = new Set();
 		for (let item of set) {
-			clone.add(copy(item, allowHTML));
+			clone.add(copy(item));
 		}
 		return clone;
 	}
@@ -130,16 +129,6 @@ function copy (obj, allowHTML) {
 		return clone;
 	}
 
-	/**
-	 * Sanitize and encode HTML in a string
-	 * @return {String} The sanitized and encoded string
-	 */
-	function sanitizeStr () {
-		return obj.replace(/javascript:/gi, '').replace(/[^\w-_. ]/gi, function(c){
-			return `&#${c.charCodeAt(0)};`;
-		});
-	}
-
 	// Get object type
 	let type = trueTypeOf(obj);
 
@@ -149,7 +138,6 @@ function copy (obj, allowHTML) {
 	if (type === 'map') return cloneMap();
 	if (type === 'set') return cloneSet();
 	if (type === 'function') return cloneFunction();
-	if (type === 'string' && !allowHTML) return sanitizeStr();
 	return obj;
 
 }
@@ -180,7 +168,7 @@ function debounceRender (instance) {
 function dataHandler (instance) {
 	return {
 		get: function (obj, prop) {
-			if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
+			if (['object', 'array'].includes(trueTypeOf(obj[prop]))) {
 				return new Proxy(obj[prop], dataHandler(instance));
 			}
 			return obj[prop];
@@ -207,7 +195,7 @@ function dataHandler (instance) {
  */
 function makeProxy (options, instance) {
 	if (options.setters) return !options.store ? options.data : null;
-	return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
+	return options.data ? new Proxy(options.data, dataHandler(instance)) : null;
 }
 
 /**
@@ -239,12 +227,29 @@ let formAtts = ['value', 'checked', 'selected'];
 let formAttsNoVal = ['checked', 'selected'];
 
 /**
+ * Check if attribute should be skipped (sanitize properties)
+ * @param  {String}  name  The attribute name
+ * @param  {String}  value The attribute value
+ * @return {Boolean}       If true, skip the attribute
+ */
+function skipAttribute (name, value) {
+	let val = value.replace(/\s+/g, '').toLowerCase();
+	if (['src', 'href', 'xlink:href'].includes(name)) {
+		if (val.includes('javascript:') || val.includes('data:text/html')) return true;
+	}
+	if (name.startsWith('on')) return true;
+}
+
+/**
  * Add an attribute to an element
  * @param {Node}   elem The element
  * @param {String} att  The attribute
  * @param {String} val  The value
  */
 function addAttribute (elem, att, val) {
+
+	// Sanitize dangerous attributes
+	if (skipAttribute(att, val)) return;
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -289,39 +294,39 @@ function diffAttributes (template, existing) {
 	let existingAtts = existing.attributes;
 
 	// Add and update attributes from the template into the DOM
-	for (let attribute of templateAtts) {
+	for (let {name, value} of templateAtts) {
 
 		// Skip [reef-default-*] attributes
-		if (attribute.name.slice(0, 13) === 'reef-default-') continue;
+		if (name.slice(0, 13) === 'reef-default-') continue;
 
 		// Skip user-editable form field attributes
-		if (formAtts.includes(attribute.name) && formFields.includes(template.tagName.toLowerCase())) continue;
+		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) continue;
 
 		// Convert [reef-*] names to their real attribute name
-		let attName = attribute.name.replace('reef-', '');
+		let attName = name.replace('reef-', '');
 
 		// If its a no-value property and it's falsey remove it
-		if (formAttsNoVal.includes(attName) && isFalsy(attribute.value)) {
+		if (formAttsNoVal.includes(attName) && isFalsy(value)) {
 			removeAttribute(existing, attName);
-			return;
+			continue;
 		}
 
 		// Otherwise, add the attribute
-		addAttribute(existing, attName, attribute.value);
+		addAttribute(existing, attName, value);
 
 	}
 
 	// Remove attributes from the DOM that shouldn't be there
-	for (let attribute of existingAtts) {
+	for (let {name, value} of existingAtts) {
 
 		// If the attribute exists in the template, skip it
-		if (templateAtts[attribute.name]) continue;
+		if (templateAtts[name]) continue;
 
 		// Skip user-editable form field attributes
-		if (formAtts.includes(attribute.name) && formFields.includes(existing.tagName.toLowerCase())) continue;
+		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) continue;
 
 		// Otherwise, remove it
-		removeAttribute(existing, attribute.name);
+		removeAttribute(existing, name);
 
 	}
 
@@ -337,22 +342,29 @@ function addDefaultAtts (elem) {
 	if (elem.nodeType !== 1) return;
 
 	// Remove [reef-default-*] and [reef-*] attributes and replace them with the plain attributes
-	for (let attribute of elem.attributes) {
+	// Remove unsafe HTML attributes
+	for (let {name, value} of elem.attributes) {
+
+		// If the attribute should be skipped, remove it
+		if (skipAttribute(name, value)) {
+			removeAttribute(elem, name);
+			continue;
+		}
 
 		// If the attribute isn't a [reef-default-*] or [reef-*], skip it
-		if (attribute.name.slice(0, 5) !== 'reef-') continue;
+		if (name.slice(0, 5) !== 'reef-') continue;
 
 		// Get the plain attribute name
-		let attName = attribute.name.replace('reef-default-', '').replace('reef-', '');
+		let attName = name.replace('reef-default-', '').replace('reef-', '');
 
 		// Remove the [reef-default-*] or [reef-*] attribute
-		removeAttribute(elem, attribute.name);
+		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
-		if (formAttsNoVal.includes(attName) && isFalsy(attribute.value)) continue;
+		if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
 
 		// Add the plain attribute
-		addAttribute(elem, attName, attribute.value);
+		addAttribute(elem, attName, value);
 
 	}
 
@@ -416,16 +428,30 @@ function trimExtraNodes (existingNodes, templateNodes) {
 }
 
 /**
+ * Remove scripts from HTML
+ * @param  {Node}    elem The element to remove scripts from
+ */
+function removeScripts (elem) {
+	let scripts = elem.querySelectorAll('script');
+	for (let script of scripts) {
+		script.remove();
+	}
+}
+
+/**
  * Diff the existing DOM node versus the template
  * @param  {Array} template The template HTML
  * @param  {Node}  existing The current DOM HTML
  * @param  {Array} polyps   Attached components for this element
  */
-function diff (template, existing, polyps = []) {
+function diff (template, existing, polyps) {
 
 	// Get the nodes in the template and existing UI
 	let templateNodes = template.childNodes;
 	let existingNodes = existing.childNodes;
+
+	// Don't inject scripts
+	if (removeScripts(template)) return;
 
 	// Loop through each node in the template and compare it to the matching element in the UI
 	templateNodes.forEach(function (node, index) {
@@ -537,7 +563,6 @@ function Reef (elem, options = {}) {
 		// Read-only properties
 		elem: {value: elem},
 		template: {value: options.template},
-		allowHTML: {value: options.allowHTML},
 		lagoon: {value: options.lagoon},
 		store: {value: _store},
 		attached: {value: []},
@@ -545,7 +570,7 @@ function Reef (elem, options = {}) {
 		// getter/setter for data
 		data: {
 			get: function () {
-				return _setters ? copy(_data, true) : _data;
+				return _setters ? copy(_data) : _data;
 			},
 			set: function (data) {
 				if (_store || _setters) return true;
@@ -554,6 +579,13 @@ function Reef (elem, options = {}) {
 				return true;
 			},
 			configurable: true
+		},
+
+		// immutable data getter
+		dataCopy: {
+			get: function () {
+				return copy(_data);
+			}
 		},
 
 		// do() method for options.setters
@@ -620,18 +652,16 @@ Reef.prototype.render = function () {
 	let elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
 	if (!elem) return err('The DOM element to render your template into was not found.');
 
-	// Get the data (if there is any)
-	let data = copy((this.store ? this.store.data : this.data) || {}, this.allowHTML);
+	// Merge store and local data into a single object
+	let data = Object.assign({}, (this.store ? this.store.data : {}), (this.data ? this.data : {}));
 
 	// Get the template
 	let template = (trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
-	if (!['string', 'number'].includes(trueTypeOf(template))) return;
 
 	// Emit pre-render event
-	let cancelled = !emit(elem, 'reef:before-render', data);
-
 	// If the event was cancelled, bail
-	if (cancelled) return;
+	let canceled = !emit(elem, 'reef:before-render', data);
+	if (canceled) return;
 
 	// Diff and update the DOM
 	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
@@ -646,6 +676,14 @@ Reef.prototype.render = function () {
 	// Return the elem for use elsewhere
 	return elem;
 
+};
+
+/**
+ * Get an immutable copy of the data
+ * @return {Object} The app data
+ */
+Reef.prototype.immutableData = function () {
+	return copy(this.data);
 };
 
 /**

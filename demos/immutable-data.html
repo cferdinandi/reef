@@ -23,16 +23,15 @@
 		Reef.debug(true);
 
 		// Create an app
-		var app = new Reef('#app', {
+		let app = new Reef('#app', {
 			data: {
 				heading: 'My Todos',
-				todos: ['Swim', 'Climb', 'Jump', 'Play'],
-				emoji: '👋🎉'
+				todos: ['Swim', 'Climb', 'Jump', 'Play']
 			},
 			template: function (props) {
-				let {heading, todos, emoji} = props;
+				let {heading, todos} = props;
 				return `
-					<h1>${heading} ${emoji}</h1>
+					<h1>${heading}</h1>
 					<ul>
 						${todos.map(function (todo) {
 							return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
@@ -41,18 +40,12 @@
 			}
 		});
 
-		// Log a message to the console whenever a render happens
-		document.addEventListener('reef:render', function (event) {
-			console.log('rendered!');
-		});
-
-		// Render the app
 		app.render();
 
-		// After three seconds, add an item to the todo list
-		setTimeout(function () {
-			app.data.todos.push('Take a nap... zzzz');
-		}, 3000);
+		// Get an immutable copy of the data and update it
+		let data = app.dataCopy;
+		data.todos.push('Zzz... take a nap!');
+		console.log(data);
 	</script>
 
 </body>

@@ -57,11 +57,10 @@ function emit (elem, name, detail, noCancel) {
 
 /**
  * Create an immutable copy of an object and recursively encode all of its data
- * @param  {*}       obj       The object to clone
- * @param  {Boolean} allowHTML If true, allow HTML in data strings
- * @return {*}                 The immutable, encoded object
+ * @param  {*} obj The object to clone
+ * @return {*}     The immutable, encoded object
  */
-function copy (obj, allowHTML) {
+function copy (obj) {
 
 	/**
 	 * Copy properties from the original object to the clone
@@ -70,7 +69,7 @@ function copy (obj, allowHTML) {
 	function copyProps (clone) {
 		for (let key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				clone[key] = copy(obj[key], allowHTML);
+				clone[key] = copy(obj[key]);
 			}
 		}
 	}
@@ -91,7 +90,7 @@ function copy (obj, allowHTML) {
 	 */
 	function cloneArr () {
 		return obj.map(function (item) {
-			return copy(item, allowHTML);
+			return copy(item);
 		});
 	}
 
@@ -102,7 +101,7 @@ function copy (obj, allowHTML) {
 	function cloneMap () {
 		let clone = new Map();
 		for (let [key, val] of obj) {
-			clone.set(key, copy(val, allowHTML));
+			clone.set(key, copy(val));
 		}
 		return clone;
 	}
@@ -114,7 +113,7 @@ function copy (obj, allowHTML) {
 	function cloneSet () {
 		let clone = new Set();
 		for (let item of set) {
-			clone.add(copy(item, allowHTML));
+			clone.add(copy(item));
 		}
 		return clone;
 	}
@@ -129,16 +128,6 @@ function copy (obj, allowHTML) {
 		return clone;
 	}
 
-	/**
-	 * Sanitize and encode HTML in a string
-	 * @return {String} The sanitized and encoded string
-	 */
-	function sanitizeStr () {
-		return obj.replace(/javascript:/gi, '').replace(/[^\w-_. ]/gi, function(c){
-			return `&#${c.charCodeAt(0)};`;
-		});
-	}
-
 	// Get object type
 	let type = trueTypeOf(obj);
 
@@ -148,7 +137,6 @@ function copy (obj, allowHTML) {
 	if (type === 'map') return cloneMap();
 	if (type === 'set') return cloneSet();
 	if (type === 'function') return cloneFunction();
-	if (type === 'string' && !allowHTML) return sanitizeStr();
 	return obj;
 
 }
@@ -179,7 +167,7 @@ function debounceRender (instance) {
 function dataHandler (instance) {
 	return {
 		get: function (obj, prop) {
-			if (['object', 'array'].indexOf(trueTypeOf(obj[prop])) > -1) {
+			if (['object', 'array'].includes(trueTypeOf(obj[prop]))) {
 				return new Proxy(obj[prop], dataHandler(instance));
 			}
 			return obj[prop];
@@ -206,7 +194,7 @@ function dataHandler (instance) {
  */
 function makeProxy (options, instance) {
 	if (options.setters) return !options.store ? options.data : null;
-	return options.data && !options.store ? new Proxy(options.data, dataHandler(instance)) : null;
+	return options.data ? new Proxy(options.data, dataHandler(instance)) : null;
 }
 
 /**
