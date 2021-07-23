@@ -136,6 +136,14 @@ Reef.prototype.render = function () {
 };
 
 /**
+ * Get an immutable copy of the data
+ * @return {Object} The app data
+ */
+Reef.prototype.immutableData = function () {
+	return _.copy(this.data);
+};
+
+/**
  * Attach a component to this one
  * @param  {Function|Array} coral The component(s) to attach
  */
