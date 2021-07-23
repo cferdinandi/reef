@@ -29,7 +29,6 @@
 		// You can pass in as many other arguments as you'd like
 		var store = new Reef.Store({
 			data: {
-				heading: 'My Todos',
 				todos: ['Swim', 'Climb', 'Jump', 'Play']
 			},
 			setters: {
@@ -42,6 +41,9 @@
 		// Use the store in the app
 		var app = new Reef('#app', {
 			store: store,
+			data: {
+				heading: 'My Todos'
+			},
 			template: function (props) {
 				return `
 					<h1>${props.heading}</h1>
