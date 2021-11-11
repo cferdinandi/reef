@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Reef</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<style type="text/css">
+			body {
+				margin: 0 auto;
+				max-width: 40em;
+				width: 88%;
+			}
+		</style>
+	</head>
+	<body>
+
+		<h1>Reef Stuff</h1>
+
+		<p id="greeting"></p>
+
+		<p id="cart"></p>
+
+		<p><strong>1:</strong> <span data-item="1"></span></p>
+		<p><strong>2:</strong> <span data-item="2"></span></p>
+		<p><strong>3:</strong> <span data-item="3"></span></p>
+
+		<script type="module">
+			import {Store, text, htmlUnsafe} from './dist/reef.es.js';
+
+			// State
+			let purchases = new Store([]);
+			let greeting = new Store('Hello');
+			let name = new Store('Chris');
+
+			// Greeting
+			let greet = text('#greeting', function () {
+				return `${greeting.data}, ${name.data}!`;
+			});
+			greet();
+
+			// Cart
+			let cart = htmlUnsafe('#cart', function () {
+				return `🛒 ${purchases.data.length} Items`;
+			});
+			cart();
+
+			// Checkout Buttons
+			let items = document.querySelectorAll('[data-item]');
+			let btns = [];
+			for (let item of items) {
+				let btn = htmlUnsafe(item, function () {
+					let id = item.getAttribute('data-item');
+					return purchases.data.includes(id) ? '<em>In your cart</em>' : `<button data-add="${id}">Add to Cart</button>`;
+				});
+				btn();
+				btns.push(btn);
+			}
+
+			// Bind UI to state
+			greeting.do(greet);
+			name.do(greet);
+			purchases.do(cart, ...btns);
+
+			setTimeout(function () {
+				greeting.data = 'Heyo';
+				name.data = 'Steve';
+			}, 2000);
+
+			// Event Listeners
+			document.addEventListener('click', function (event) {
+
+				// Get item
+				let item = event.target.getAttribute('data-add');
+				if (!item) return;
+
+				// Add to purchases
+				purchases.data.push(item);
+
+			});
+		</script>
+	</body>
+</html>

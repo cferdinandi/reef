@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Reef</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<style type="text/css">
+			body {
+				margin: 0 auto;
+				max-width: 40em;
+				width: 88%;
+			}
+		</style>
+	</head>
+	<body>
+
+		<h1>Reef Stuff</h1>
+
+		<p>
+			<strong>Counter:</strong> <span id="counter">0</span>
+			<button data-click="increment">Increment</button>
+		</p>
+
+		<script>
+			import {Store, text} from './dist/reef.es.js';
+
+			// State
+			let count = new Store(0);
+
+			// The counter
+			let counter = text('#counter', function () {
+				return count.data;
+			});
+			count.do(counter);
+
+			// Event Listeners
+			let btn = document.querySelector('[data-click="increment"]');
+			btn.addEventListener('click', function (event) {
+				count.data++;
+			});
+		</script>
+	</body>
+</html>

@@ -5,7 +5,7 @@ import pkg from './package.json';
 
 // Configs
 let configs = {
-	name: 'Reef',
+	name: 'reef',
 	files: ['reef.js'],
 	formats: ['iife', 'es', 'amd', 'cjs'],
 	default: 'iife',
@@ -24,7 +24,8 @@ function createOutput (filename, minify) {
 		let output = {
 			file: `${configs.pathOut}/${filename}${format === configs.default ? '' : `.${format}`}${minify ? '.min' : ''}.js`,
 			format: format,
-			banner: banner(filename)
+			banner: banner(filename),
+			exports: 'auto'
 		};
 		if (format === 'iife') {
 			output.name = configs.name;
