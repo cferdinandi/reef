@@ -1,14 +1,14 @@
+import {clone} from './base.js';
+import {debounce, props} from './utilities.js';
+
+// Add run method
+let HTMLUnsafe = clone();
+HTMLUnsafe.prototype.run = debounce(function () {
+	elem.innerHTML = fn(...props(this));
+});
+
 function htmlUnsafe (el, fn) {
-
-	// Get the target element
-	let elem = typeof el === 'string' ? document.querySelector(el) : el;
-	if (!elem) throw `Element not found: ${el}`;
-
-	// Render the content
-	return function () {
-		elem.innerHTML = fn(this.data);
-	};
-
+	return new htmlUnsafe(el, fn);
 }
 
 export {htmlUnsafe};

@@ -1,17 +1,15 @@
-import {stringToHTML} from './utilities.js';
+import {clone} from './base.js';
+import {stringToHTML, debounce, props} from './utilities.js';
 import {compare} from './dom.js';
 
+// Add run method
+let DiffUnsafe = clone();
+DiffUnsafe.prototype.run = debounce(function () {
+	compare(stringToHTML(fn(...props(this))), elem);
+});
+
 function diffUnsafe (el, fn) {
-
-	// Get the target element
-	let elem = typeof el === 'string' ? document.querySelector(el) : el;
-	if (!elem) throw `Element not found: ${el}`;
-
-	// Render the content
-	return function () {
-		compare(stringToHTML(fn(this.data)), elem);
-	};
-
+	return new DiffUnsafe(el, fn);
 }
 
 export {diffUnsafe};

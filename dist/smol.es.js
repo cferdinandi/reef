@@ -1,4 +1,50 @@
-import {debounce} from './utilities.js';
+/*! reef v11.0.0BETA | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/**
+ * Convert the string to an HTML document
+ * @param  {String} str The string to convert to HTML
+ * @return {Node}       An HTML document
+ */
+
+/**
+ * Debounce functions for better performance
+ * @param  {Function} fn The function to debounce
+ */
+function debounce (fn) {
+
+	// Setup a timer
+	let timeout;
+
+	// Return a function to run debounced
+	return function () {
+
+		// Setup the arguments
+		let context = this;
+		let args = arguments;
+
+		// If there's a timer, cancel it
+		if (timeout) {
+			window.cancelAnimationFrame(timeout);
+		}
+
+		// Setup the new requestAnimationFrame()
+		timeout = window.requestAnimationFrame(function () {
+			fn.apply(context, args);
+		});
+
+	};
+
+}
+
+/**
+ * Get properties for an instance
+ * @param  {Instance} instance The instance
+ * @return {Array}             The properties
+ */
+function props (instance) {
+	return instance.props.map(function (prop) {
+		return prop.data;
+	});
+}
 
 /**
  * Run the attached functions
@@ -117,4 +163,41 @@ Store.prototype.run = function () {
 	run(this);
 };
 
-export {Store};
+function Constructor (el, fn) {
+	Object.defineProperties(this, {
+		el: {value: typeof el === 'string' ? document.querySelector(el) : el},
+		fn: {value: fn},
+		props: {value: []}
+	});
+	console.log(this.el);
+}
+
+Constructor.prototype.add = function (props) {
+	this.props.push(props);
+};
+
+Constructor.prototype.rm = function (props) {
+	let index = this.props.indexOf(props);
+	if (index < 0) return;
+	this.props.splice(index, 1);
+};
+
+function clone (el, fn) {
+	function Clone (el, fn) {
+		Constructor.call(this, el, fn);
+	}
+	Clone.prototype = Object.create(Constructor.prototype);
+	return Clone;
+}
+
+// Add run method
+let Text = clone();
+Text.prototype.run = debounce(function () {
+	this.el.textContent = this.fn(...props(this));
+});
+
+function text (el, fn) {
+	return new Text(el, fn);
+}
+
+export { Store, text };

@@ -92,4 +92,45 @@ function isFalsy (str) {
 	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
 }
 
-export {stringToHTML, clean, isFalsy};
+/**
+ * Debounce functions for better performance
+ * @param  {Function} fn The function to debounce
+ */
+function debounce (fn) {
+
+	// Setup a timer
+	let timeout;
+
+	// Return a function to run debounced
+	return function () {
+
+		// Setup the arguments
+		let context = this;
+		let args = arguments;
+
+		// If there's a timer, cancel it
+		if (timeout) {
+			window.cancelAnimationFrame(timeout);
+		}
+
+		// Setup the new requestAnimationFrame()
+		timeout = window.requestAnimationFrame(function () {
+			fn.apply(context, args);
+		});
+
+	};
+
+}
+
+/**
+ * Get properties for an instance
+ * @param  {Instance} instance The instance
+ * @return {Array}             The properties
+ */
+function props (instance) {
+	return instance.props.map(function (prop) {
+		return prop.data;
+	});
+}
+
+export {stringToHTML, clean, isFalsy, debounce, props};

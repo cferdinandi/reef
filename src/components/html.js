@@ -1,16 +1,14 @@
-import {clean} from './utilities.js';
+import {clone} from './base.js';
+import {clean, debounce, props} from './utilities.js';
+
+// Add run method
+let HTML = clone();
+HTML.prototype.run = debounce(function () {
+	elem.innerHTML = clean(fn(...props(this)));
+});
 
 function html (el, fn) {
-
-	// Get the target element
-	let elem = typeof el === 'string' ? document.querySelector(el) : el;
-	if (!elem) throw `Element not found: ${el}`;
-
-	// Render the content
-	return function () {
-		elem.innerHTML = clean(fn(this.data));
-	};
-
+	return new HTML(el, fn);
 }
 
 export {html};

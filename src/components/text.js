@@ -1,14 +1,14 @@
+import {clone} from './base.js';
+import {debounce, props} from './utilities.js';
+
+// Add run method
+let Text = clone();
+Text.prototype.run = debounce(function () {
+	this.el.textContent = this.fn(...props(this));
+});
+
 function text (el, fn) {
-
-	// Get the target element
-	let elem = typeof el === 'string' ? document.querySelector(el) : el;
-	if (!elem) throw `Element not found: ${el}`;
-
-	// Render the content
-	return function () {
-		elem.textContent = fn(this.data);
-	};
-
+	return new Text(el, fn);
 }
 
 export {text};

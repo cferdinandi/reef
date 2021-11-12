@@ -1,17 +1,15 @@
-import {clean} from './utilities.js';
+import {clone} from './base.js';
+import {clean, debounce, props} from './utilities.js';
 import {compare} from './dom.js';
 
+// Add run method
+let Diff = clone();
+Diff.prototype.run = debounce(function () {
+	compare(clean(fn(...props(this)), true), elem);
+});
+
 function diff (el, fn) {
-
-	// Get the target element
-	let elem = typeof el === 'string' ? document.querySelector(el) : el;
-	if (!elem) throw `Element not found: ${el}`;
-
-	// Render the content
-	return function () {
-		compare(clean(fn(this.data), true), elem);
-	};
-
+	return new Diff(el, fn);
 }
 
 export {diff};
