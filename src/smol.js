@@ -1,4 +1,4 @@
-import {Store} from './components/store.js';
-import {text} from './components/text.js';
+import {Store} from './api/store.js';
+import {text} from './api/text.js';
 
 export {Store, text};

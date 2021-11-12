@@ -1,4 +1,14 @@
-import {debounce} from './utilities.js';
+import {debounce} from '../utils/utilities.js';
+
+/**
+ * Run attached functions
+ * @param  {Instance} instance The instantiation
+ */
+function run (instance) {
+	for (let fn of instance.fns) {
+		fn.run();
+	}
+}
 
 /**
  * Create settings and getters for data Proxy
@@ -16,12 +26,12 @@ function handler (instance) {
 		set: function (obj, prop, value) {
 			if (obj[prop] === value) return true;
 			obj[prop] = value;
-			instance.run();
+			run(instance);
 			return true;
 		},
 		deleteProperty: function (obj, prop) {
 			delete obj[prop];
-			instance.run();
+			run(instance);
 			return true;
 		}
 	};
@@ -66,7 +76,7 @@ function Store (data) {
 				data = proxify(val, this);
 
 				// Run functions
-				this.run();
+				run(this);
 
 				return true;
 
@@ -75,37 +85,9 @@ function Store (data) {
 		fns: {value: []}
 	});
 
+	// Emit a custom event
+	emit('store', this.$);
+
 }
-
-/**
- * Add functions to run on state update
- * @param  {...Function} fns One or more functions to run on state update
- */
-Store.prototype.do = function (...fns) {
-	for (let fn of fns) {
-		if (this.fns.includes(fn)) continue;
-		this.fns.push(fn);
-		fn.add(this);
-	}
-};
-
-/**
- * Stop functions from running on state update
- * @param  {...Function} fns One or more functions to stop
- */
-Store.prototype.stop = function (...fns) {
-	for (let fn of fns) {
-		let index = this.fns.indexOf(fn);
-		if (index < 0) return;
-		this.fns.splice(index, 1);
-		fn.rm(this);
-	}
-};
-
-Store.prototype.run = function () {
-	for (let fn of this.fns) {
-		fn.run();
-	}
-};
 
 export {Store};

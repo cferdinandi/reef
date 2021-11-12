@@ -131,6 +131,39 @@ define(['exports'], function (exports) { 'use strict';
 	}
 
 	/**
+	 * Emit a custom event
+	 * @param  {String} type   The event type
+	 * @param  {Object} detail Any details to pass along with the event
+	 * @param  {Node}   elem   The element to attach the event to
+	 */
+	function emit$1 (type, detail = {}, elem = document) {
+
+		// Make sure there's an event type
+		if (!type) return;
+
+		// Create a new event
+		let event = new CustomEvent(`reef:${type}`, {
+			bubbles: true,
+			cancelable: true,
+			detail: detail
+		});
+
+		// Dispatch the event
+		return elem.dispatchEvent(event);
+
+	}
+
+	/**
+	 * Run attached functions
+	 * @param  {Instance} instance The instantiation
+	 */
+	function run (instance) {
+		for (let fn of instance.fns) {
+			fn.run();
+		}
+	}
+
+	/**
 	 * Create settings and getters for data Proxy
 	 * @param  {Instance} instance The current instantiation
 	 * @return {Object}            The setter and getter methods for the Proxy
@@ -146,12 +179,12 @@ define(['exports'], function (exports) { 'use strict';
 			set: function (obj, prop, value) {
 				if (obj[prop] === value) return true;
 				obj[prop] = value;
-				instance.run();
+				run(instance);
 				return true;
 			},
 			deleteProperty: function (obj, prop) {
 				delete obj[prop];
-				instance.run();
+				run(instance);
 				return true;
 			}
 		};
@@ -196,7 +229,7 @@ define(['exports'], function (exports) { 'use strict';
 					data = proxify(val, this);
 
 					// Run functions
-					this.run();
+					run(this);
 
 					return true;
 
@@ -205,38 +238,10 @@ define(['exports'], function (exports) { 'use strict';
 			fns: {value: []}
 		});
 
+		// Emit a custom event
+		emit('store', this.$);
+
 	}
-
-	/**
-	 * Add functions to run on state update
-	 * @param  {...Function} fns One or more functions to run on state update
-	 */
-	Store.prototype.do = function (...fns) {
-		for (let fn of fns) {
-			if (this.fns.includes(fn)) continue;
-			this.fns.push(fn);
-			fn.add(this);
-		}
-	};
-
-	/**
-	 * Stop functions from running on state update
-	 * @param  {...Function} fns One or more functions to stop
-	 */
-	Store.prototype.stop = function (...fns) {
-		for (let fn of fns) {
-			let index = this.fns.indexOf(fn);
-			if (index < 0) return;
-			this.fns.splice(index, 1);
-			fn.rm(this);
-		}
-	};
-
-	Store.prototype.run = function () {
-		for (let fn of this.fns) {
-			fn.run();
-		}
-	};
 
 	let on = false;
 
@@ -248,6 +253,12 @@ define(['exports'], function (exports) { 'use strict';
 		if (on) {
 			console.warn('[Reef] ' + msg);
 		}
+	}
+
+	function deactivate ($) {
+		let index = $.fns.indexOf(this);
+		if (index < 0) return;
+		$.fns.splice(index, 1);
 	}
 
 	function Constructor (el, fn) {
@@ -267,14 +278,39 @@ define(['exports'], function (exports) { 'use strict';
 
 	}
 
-	Constructor.prototype.add = function (props) {
-		this.props.push(props);
+	Constructor.prototype.add = function (...props) {
+		for (let $ of props) {
+			if (this.props.includes($)) continue;
+			this.props.push($);
+			$.fns.push(this);
+		}
 	};
 
-	Constructor.prototype.rm = function (props) {
-		let index = this.props.indexOf(props);
-		if (index < 0) return;
-		this.props.splice(index, 1);
+	Constructor.prototype.rm = function (...props) {
+		for (let $ of props) {
+
+			// Remove the prop
+			let index = this.props.indexOf($);
+			if (index < 0) continue;
+			this.props.splice(index, 1);
+
+			// Stop reactivity
+			deactivate($);
+
+		}
+	};
+
+	Constructor.prototype.stop = function () {
+		for (let $ of this.props) {
+			deactivate($);
+		}
+	};
+
+	Constructor.prototype.start = function () {
+		for (let $ of this.props) {
+			if ($.fns.includes(this)) continue;
+			$.fns.push(this);
+		}
 	};
 
 	function clone (el, fn) {
@@ -288,7 +324,10 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let Text = clone();
 	Text.prototype.run = debounce(function () {
-		this.el.textContent = this.fn(...props(this));
+		let $ = props(this);
+		if (!emit$1('text-before', $, this.el)) return;
+		this.el.textContent = this.fn(...$);
+		emit$1('text', $, this.el);
 	});
 
 	function text (el, fn) {
@@ -298,7 +337,10 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let HTML = clone();
 	HTML.prototype.run = debounce(function () {
-		this.el.innerHTML = clean(this.fn(...props(this)));
+		let $ = props(this);
+		if (!emit$1('html-before', $, this.el)) return;
+		this.el.innerHTML = clean(this.fn(...$));
+		emit$1('html', $, this.el);
 	});
 
 	function html (el, fn) {
@@ -308,7 +350,10 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let HTMLUnsafe = clone();
 	HTMLUnsafe.prototype.run = debounce(function () {
-		this.el.innerHTML = this.fn(...props(this));
+		let $ = props(this);
+		if (!emit$1('html-unsafe-before', $, this.el)) return;
+		this.el.innerHTML = this.fn(...$);
+		emit$1('html-unsafe', $, this.el);
 	});
 
 	function htmlUnsafe (el, fn) {
@@ -576,7 +621,10 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let Diff = clone();
 	Diff.prototype.run = debounce(function () {
-		diff(clean(this.fn(...props(this)), true), this.el);
+		let $ = props(this);
+		if (!emit$1('diff-before', $, this.el)) return;
+		diff(clean(this.fn(...$), true), this.el);
+		emit$1('diff', $, this.el);
 	});
 
 	function diff$1 (el, fn) {
@@ -586,7 +634,10 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let DiffUnsafe = clone();
 	DiffUnsafe.prototype.run = debounce(function () {
-		diff(stringToHTML(this.fn(...props(this))), this.el);
+		let $ = props(this);
+		if (!emit$1('diff-unsafe-before', $, this.el)) return;
+		diff(stringToHTML(this.fn(...$)), this.el);
+		emit$1('diff-unsafe', $, this.el);
 	});
 
 	function diffUnsafe (el, fn) {
