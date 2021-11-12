@@ -11,6 +11,12 @@ DiffUnsafe.prototype.run = debounce(function () {
 	emit('diff-unsafe', $, this.el);
 });
 
+/**
+ * Instantiate a new DiffUnsafe instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function diffUnsafe (el, fn) {
 	return new DiffUnsafe(el, fn);
 }

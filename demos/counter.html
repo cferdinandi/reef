@@ -22,18 +22,19 @@
 			<button data-click="increment">Increment</button>
 		</p>
 
+		<script src="../dist/reef.js"></script>
 		<script type="module">
-			import {Store, text, debug} from './dist/reef.es.js';
+			let {store, text, debug} = reef;
 			debug(true);
 
 			// State
-			let count = new Store(0);
+			let count = store(0);
 
 			// The counter
 			let counter = text('#counter', function (count) {
 				return count;
 			});
-			counter.store(count);
+			counter.use(count);
 
 			// Event Listeners
 			let btn = document.querySelector('[data-click="increment"]');

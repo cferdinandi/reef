@@ -20,59 +20,52 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, diff} = reef;
 
 		// Create a data store
-		// You can use setters directly on a component, too
-		// The first argument on a setter is the store/component data
+		// The first argument on a setter is the data
 		// You can pass in as many other arguments as you'd like
-		var store = new Reef.Store({
-			data: {
-				todos: ['Swim', 'Climb', 'Jump', 'Play']
-			},
-			setters: {
-				addTodo: function (props, todo) {
-					props.todos.push(todo);
-				}
+		let data = store({
+			heading: 'My Todos',
+			todos: ['Swim', 'Climb', 'Jump', 'Play']
+		},
+		{
+			addTodo: function (props, todo) {
+				console.log(props, todo);
+				props.todos.push(todo);
 			}
 		});
 
 		// Use the store in the app
-		var app = new Reef('#app', {
-			store: store,
-			data: {
-				heading: 'My Todos'
-			},
-			template: function (props) {
-				return `
-					<h1>${props.heading}</h1>
-					<ul>
-						${props.todos.map(function (todo) {
-							return `<li>${todo}</li>`;
-						}).join('')}
-					</ul>`;
-
-			}
+		let app = diff('#app', function (props) {
+			return `
+				<h1>${props.heading}</h1>
+				<ul>
+					${props.todos.map(function (todo) {
+						return `<li>${todo}</li>`;
+					}).join('')}
+				</ul>`;
 		});
 
-		app.render();
+		// Bind store and render the UI
+		app.use(data);
+		app.run();
 
 		// After 3 seconds, try to update the data
 		// This won't do anything, because setters were defined
 		// When setters are defined, only explicit setter functions can update state
-		// The state returned from app.data is an immutable, so store.data is never updated
+		// The state returned from data.$ is an immutable, so data is never updated
 		setTimeout(function () {
-			store.data.todos.push('Take a nap... zzzz');
-			console.log('Update state directly', store.data.todos);
-		}, 3000);
+			data.$.todos.push('Take a nap... zzzz');
+			console.log('Update state directly', data.$.todos);
+		}, 1000);
 
 		// After 6 seconds, add a todo using the addTodo setter
 		// This WILL update the state and render an updated UI
 		setTimeout(function () {
-			store.do('addTodo', 'Take a nap... zzzz');
-			console.log('Update state with setter', store.data.todos);
-		}, 6000);
+			data.do('addTodo', 'Take a nap... zzzz');
+			console.log('Update state with setter', data.$.todos);
+		}, 2000);
 	</script>
 
 </body>

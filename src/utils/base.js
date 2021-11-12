@@ -1,12 +1,11 @@
 import {err} from './debug.js';
 import {emit} from './utilities.js';
 
-function deactivate ($) {
-	let index = $.fns.indexOf(this);
-	if (index < 0) return;
-	$.fns.splice(index, 1);
-}
-
+/**
+ * Base constructor object for the API methods
+ * @param {String}   el The element seelctor (or the element itself)
+ * @param {Function} fn The function that returns a template string
+ */
 function Constructor (el, fn) {
 
 	// Get element
@@ -18,48 +17,42 @@ function Constructor (el, fn) {
 	Object.defineProperties(this, {
 		el: {value: typeof el === 'string' ? document.querySelector(el) : el},
 		fn: {value: fn},
-		props: {value: []}
+		$: {value: []}
 	});
 	this._debounce = null;
 
 }
 
-Constructor.prototype.store = function (...props) {
+/**
+ * Add stores to the instance
+ * @param  {...Store} props The Store instances to attach
+ */
+Constructor.prototype.use = function (...props) {
 	for (let $ of props) {
-		if (this.props.includes($)) continue;
-		this.props.push($);
-		$.fns.push(this);
+		if (this.$.includes($)) continue;
+		this.$.push($);
+		$._fns.push(this);
 	}
 };
 
-Constructor.prototype.rm = function (...props) {
-	for (let $ of props) {
-
-		// Remove the prop
-		let index = this.props.indexOf($);
+/**
+ * Destroy the component
+ */
+Constructor.prototype.destroy = function () {
+	if (!emit('destroy-before', this)) return;
+	for (let $ of this.$) {
+		let index = $._fns.indexOf(this);
 		if (index < 0) continue;
-		this.props.splice(index, 1);
-
-		// Stop reactivity
-		deactivate($);
-
+		$._fns.splice(index, 1);
 	}
+	emit('destroy', this);
 };
 
-Constructor.prototype.stop = function () {
-	for (let $ of this.props) {
-		deactivate($);
-	}
-};
-
-Constructor.prototype.start = function () {
-	for (let $ of this.props) {
-		if ($.fns.includes(this)) continue;
-		$.fns.push(this);
-	}
-};
-
-function clone (el, fn) {
+/**
+ * Clone the Constructor object
+ * @return {Constructor} The cloned Constructor object
+ */
+function clone () {
 	function Clone (el, fn) {
 		Constructor.call(this, el, fn);
 	}

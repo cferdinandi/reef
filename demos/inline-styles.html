@@ -19,27 +19,27 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, htmlUnsafe} = reef;
 
-		// Create app with inline styles
-		var app = new Reef('#app', {
-			data: {
-				showStyles: false
-			},
-			template: function (props) {
-				if (!props.showStyles) return '<p>Hi</p>';
-				return `
-					<style>.color { color: red; }</style>
-					<p class="color">Hi!</p>`;
-			}
+		let data = store({
+			showStyles: false
 		});
 
-		app.render();
+		// Create app with inline styles
+		let app = htmlUnsafe('#app', function (props) {
+			if (!props.showStyles) return '<p>Hi</p>';
+			return `
+				<style>.color { color: red; }</style>
+				<p class="color">Hi!</p>`;
+		});
+
+		// Bind the state and render
+		app.use(data);
+		app.run();
 
 		// After 3 seconds, update with styles
 		setTimeout(function () {
-			app.data.showStyles = true;
+			data.$.showStyles = true;
 		}, 3000);
 	</script>
 

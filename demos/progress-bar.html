@@ -19,32 +19,28 @@
 
 	<script src='../dist/reef.js'></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, diffUnsafe} = reef;
 
-		// Create a component
-		var app = new Reef('#app', {
-			data: {
-				percentage: 0
-			},
-			template: function (props) {
-				return `
-					<label for="progress">App progress:</label>
-					<progress id="progress" max="100" value="${props.percentage}"> ${props.percentage}% </progress>`;
-			}
+		let data = store(0);
+
+		let app = diffUnsafe('#app', function (percentage) {
+			return `
+				<label for="progress">App progress:</label>
+				<progress id="progress" max="100" value="${percentage}"> ${percentage}% </progress>`;
 		});
 
 		// Render the component into the DOM
-		app.render();
+		app.use(data);
+		app.run();
 
 		// Automatically increase the percentage every second
 		let int = setInterval(function () {
 
 			// Increase the percentage
-			app.data.percentage += 1;
+			data.$++;
 
 			// Once it hits 100%, clear it
-			if (app.data.percentage > 99) {
+			if (data.$ > 99) {
 				clearInterval(int);
 			}
 

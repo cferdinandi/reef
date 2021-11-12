@@ -122,7 +122,7 @@ function debounce (fn) {
  * @return {Array}             The properties
  */
 function props (instance) {
-	return instance.props.map(function (prop) {
+	return instance.$.map(function (prop) {
 		return prop.$;
 	});
 }
@@ -150,4 +150,45 @@ function emit (type, detail = {}, elem = document) {
 
 }
 
-export {stringToHTML, clean, isFalsy, debounce, props, emit};
+/**
+ * Create an immutable clone of data
+ * @param  {*} obj The data object to copy
+ * @return {*}     The clone of the array or object
+ */
+function copy (obj) {
+
+	/**
+	 * Create an immutable copy of an object
+	 * @return {Object}
+	 */
+	function cloneObj () {
+		let clone = {};
+		for (let key in obj) {
+			if (Object.prototype.hasOwnProperty.call(obj, key)) {
+				clone[key] = copy(obj[key]);
+			}
+		}
+		return clone;
+	}
+
+	/**
+	 * Create an immutable copy of an array
+	 * @return {Array}
+	 */
+	function cloneArr () {
+		return obj.map(function (item) {
+			return copy(item);
+		});
+	}
+
+	// Get object type
+	let type = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+
+	// Return a clone based on the object type
+	if (type === 'object') return cloneObj();
+	if (type === 'array') return cloneArr();
+	return obj;
+
+}
+
+export {stringToHTML, clean, isFalsy, debounce, props, emit, copy};

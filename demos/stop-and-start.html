@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Destroy a Component</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {store, diff} = reef;
+
+		let data = store({
+			heading: 'My Todos',
+			todos: ['Swim', 'Climb', 'Jump', 'Play']
+		});
+
+		// Create an app
+		let app = diff('#app', function (props) {
+			let {heading, todos} = props;
+			return `
+				<h1>${heading}</h1>
+				<ul>
+					${todos.map(function (todo) {
+						return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+					}).join('')}
+				</ul>`;
+		});
+
+		app.use(data);
+		app.run();
+
+		// Reactively update, then stop reactivity
+		setTimeout(function () {
+			data.$.todos.push('Sleep');
+			app.destroy();
+			console.log('destroyed', data.$);
+		}, 1000);
+
+		// Make more updates
+		setTimeout(function () {
+			data.$.todos.push('Wake up');
+			data.$.todos.push('Do it again');
+			console.log('updated', data.$);
+		}, 2000);
+
+		// Start reactive updates again
+		setTimeout(function () {
+			data.$.todos.push('Wake up!!!!');
+			console.log('updated', data.$);
+		}, 3000);
+	</script>
+
+</body>
+</html>

@@ -11,6 +11,12 @@ Diff.prototype.run = debounce(function () {
 	emit('diff', $, this.el);
 });
 
+/**
+ * Instantiate a new Diff instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function diff (el, fn) {
 	return new Diff(el, fn);
 }

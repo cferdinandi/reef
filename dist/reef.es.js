@@ -123,7 +123,7 @@ function debounce (fn) {
  * @return {Array}             The properties
  */
 function props (instance) {
-	return instance.props.map(function (prop) {
+	return instance.$.map(function (prop) {
 		return prop.$;
 	});
 }
@@ -152,11 +152,73 @@ function emit (type, detail = {}, elem = document) {
 }
 
 /**
+ * Create an immutable clone of data
+ * @param  {*} obj The data object to copy
+ * @return {*}     The clone of the array or object
+ */
+function copy (obj) {
+
+	/**
+	 * Create an immutable copy of an object
+	 * @return {Object}
+	 */
+	function cloneObj () {
+		let clone = {};
+		for (let key in obj) {
+			if (Object.prototype.hasOwnProperty.call(obj, key)) {
+				clone[key] = copy(obj[key]);
+			}
+		}
+		return clone;
+	}
+
+	/**
+	 * Create an immutable copy of an array
+	 * @return {Array}
+	 */
+	function cloneArr () {
+		return obj.map(function (item) {
+			return copy(item);
+		});
+	}
+
+	// Get object type
+	let type = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+
+	// Return a clone based on the object type
+	if (type === 'object') return cloneObj();
+	if (type === 'array') return cloneArr();
+	return obj;
+
+}
+
+// Is debugging enabled
+let on = false;
+
+/**
+ * Turn debugging on or off
+ * @param  {Boolean} val If true, enables debugging
+ */
+function debug (val) {
+	on = !!val;
+}
+
+/**
+ * Show an error message in the console if debugging is enabled
+ * @param  {String} msg The message to log
+ */
+function err (msg) {
+	if (on) {
+		console.warn('[Reef] ' + msg);
+	}
+}
+
+/**
  * Run attached functions
  * @param  {Instance} instance The instantiation
  */
 function run (instance) {
-	for (let fn of instance.fns) {
+	for (let fn of instance._fns) {
 		fn.run();
 	}
 }
@@ -192,12 +254,13 @@ function handler (instance) {
  * Create a proxy from an array or object
  * @param  {*}        data     The array or object to proxify
  * @param  {Instance} instance The constructor instance
+ * @param  {Object}   setters  Setter functions for the instance
  * @return {Proxy}             The proxy
  */
-function proxify (data, instance) {
+function proxify (data, instance, setters) {
 
 	// If an object, make a Proxy
-	if (typeof data === 'object') {
+	if (!setters && typeof data === 'object') {
 		data = new Proxy(data, handler(instance));
 	}
 
@@ -208,20 +271,26 @@ function proxify (data, instance) {
 
 /**
  * The Store object
- * @param {*} data Date to store
+ * @param {*}      data    Data to store
+ * @param {Object} setters Setter functions (optional)
  */
-function Store (data) {
+function Store (data, setters) {
 
 	// Proxify the data
-	data = proxify(data, this);
+	data = proxify(data, this, setters);
 
 	// Define properties
 	Object.defineProperties(this, {
+
+		// Data setters/getters
 		$: {
 			get: function () {
-				return data;
+				return setters ? copy(data) : data;
 			},
 			set: function (val) {
+
+				// If setters, do nothing
+				if (setters) return true;
 
 				// If an object, make a Proxy
 				data = proxify(val, this);
@@ -233,7 +302,24 @@ function Store (data) {
 
 			}
 		},
-		fns: {value: []}
+
+		/**
+		 * Run a setter function
+		 * @param  {String} key  The setter key
+		 * @param  {...*}   args The args for the setter function
+		 */
+		do: {
+			value: function (key, ...args) {
+				if (!this._setters) return err('No setters for this store.');
+				if (!this._setters[key]) return err(`There is no setter named "${key}"`);
+				this._setters[key](data, ...args);
+				run(this);
+			}
+		},
+
+		// Functions and setters
+		_fns: {value: []},
+		_setters: {value: setters}
 	});
 
 	// Emit a custom event
@@ -241,24 +327,21 @@ function Store (data) {
 
 }
 
-let on = false;
-
-function debug (val) {
-	on = !!val;
+/**
+ * Instantiate a new store
+ * @param  {*}        data    Data to store
+ * @param  {Object}   setters Setter functions (optional)
+ * @return {Instance}         A new Store instance
+ */
+function store (data, setters) {
+	return new Store(data, setters);
 }
 
-function err (msg) {
-	if (on) {
-		console.warn('[Reef] ' + msg);
-	}
-}
-
-function deactivate ($) {
-	let index = $.fns.indexOf(this);
-	if (index < 0) return;
-	$.fns.splice(index, 1);
-}
-
+/**
+ * Base constructor object for the API methods
+ * @param {String}   el The element seelctor (or the element itself)
+ * @param {Function} fn The function that returns a template string
+ */
 function Constructor (el, fn) {
 
 	// Get element
@@ -270,48 +353,42 @@ function Constructor (el, fn) {
 	Object.defineProperties(this, {
 		el: {value: typeof el === 'string' ? document.querySelector(el) : el},
 		fn: {value: fn},
-		props: {value: []}
+		$: {value: []}
 	});
 	this._debounce = null;
 
 }
 
-Constructor.prototype.store = function (...props) {
+/**
+ * Add stores to the instance
+ * @param  {...Store} props The Store instances to attach
+ */
+Constructor.prototype.use = function (...props) {
 	for (let $ of props) {
-		if (this.props.includes($)) continue;
-		this.props.push($);
-		$.fns.push(this);
+		if (this.$.includes($)) continue;
+		this.$.push($);
+		$._fns.push(this);
 	}
 };
 
-Constructor.prototype.rm = function (...props) {
-	for (let $ of props) {
-
-		// Remove the prop
-		let index = this.props.indexOf($);
+/**
+ * Destroy the component
+ */
+Constructor.prototype.destroy = function () {
+	if (!emit('destroy-before', this)) return;
+	for (let $ of this.$) {
+		let index = $._fns.indexOf(this);
 		if (index < 0) continue;
-		this.props.splice(index, 1);
-
-		// Stop reactivity
-		deactivate($);
-
+		$._fns.splice(index, 1);
 	}
+	emit('destroy', this);
 };
 
-Constructor.prototype.stop = function () {
-	for (let $ of this.props) {
-		deactivate($);
-	}
-};
-
-Constructor.prototype.start = function () {
-	for (let $ of this.props) {
-		if ($.fns.includes(this)) continue;
-		$.fns.push(this);
-	}
-};
-
-function clone (el, fn) {
+/**
+ * Clone the Constructor object
+ * @return {Constructor} The cloned Constructor object
+ */
+function clone () {
 	function Clone (el, fn) {
 		Constructor.call(this, el, fn);
 	}
@@ -328,6 +405,12 @@ Text.prototype.run = debounce(function () {
 	emit('text', $, this.el);
 });
 
+/**
+ * Instantiate a new Text instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function text (el, fn) {
 	return new Text(el, fn);
 }
@@ -341,6 +424,12 @@ HTML.prototype.run = debounce(function () {
 	emit('html', $, this.el);
 });
 
+/**
+ * Instantiate a new HTML instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function html (el, fn) {
 	return new HTML(el, fn);
 }
@@ -354,6 +443,12 @@ HTMLUnsafe.prototype.run = debounce(function () {
 	emit('html-unsafe', $, this.el);
 });
 
+/**
+ * Instantiate a new HTMLUnsafe instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function htmlUnsafe (el, fn) {
 	return new HTMLUnsafe(el, fn);
 }
@@ -625,6 +720,12 @@ Diff.prototype.run = debounce(function () {
 	emit('diff', $, this.el);
 });
 
+/**
+ * Instantiate a new Diff instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function diff$1 (el, fn) {
 	return new Diff(el, fn);
 }
@@ -638,8 +739,14 @@ DiffUnsafe.prototype.run = debounce(function () {
 	emit('diff-unsafe', $, this.el);
 });
 
+/**
+ * Instantiate a new DiffUnsafe instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function diffUnsafe (el, fn) {
 	return new DiffUnsafe(el, fn);
 }
 
-export { Store, debug, diff$1 as diff, diffUnsafe, html, htmlUnsafe, text };
+export { debug, diff$1 as diff, diffUnsafe, html, htmlUnsafe, store, text };

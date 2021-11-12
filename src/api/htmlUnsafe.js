@@ -10,6 +10,12 @@ HTMLUnsafe.prototype.run = debounce(function () {
 	emit('html-unsafe', $, this.el);
 });
 
+/**
+ * Instantiate a new HTMLUnsafe instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function htmlUnsafe (el, fn) {
 	return new HTMLUnsafe(el, fn);
 }

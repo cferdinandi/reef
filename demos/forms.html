@@ -33,66 +33,65 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, diff} = reef;
 
-		// Create an app
-		var app = new Reef('#app', {
-			data: {
-				heading: 'My Form',
-				todos: ['Swim', 'Climb', 'Jump', 'Play'],
-				typed: 'This field is overwritten on each update',
-				typed2: 'This field has a default value by keeps your changes on future renders',
-				wizard: 'hermione',
-				checked: true
-			},
-			template: function (props) {
-				return `
-					<h1>${props.heading}</h1>
-
-					<label for="type">Type Something</label>
-					<input type="text" id="type" reef-value="${props.typed}">
-
-					<label for="type2">Type Something</label>
-					<input type="text" id="type2" reef-default-value="${props.typed2}">
-
-					<label>
-						<input type="checkbox" id="check" reef-checked="${props.checked}">
-						This field does whatever the checked property is set to
-					</label>
-
-					<label>
-						<input type="checkbox" id="check2" reef-default-checked="${props.checked}">
-						This field is checked by default but stays however you set it on future renders
-					</label>
-
-					<br>
-
-					<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
-					<select id="wizards">
-						<option id="harry" value="harry" reef-selected="${props.wizard === 'harry'}">Harry</option>
-						<option id="hermione" value="hermione" reef-selected="${props.wizard === 'hermione'}">Hermione</option>
-						<option id="neville" value="neville" reef-selected="${props.wizard === 'neville'}">Neville</option>
-					</select>
-
-					<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
-					<select id="wizards2">
-						<option id="harry" value="harry" reef-default-selected="${props.wizard === 'harry'}">Harry</option>
-						<option id="hermione" value="hermione" reef-default-selected="${props.wizard === 'hermione'}">Hermione</option>
-						<option id="neville" value="neville" reef-default-selected="${props.wizard === 'neville'}">Neville</option>
-					</select>
-
-					<p><button>Render App</button></p>`;
-			}
+		let data = store({
+			heading: 'My Form',
+			todos: ['Swim', 'Climb', 'Jump', 'Play'],
+			typed: 'This field is overwritten on each update',
+			typed2: 'This field has a default value by keeps your changes on future renders',
+			wizard: 'hermione',
+			checked: true
 		});
 
-		// Render the app
-		app.render();
+		// Create an app
+		let app = diff('#app', function (props) {
+			return `
+				<h1>${props.heading}</h1>
+
+				<label for="type">Type Something</label>
+				<input type="text" id="type" reef-value="${props.typed}">
+
+				<label for="type2">Type Something</label>
+				<input type="text" id="type2" reef-default-value="${props.typed2}">
+
+				<label>
+					<input type="checkbox" id="check" reef-checked="${props.checked}">
+					This field does whatever the checked property is set to
+				</label>
+
+				<label>
+					<input type="checkbox" id="check2" reef-default-checked="${props.checked}">
+					This field is checked by default but stays however you set it on future renders
+				</label>
+
+				<br>
+
+				<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
+				<select id="wizards">
+					<option id="harry" value="harry" reef-selected="${props.wizard === 'harry'}">Harry</option>
+					<option id="hermione" value="hermione" reef-selected="${props.wizard === 'hermione'}">Hermione</option>
+					<option id="neville" value="neville" reef-selected="${props.wizard === 'neville'}">Neville</option>
+				</select>
+
+				<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
+				<select id="wizards2">
+					<option id="harry" value="harry" reef-default-selected="${props.wizard === 'harry'}">Harry</option>
+					<option id="hermione" value="hermione" reef-default-selected="${props.wizard === 'hermione'}">Hermione</option>
+					<option id="neville" value="neville" reef-default-selected="${props.wizard === 'neville'}">Neville</option>
+				</select>
+
+				<p><button>Render App</button></p>`;
+		});
+
+		// Bind data to template and render
+		app.use(data);
+		app.run();
 
 		// Render whever the button is clicked
 		document.addEventListener('click', function (event) {
 			if (!event.target.matches('button')) return;
-			app.render();
+			app.run();
 		});
 	</script>
 

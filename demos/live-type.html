@@ -7,7 +7,7 @@
 
 	<style type="text/css">
 		body {
-			margin: 0 auto;
+			margin: 1em auto;
 			max-width: 32em;
 			width: 88%;
 		}
@@ -21,33 +21,31 @@
 </head>
 <body>
 
-	<div id="app"></div>
+	<label for="mirror">Whatever you type shows up below the field</label>
+	<input type="text" id="mirror">
+	<div><em id="app" aria-live="polite"></em></div>
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, text} = reef;
+
+		// Create a store
+		let data = store('');
 
 		// Create an app
-		var app = new Reef('#app', {
-			data: {
-				text: ''
-			},
-			template: function (props) {
-				return `
-					<label for="mirror">Whatever you type shows up below the field</label>
-					<input type="text" id="mirror">
-					<div><em aria-live="polite">${props.text.length ? props.text : 'Type something above to change this text'}</em></div>`;
-			}
+		let app = text('#app', function (text) {
+			return text.length ? text : 'Type something above to change this text';
 		});
 
-		app.render();
+		// Bind the store and render
+		app.use(data);
+		app.run();
 
 		// Update state on input change
 		// Rendering is debounced for performance
 		document.addEventListener('input', function (event) {
 			if (!event.target.matches('#mirror')) return;
-			app.data.text = event.target.value;
+			data.$ = event.target.value;
 		}, false);
 	</script>
 

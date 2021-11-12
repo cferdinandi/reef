@@ -25,13 +25,14 @@
 		<p><strong>2:</strong> <span data-item="2"></span></p>
 		<p><strong>3:</strong> <span data-item="3"></span></p>
 
-		<script type="module">
-			import {Store, text, htmlUnsafe} from './dist/reef.es.js';
+		<script src="../dist/reef.js"></script>
+		<script>
+			let {store, text, htmlUnsafe} = reef;
 
 			// State
-			let purchases = new Store([]);
-			let greeting = new Store('Hello');
-			let name = new Store('Chris');
+			let purchases = store([]);
+			let greeting = store('Hello');
+			let name = store('Chris');
 
 			// Greeting
 			let greet = text('#greeting', function (greeting, name) {
@@ -44,8 +45,8 @@
 			});
 
 			// Bind UI to state
-			greet.store(greeting, name);
-			cart.store(purchases);
+			greet.use(greeting, name);
+			cart.use(purchases);
 
 			// Initial render
 			greet.run();
@@ -58,7 +59,7 @@
 					let id = item.getAttribute('data-item');
 					return purchases.includes(id) ? '<em>In your cart</em>' : `<button data-add="${id}">Add to Cart</button>`;
 				});
-				btn.store(purchases);
+				btn.use(purchases);
 				btn.run();
 			}
 

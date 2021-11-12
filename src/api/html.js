@@ -10,6 +10,12 @@ HTML.prototype.run = debounce(function () {
 	emit('html', $, this.el);
 });
 
+/**
+ * Instantiate a new HTML instance
+ * @param  {String}   el The element selector (or element itself)
+ * @param  {Function} fn The function that returns the template string
+ * @return {Instance}    The instantiated instance
+ */
 function html (el, fn) {
 	return new HTML(el, fn);
 }

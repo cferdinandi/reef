@@ -1,11 +1,12 @@
-import {debounce, emit} from '../utils/utilities.js';
+import {debounce, emit, copy} from '../utils/utilities.js';
+import {err} from '../utils/debug.js';
 
 /**
  * Run attached functions
  * @param  {Instance} instance The instantiation
  */
 function run (instance) {
-	for (let fn of instance.fns) {
+	for (let fn of instance._fns) {
 		fn.run();
 	}
 }
@@ -41,12 +42,13 @@ function handler (instance) {
  * Create a proxy from an array or object
  * @param  {*}        data     The array or object to proxify
  * @param  {Instance} instance The constructor instance
+ * @param  {Object}   setters  Setter functions for the instance
  * @return {Proxy}             The proxy
  */
-function proxify (data, instance) {
+function proxify (data, instance, setters) {
 
 	// If an object, make a Proxy
-	if (typeof data === 'object') {
+	if (!setters && typeof data === 'object') {
 		data = new Proxy(data, handler(instance));
 	}
 
@@ -57,20 +59,26 @@ function proxify (data, instance) {
 
 /**
  * The Store object
- * @param {*} data Date to store
+ * @param {*}      data    Data to store
+ * @param {Object} setters Setter functions (optional)
  */
-function Store (data) {
+function Store (data, setters) {
 
 	// Proxify the data
-	data = proxify(data, this);
+	data = proxify(data, this, setters);
 
 	// Define properties
 	Object.defineProperties(this, {
+
+		// Data setters/getters
 		$: {
 			get: function () {
-				return data;
+				return setters ? copy(data) : data;
 			},
 			set: function (val) {
+
+				// If setters, do nothing
+				if (setters) return true;
 
 				// If an object, make a Proxy
 				data = proxify(val, this);
@@ -82,7 +90,24 @@ function Store (data) {
 
 			}
 		},
-		fns: {value: []}
+
+		/**
+		 * Run a setter function
+		 * @param  {String} key  The setter key
+		 * @param  {...*}   args The args for the setter function
+		 */
+		do: {
+			value: function (key, ...args) {
+				if (!this._setters) return err('No setters for this store.');
+				if (!this._setters[key]) return err(`There is no setter named "${key}"`);
+				this._setters[key](data, ...args);
+				run(this);
+			}
+		},
+
+		// Functions and setters
+		_fns: {value: []},
+		_setters: {value: setters}
 	});
 
 	// Emit a custom event
@@ -90,4 +115,14 @@ function Store (data) {
 
 }
 
-export {Store};
+/**
+ * Instantiate a new store
+ * @param  {*}        data    Data to store
+ * @param  {Object}   setters Setter functions (optional)
+ * @return {Instance}         A new Store instance
+ */
+function store (data, setters) {
+	return new Store(data, setters);
+}
+
+export {store};

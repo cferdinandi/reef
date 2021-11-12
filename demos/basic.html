@@ -19,10 +19,10 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {Store, diff} = reef;
+		let {store, diff} = reef;
 
 		// App state
-		let data = new Store({
+		let data = store({
 			heading: 'My Todos',
 			todos: ['Swim', 'Climb', 'Jump', 'Play'],
 			emoji: '👋🎉'
@@ -41,7 +41,7 @@
 		});
 
 		// Bind the template to the state
-		template.store(data);
+		template.use(data);
 		template.run();
 
 		// After three seconds, add an item to the todo list

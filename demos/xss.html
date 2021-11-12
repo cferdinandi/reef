@@ -20,23 +20,18 @@
 	<script src="../dist/reef.js"></script>
 	<script src="xss.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, diff, diffUnsafe, html, htmlUnsafe} = reef;
 
-		// Setup a cross-site scripting attack
-		// The data object is in xss.js
-		var app = new Reef('#app', {
-			data: {
-				xss: data
-			},
-			template: function (props) {
-				return props.xss.map(function (elem) {
-					return elem;
-				}).join('');
-			}
+		let data = store(xss);
+
+		let app = diff('#app', function (xss) {
+			return xss.map(function (elem) {
+				return elem;
+			}).join('');
 		});
 
-		app.render();
+		app.use(data);
+		app.run();
 	</script>
 
 </body>
