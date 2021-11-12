@@ -55,7 +55,6 @@ function Store (data) {
 	data = proxify(data, this);
 
 	// Define properties
-	this._debounce = null;
 	Object.defineProperties(this, {
 		data: {
 			get: function () {

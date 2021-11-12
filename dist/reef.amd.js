@@ -100,11 +100,6 @@ define(['exports'], function (exports) { 'use strict';
 	 * @param  {Function} fn The function to debounce
 	 */
 	function debounce (fn) {
-
-		// Setup a timer
-		let timeout;
-
-		// Return a function to run debounced
 		return function () {
 
 			// Setup the arguments
@@ -112,17 +107,16 @@ define(['exports'], function (exports) { 'use strict';
 			let args = arguments;
 
 			// If there's a timer, cancel it
-			if (timeout) {
-				window.cancelAnimationFrame(timeout);
+			if (context._debounce) {
+				window.cancelAnimationFrame(context._debounce);
 			}
 
 			// Setup the new requestAnimationFrame()
-			timeout = window.requestAnimationFrame(function () {
+			context._debounce = window.requestAnimationFrame(function () {
 				fn.apply(context, args);
 			});
 
 		};
-
 	}
 
 	/**
@@ -251,6 +245,7 @@ define(['exports'], function (exports) { 'use strict';
 			fn: {value: fn},
 			props: {value: []}
 		});
+		this._debounce = null;
 	}
 
 	Constructor.prototype.add = function (props) {
@@ -274,6 +269,7 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let Text = clone();
 	Text.prototype.run = debounce(function () {
+		console.log('ran');
 		this.el.textContent = this.fn(...props(this));
 	});
 

@@ -3,9 +3,9 @@ import {debounce, props} from './utilities.js';
 
 // Add run method
 let HTMLUnsafe = clone();
-HTMLUnsafe.prototype.run = function () {
+HTMLUnsafe.prototype.run = debounce(function () {
 	this.el.innerHTML = this.fn(...props(this));
-};
+});
 
 function htmlUnsafe (el, fn) {
 	return new HTMLUnsafe(el, fn);

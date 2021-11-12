@@ -4,6 +4,7 @@ function Constructor (el, fn) {
 		fn: {value: fn},
 		props: {value: []}
 	});
+	this._debounce = null;
 }
 
 Constructor.prototype.add = function (props) {
