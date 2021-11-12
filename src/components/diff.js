@@ -9,7 +9,7 @@ function diff (el, fn) {
 
 	// Render the content
 	return function () {
-		compare(clean(fn(), true), elem);
+		compare(clean(fn(this.data), true), elem);
 	};
 
 }

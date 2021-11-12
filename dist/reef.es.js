@@ -13,7 +13,7 @@ function debounce(instance) {
 	// Setup functions to run at the next animation frame
 	instance._debounce = window.requestAnimationFrame(function () {
 		for (let fn of instance.fns) {
-			fn();
+			fn.call(instance);
 		}
 	});
 
@@ -120,6 +120,10 @@ Store.prototype.stop = function (...fns) {
 	}
 };
 
+Store.prototype.run = function () {
+	debounce(this);
+};
+
 function text (el, fn) {
 
 	// Get the target element
@@ -128,7 +132,7 @@ function text (el, fn) {
 
 	// Render the content
 	return function () {
-		elem.textContent = fn();
+		elem.textContent = fn(this.data);
 	};
 
 }
@@ -214,7 +218,7 @@ function clean (str, nodes) {
 
 	// If the user wants HTML nodes back, return them
 	// Otherwise, pass a sanitized string back
-	return nodes ? html.childNodes : html.innerHTML;
+	return nodes ? html : html.innerHTML;
 
 }
 
@@ -235,8 +239,8 @@ function html (el, fn) {
 
 	// Render the content
 	return function () {
-		elem.innerHTML = clean(fn());
-	}
+		elem.innerHTML = clean(fn(this.data));
+	};
 
 }
 
@@ -248,7 +252,7 @@ function htmlUnsafe (el, fn) {
 
 	// Render the content
 	return function () {
-		elem.innerHTML = fn();
+		elem.innerHTML = fn(this.data);
 	};
 
 }
@@ -519,7 +523,7 @@ function diff$1 (el, fn) {
 
 	// Render the content
 	return function () {
-		diff(clean(fn(), true), elem);
+		diff(clean(fn(this.data), true), elem);
 	};
 
 }
@@ -532,7 +536,7 @@ function diffUnsafe (el, fn) {
 
 	// Render the content
 	return function () {
-		diff(stringToHTML(fn()), elem);
+		diff(stringToHTML(fn(this.data)), elem);
 	};
 
 }

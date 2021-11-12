@@ -79,7 +79,7 @@ function clean (str, nodes) {
 
 	// If the user wants HTML nodes back, return them
 	// Otherwise, pass a sanitized string back
-	return nodes ? html.childNodes : html.innerHTML;
+	return nodes ? html : html.innerHTML;
 
 }
 

@@ -6,7 +6,7 @@ function htmlUnsafe (el, fn) {
 
 	// Render the content
 	return function () {
-		elem.innerHTML = fn();
+		elem.innerHTML = fn(this.data);
 	};
 
 }

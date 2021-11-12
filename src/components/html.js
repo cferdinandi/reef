@@ -8,8 +8,8 @@ function html (el, fn) {
 
 	// Render the content
 	return function () {
-		elem.innerHTML = clean(fn());
-	}
+		elem.innerHTML = clean(fn(this.data));
+	};
 
 }
 

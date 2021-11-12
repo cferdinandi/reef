@@ -12,7 +12,7 @@ function debounce(instance) {
 	// Setup functions to run at the next animation frame
 	instance._debounce = window.requestAnimationFrame(function () {
 		for (let fn of instance.fns) {
-			fn();
+			fn.call(instance);
 		}
 	});
 
@@ -117,6 +117,10 @@ Store.prototype.stop = function (...fns) {
 		if (index < 0) return;
 		this.fns.splice(index, 1);
 	}
+};
+
+Store.prototype.run = function () {
+	debounce(this);
 };
 
 export {Store};

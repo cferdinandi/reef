@@ -9,7 +9,7 @@ function diffUnsafe (el, fn) {
 
 	// Render the content
 	return function () {
-		compare(stringToHTML(fn()), elem);
+		compare(stringToHTML(fn(this.data)), elem);
 	};
 
 }

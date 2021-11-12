@@ -22,15 +22,15 @@
 			<button data-click="increment">Increment</button>
 		</p>
 
-		<script>
+		<script type="module">
 			import {Store, text} from './dist/reef.es.js';
 
 			// State
 			let count = new Store(0);
 
 			// The counter
-			let counter = text('#counter', function () {
-				return count.data;
+			let counter = text('#counter', function (count) {
+				return count;
 			});
 			count.do(counter);
 

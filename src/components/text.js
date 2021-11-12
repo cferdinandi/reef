@@ -6,7 +6,7 @@ function text (el, fn) {
 
 	// Render the content
 	return function () {
-		elem.textContent = fn();
+		elem.textContent = fn(this.data);
 	};
 
 }

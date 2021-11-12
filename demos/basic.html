@@ -19,40 +19,69 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {Store, diff} = reef;
 
-		// Create an app
-		var app = new Reef('#app', {
-			data: {
-				heading: 'My Todos',
-				todos: ['Swim', 'Climb', 'Jump', 'Play'],
-				emoji: '👋🎉'
-			},
-			template: function (props) {
-				let {heading, todos, emoji} = props;
-				return `
-					<h1>${heading} ${emoji}</h1>
-					<ul>
-						${todos.map(function (todo) {
-							return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
-						}).join('')}
-					</ul>`;
-			}
+		// App state
+		let data = new Store({
+			heading: 'My Todos',
+			todos: ['Swim', 'Climb', 'Jump', 'Play'],
+			emoji: '👋🎉'
 		});
 
-		// Log a message to the console whenever a render happens
-		document.addEventListener('reef:render', function (event) {
-			console.log('rendered!');
+		// Setup a template
+		let template = diff('#app', function (props) {
+			let {heading, todos, emoji} = props;
+			return `
+				<h1>${heading} ${emoji}</h1>
+				<ul>
+					${todos.map(function (todo) {
+						return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+					}).join('')}
+				</ul>`;
 		});
 
-		// Render the app
-		app.render();
+		// Bind the template to the state
+		data.do(template);
+		data.run();
 
 		// After three seconds, add an item to the todo list
 		setTimeout(function () {
-			app.data.todos.push('Take a nap... zzzz');
+			data.data.todos.push('Take a nap... zzzz');
 		}, 3000);
+
+		// // Create an app
+		// let app = new Reef('#app', {
+		// 	data: {
+		// 		heading: 'My Todos',
+		// 		todos: ['Swim', 'Climb', 'Jump', 'Play'],
+		// 		emoji: '👋🎉'
+		// 	},
+		// 	template: function (props) {
+		// 		let {heading, todos, emoji} = props;
+		// 		return `
+		// 			<h1>${heading} ${emoji}</h1>
+		// 			<ul>
+		// 				${todos.map(function (todo) {
+		// 					return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+		// 				}).join('')}
+		// 			</ul>`;
+		// 	}
+		// });
+
+		// // Render the app
+		// app.render();
+
+		// // After three seconds, add an item to the todo list
+		// setTimeout(function () {
+		// 	app.data.todos.push('Take a nap... zzzz');
+		// }, 3000);
+
+		// // Log a message to the console whenever a render happens
+		// document.addEventListener('reef:render', function (event) {
+		// 	console.log('rendered!');
+		// });
+
+
 	</script>
 
 </body>
