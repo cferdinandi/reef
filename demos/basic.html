@@ -41,47 +41,13 @@
 		});
 
 		// Bind the template to the state
-		data.do(template);
-		data.run();
+		template.store(data);
+		template.run();
 
 		// After three seconds, add an item to the todo list
 		setTimeout(function () {
-			data.data.todos.push('Take a nap... zzzz');
+			data.$.todos.push('Take a nap... zzzz');
 		}, 3000);
-
-		// // Create an app
-		// let app = new Reef('#app', {
-		// 	data: {
-		// 		heading: 'My Todos',
-		// 		todos: ['Swim', 'Climb', 'Jump', 'Play'],
-		// 		emoji: '👋🎉'
-		// 	},
-		// 	template: function (props) {
-		// 		let {heading, todos, emoji} = props;
-		// 		return `
-		// 			<h1>${heading} ${emoji}</h1>
-		// 			<ul>
-		// 				${todos.map(function (todo) {
-		// 					return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
-		// 				}).join('')}
-		// 			</ul>`;
-		// 	}
-		// });
-
-		// // Render the app
-		// app.render();
-
-		// // After three seconds, add an item to the todo list
-		// setTimeout(function () {
-		// 	app.data.todos.push('Take a nap... zzzz');
-		// }, 3000);
-
-		// // Log a message to the console whenever a render happens
-		// document.addEventListener('reef:render', function (event) {
-		// 	console.log('rendered!');
-		// });
-
-
 	</script>
 
 </body>

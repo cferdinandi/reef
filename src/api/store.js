@@ -1,4 +1,4 @@
-import {debounce} from '../utils/utilities.js';
+import {debounce, emit} from '../utils/utilities.js';
 
 /**
  * Run attached functions

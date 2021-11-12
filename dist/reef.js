@@ -1,4 +1,4 @@
-/*! reef v11.0.0BETA | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v11.BETA | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
@@ -137,7 +137,7 @@ var reef = (function (exports) {
 	 * @param  {Object} detail Any details to pass along with the event
 	 * @param  {Node}   elem   The element to attach the event to
 	 */
-	function emit$1 (type, detail = {}, elem = document) {
+	function emit (type, detail = {}, elem = document) {
 
 		// Make sure there's an event type
 		if (!type) return;
@@ -279,7 +279,7 @@ var reef = (function (exports) {
 
 	}
 
-	Constructor.prototype.add = function (...props) {
+	Constructor.prototype.store = function (...props) {
 		for (let $ of props) {
 			if (this.props.includes($)) continue;
 			this.props.push($);
@@ -326,9 +326,9 @@ var reef = (function (exports) {
 	let Text = clone();
 	Text.prototype.run = debounce(function () {
 		let $ = props(this);
-		if (!emit$1('text-before', $, this.el)) return;
+		if (!emit('text-before', $, this.el)) return;
 		this.el.textContent = this.fn(...$);
-		emit$1('text', $, this.el);
+		emit('text', $, this.el);
 	});
 
 	function text (el, fn) {
@@ -339,9 +339,9 @@ var reef = (function (exports) {
 	let HTML = clone();
 	HTML.prototype.run = debounce(function () {
 		let $ = props(this);
-		if (!emit$1('html-before', $, this.el)) return;
+		if (!emit('html-before', $, this.el)) return;
 		this.el.innerHTML = clean(this.fn(...$));
-		emit$1('html', $, this.el);
+		emit('html', $, this.el);
 	});
 
 	function html (el, fn) {
@@ -352,9 +352,9 @@ var reef = (function (exports) {
 	let HTMLUnsafe = clone();
 	HTMLUnsafe.prototype.run = debounce(function () {
 		let $ = props(this);
-		if (!emit$1('html-unsafe-before', $, this.el)) return;
+		if (!emit('html-unsafe-before', $, this.el)) return;
 		this.el.innerHTML = this.fn(...$);
-		emit$1('html-unsafe', $, this.el);
+		emit('html-unsafe', $, this.el);
 	});
 
 	function htmlUnsafe (el, fn) {
@@ -623,9 +623,9 @@ var reef = (function (exports) {
 	let Diff = clone();
 	Diff.prototype.run = debounce(function () {
 		let $ = props(this);
-		if (!emit$1('diff-before', $, this.el)) return;
+		if (!emit('diff-before', $, this.el)) return;
 		diff(clean(this.fn(...$), true), this.el);
-		emit$1('diff', $, this.el);
+		emit('diff', $, this.el);
 	});
 
 	function diff$1 (el, fn) {
@@ -636,9 +636,9 @@ var reef = (function (exports) {
 	let DiffUnsafe = clone();
 	DiffUnsafe.prototype.run = debounce(function () {
 		let $ = props(this);
-		if (!emit$1('diff-unsafe-before', $, this.el)) return;
+		if (!emit('diff-unsafe-before', $, this.el)) return;
 		diff(stringToHTML(this.fn(...$)), this.el);
-		emit$1('diff-unsafe', $, this.el);
+		emit('diff-unsafe', $, this.el);
 	});
 
 	function diffUnsafe (el, fn) {

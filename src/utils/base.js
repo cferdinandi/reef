@@ -24,7 +24,7 @@ function Constructor (el, fn) {
 
 }
 
-Constructor.prototype.add = function (...props) {
+Constructor.prototype.store = function (...props) {
 	for (let $ of props) {
 		if (this.props.includes($)) continue;
 		this.props.push($);

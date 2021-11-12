@@ -33,7 +33,7 @@
 			let counter = text('#counter', function (count) {
 				return count;
 			});
-			count.do(counter);
+			counter.store(count);
 
 			// Event Listeners
 			let btn = document.querySelector('[data-click="increment"]');
