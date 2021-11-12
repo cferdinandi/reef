@@ -56,7 +56,7 @@ function Store (data) {
 
 	// Define properties
 	Object.defineProperties(this, {
-		data: {
+		$: {
 			get: function () {
 				return data;
 			},

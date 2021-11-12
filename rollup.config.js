@@ -6,7 +6,7 @@ import pkg from './package.json';
 // Configs
 let configs = {
 	name: 'reef',
-	files: ['reef.js', 'smol.js'],
+	files: ['reef.js'],
 	formats: ['iife', 'es', 'amd', 'cjs'],
 	default: 'iife',
 	pathIn: 'src',

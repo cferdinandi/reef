@@ -51,7 +51,6 @@
 					let id = item.getAttribute('data-item');
 					return purchases.includes(id) ? '<em>In your cart</em>' : `<button data-add="${id}">Add to Cart</button>`;
 				});
-				console.log(item, btn);
 				btns.push(btn);
 			}
 
@@ -59,7 +58,6 @@
 			greeting.do(greet);
 			name.do(greet);
 			purchases.do(cart, ...btns);
-			console.log(purchases);
 
 			// Initial render
 			greet.run();
@@ -69,8 +67,8 @@
 			}
 
 			setTimeout(function () {
-				greeting.data = 'Heyo';
-				name.data = 'Steve';
+				greeting.$ = 'Heyo';
+				name.$ = 'Steve';
 			}, 2000);
 
 			// Event Listeners
@@ -81,7 +79,7 @@
 				if (!item) return;
 
 				// Add to purchases
-				purchases.data.push(item);
+				purchases.$.push(item);
 
 			});
 		</script>

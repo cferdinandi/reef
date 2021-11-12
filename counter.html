@@ -23,7 +23,8 @@
 		</p>
 
 		<script type="module">
-			import {Store, text} from './dist/reef.es.js';
+			import {Store, text, debug} from './dist/reef.es.js';
+			debug(true);
 
 			// State
 			let count = new Store(0);
@@ -37,7 +38,7 @@
 			// Event Listeners
 			let btn = document.querySelector('[data-click="increment"]');
 			btn.addEventListener('click', function (event) {
-				count.data++;
+				count.$++;
 			});
 		</script>
 	</body>

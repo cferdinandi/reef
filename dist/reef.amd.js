@@ -126,7 +126,7 @@ define(['exports'], function (exports) { 'use strict';
 	 */
 	function props (instance) {
 		return instance.props.map(function (prop) {
-			return prop.data;
+			return prop.$;
 		});
 	}
 
@@ -185,9 +185,8 @@ define(['exports'], function (exports) { 'use strict';
 		data = proxify(data, this);
 
 		// Define properties
-		this._debounce = null;
 		Object.defineProperties(this, {
-			data: {
+			$: {
 				get: function () {
 					return data;
 				},
@@ -239,13 +238,33 @@ define(['exports'], function (exports) { 'use strict';
 		}
 	};
 
+	let on = false;
+
+	function debug (val) {
+		on = !!val;
+	}
+
+	function err (msg) {
+		if (on) {
+			console.warn('[Reef] ' + msg);
+		}
+	}
+
 	function Constructor (el, fn) {
+
+		// Get element
+		el = typeof el === 'string' ? document.querySelector(el) : el;
+		if (!el) return err('Element not found.');
+		if (!fn) return err('Please provide a function');
+
+		// Set properties
 		Object.defineProperties(this, {
 			el: {value: typeof el === 'string' ? document.querySelector(el) : el},
 			fn: {value: fn},
 			props: {value: []}
 		});
 		this._debounce = null;
+
 	}
 
 	Constructor.prototype.add = function (props) {
@@ -269,7 +288,6 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let Text = clone();
 	Text.prototype.run = debounce(function () {
-		console.log('ran');
 		this.el.textContent = this.fn(...props(this));
 	});
 
@@ -289,9 +307,9 @@ define(['exports'], function (exports) { 'use strict';
 
 	// Add run method
 	let HTMLUnsafe = clone();
-	HTMLUnsafe.prototype.run = function () {
+	HTMLUnsafe.prototype.run = debounce(function () {
 		this.el.innerHTML = this.fn(...props(this));
-	};
+	});
 
 	function htmlUnsafe (el, fn) {
 		return new HTMLUnsafe(el, fn);
@@ -576,6 +594,7 @@ define(['exports'], function (exports) { 'use strict';
 	}
 
 	exports.Store = Store;
+	exports.debug = debug;
 	exports.diff = diff$1;
 	exports.diffUnsafe = diffUnsafe;
 	exports.html = html;
