@@ -4,7 +4,6 @@ function Constructor (el, fn) {
 		fn: {value: fn},
 		props: {value: []}
 	});
-	console.log(this.el);
 }
 
 Constructor.prototype.add = function (props) {

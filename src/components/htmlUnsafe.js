@@ -3,12 +3,12 @@ import {debounce, props} from './utilities.js';
 
 // Add run method
 let HTMLUnsafe = clone();
-HTMLUnsafe.prototype.run = debounce(function () {
-	elem.innerHTML = fn(...props(this));
-});
+HTMLUnsafe.prototype.run = function () {
+	this.el.innerHTML = this.fn(...props(this));
+};
 
 function htmlUnsafe (el, fn) {
-	return new htmlUnsafe(el, fn);
+	return new HTMLUnsafe(el, fn);
 }
 
 export {htmlUnsafe};

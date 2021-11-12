@@ -5,7 +5,7 @@ import {compare} from './dom.js';
 // Add run method
 let DiffUnsafe = clone();
 DiffUnsafe.prototype.run = debounce(function () {
-	compare(stringToHTML(fn(...props(this))), elem);
+	compare(stringToHTML(this.fn(...props(this))), this.el);
 });
 
 function diffUnsafe (el, fn) {

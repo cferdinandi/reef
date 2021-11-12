@@ -49,16 +49,6 @@ define(['exports'], function (exports) { 'use strict';
 	}
 
 	/**
-	 * Run the attached functions
-	 * @param  {Instance) instance The current instantiation
-	 */
-	function run (instance) {
-		for (let fn of instance.fns) {
-			fn.run();
-		}
-	}
-
-	/**
 	 * Create settings and getters for data Proxy
 	 * @param  {Instance} instance The current instantiation
 	 * @return {Object}            The setter and getter methods for the Proxy
@@ -74,12 +64,12 @@ define(['exports'], function (exports) { 'use strict';
 			set: function (obj, prop, value) {
 				if (obj[prop] === value) return true;
 				obj[prop] = value;
-				run(instance);
+				instance.run();
 				return true;
 			},
 			deleteProperty: function (obj, prop) {
 				delete obj[prop];
-				run(instance);
+				instance.run();
 				return true;
 			}
 		};
@@ -125,7 +115,7 @@ define(['exports'], function (exports) { 'use strict';
 					data = proxify(val, this);
 
 					// Run functions
-					run(this);
+					this.run();
 
 					return true;
 
@@ -162,7 +152,9 @@ define(['exports'], function (exports) { 'use strict';
 	};
 
 	Store.prototype.run = function () {
-		run(this);
+		for (let fn of this.fns) {
+			fn.run();
+		}
 	};
 
 	function Constructor (el, fn) {
@@ -171,7 +163,6 @@ define(['exports'], function (exports) { 'use strict';
 			fn: {value: fn},
 			props: {value: []}
 		});
-		console.log(this.el);
 	}
 
 	Constructor.prototype.add = function (props) {

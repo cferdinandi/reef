@@ -34,26 +34,24 @@
 			let name = new Store('Chris');
 
 			// Greeting
-			let greet = text('#greeting', function () {
-				return `${greeting.data}, ${name.data}!`;
+			let greet = text('#greeting', function (greeting, name) {
+				return `${greeting}, ${name}!`;
 			});
-			greet();
 
 			// Cart
-			let cart = htmlUnsafe('#cart', function () {
-				return `🛒 ${purchases.data.length} Items`;
+			let cart = htmlUnsafe('#cart', function (purchases) {
+				return `🛒 ${purchases.length} Items`;
 			});
-			cart();
 
 			// Checkout Buttons
 			let items = document.querySelectorAll('[data-item]');
 			let btns = [];
 			for (let item of items) {
-				let btn = htmlUnsafe(item, function () {
+				let btn = htmlUnsafe(item, function (purchases) {
 					let id = item.getAttribute('data-item');
-					return purchases.data.includes(id) ? '<em>In your cart</em>' : `<button data-add="${id}">Add to Cart</button>`;
+					return purchases.includes(id) ? '<em>In your cart</em>' : `<button data-add="${id}">Add to Cart</button>`;
 				});
-				btn();
+				console.log(item, btn);
 				btns.push(btn);
 			}
 
@@ -61,6 +59,14 @@
 			greeting.do(greet);
 			name.do(greet);
 			purchases.do(cart, ...btns);
+			console.log(purchases);
+
+			// Initial render
+			greet.run();
+			cart.run();
+			for (let btn of btns) {
+				btn.run();
+			}
 
 			setTimeout(function () {
 				greeting.data = 'Heyo';

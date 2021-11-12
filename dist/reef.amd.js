@@ -137,16 +137,6 @@ define(['exports'], function (exports) { 'use strict';
 	}
 
 	/**
-	 * Run the attached functions
-	 * @param  {Instance) instance The current instantiation
-	 */
-	function run (instance) {
-		for (let fn of instance.fns) {
-			fn.run();
-		}
-	}
-
-	/**
 	 * Create settings and getters for data Proxy
 	 * @param  {Instance} instance The current instantiation
 	 * @return {Object}            The setter and getter methods for the Proxy
@@ -162,12 +152,12 @@ define(['exports'], function (exports) { 'use strict';
 			set: function (obj, prop, value) {
 				if (obj[prop] === value) return true;
 				obj[prop] = value;
-				run(instance);
+				instance.run();
 				return true;
 			},
 			deleteProperty: function (obj, prop) {
 				delete obj[prop];
-				run(instance);
+				instance.run();
 				return true;
 			}
 		};
@@ -213,7 +203,7 @@ define(['exports'], function (exports) { 'use strict';
 					data = proxify(val, this);
 
 					// Run functions
-					run(this);
+					this.run();
 
 					return true;
 
@@ -250,7 +240,9 @@ define(['exports'], function (exports) { 'use strict';
 	};
 
 	Store.prototype.run = function () {
-		run(this);
+		for (let fn of this.fns) {
+			fn.run();
+		}
 	};
 
 	function Constructor (el, fn) {
@@ -259,7 +251,6 @@ define(['exports'], function (exports) { 'use strict';
 			fn: {value: fn},
 			props: {value: []}
 		});
-		console.log(this.el);
 	}
 
 	Constructor.prototype.add = function (props) {
@@ -293,7 +284,7 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let HTML = clone();
 	HTML.prototype.run = debounce(function () {
-		elem.innerHTML = clean(fn(...props(this)));
+		this.el.innerHTML = clean(this.fn(...props(this)));
 	});
 
 	function html (el, fn) {
@@ -302,12 +293,12 @@ define(['exports'], function (exports) { 'use strict';
 
 	// Add run method
 	let HTMLUnsafe = clone();
-	HTMLUnsafe.prototype.run = debounce(function () {
-		elem.innerHTML = fn(...props(this));
-	});
+	HTMLUnsafe.prototype.run = function () {
+		this.el.innerHTML = this.fn(...props(this));
+	};
 
 	function htmlUnsafe (el, fn) {
-		return new htmlUnsafe(el, fn);
+		return new HTMLUnsafe(el, fn);
 	}
 
 	// Form fields and attributes that can be modified by users
@@ -571,7 +562,7 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let Diff = clone();
 	Diff.prototype.run = debounce(function () {
-		diff(clean(fn(...props(this)), true), elem);
+		diff(clean(this.fn(...props(this)), true), this.el);
 	});
 
 	function diff$1 (el, fn) {
@@ -581,7 +572,7 @@ define(['exports'], function (exports) { 'use strict';
 	// Add run method
 	let DiffUnsafe = clone();
 	DiffUnsafe.prototype.run = debounce(function () {
-		diff(stringToHTML(fn(...props(this))), elem);
+		diff(stringToHTML(this.fn(...props(this))), this.el);
 	});
 
 	function diffUnsafe (el, fn) {

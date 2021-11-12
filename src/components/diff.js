@@ -5,7 +5,7 @@ import {compare} from './dom.js';
 // Add run method
 let Diff = clone();
 Diff.prototype.run = debounce(function () {
-	compare(clean(fn(...props(this)), true), elem);
+	compare(clean(this.fn(...props(this)), true), this.el);
 });
 
 function diff (el, fn) {
