@@ -1,3 +1,2 @@
-import Reef from './_reef/constructor.js';
-
+import Reef from './components/constructor.js';
 export default Reef;

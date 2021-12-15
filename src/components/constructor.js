@@ -2,11 +2,11 @@ import * as _ from './utilities.js';
 import * as $ from './dom.js';
 
 /**
- * Create the Reef object
+ * Create the Constructor object
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-function Reef (elem, options = {}) {
+function Constructor (elem, options = {}) {
 
 	// Make sure an element is provided
 	if (!elem && !options.lagoon) return _.err('You did not provide an element to make into a component.');
@@ -100,7 +100,7 @@ function Reef (elem, options = {}) {
  * Render a template into the DOM
  * @return {Node}  The elemenft
  */
-Reef.prototype.render = function () {
+Constructor.prototype.render = function () {
 
 	// If this is used only for data, render attached and bail
 	if (this.lagoon) {
@@ -134,7 +134,7 @@ Reef.prototype.render = function () {
 	// Dispatch a render event
 	_.emit(elem, 'reef:render', data);
 
-	// If there are linked Reefs, render them, too
+	// If there are linked Constructors, render them, too
 	$.renderPolyps(this.attached, this);
 
 	// Return the elem for use elsewhere
@@ -146,7 +146,7 @@ Reef.prototype.render = function () {
  * Get an immutable copy of the data
  * @return {Object} The app data
  */
-Reef.prototype.immutableData = function () {
+Constructor.prototype.immutableData = function () {
 	return _.copy(this.data);
 };
 
@@ -154,7 +154,7 @@ Reef.prototype.immutableData = function () {
  * Attach a component to this one
  * @param  {Function|Array} coral The component(s) to attach
  */
-Reef.prototype.attach = function (coral) {
+Constructor.prototype.attach = function (coral) {
 
 	// Attach components
 	let polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
@@ -174,7 +174,7 @@ Reef.prototype.attach = function (coral) {
  * Detach a linked component to this one
  * @param  {Function|Array} coral The linked component(s) to detach
  */
-Reef.prototype.detach = function (coral) {
+Constructor.prototype.detach = function (coral) {
 
 	// Detach components
 	let polyps = _.trueTypeOf(coral) === 'array' ? coral : [coral];
@@ -196,19 +196,19 @@ Reef.prototype.detach = function (coral) {
  * Store constructor
  * @param {Object} options The data store options
  */
-Reef.Store = function (options) {
+Constructor.Store = function (options) {
 	options.lagoon = true;
-	return new Reef(null, options);
+	return new Constructor(null, options);
 };
 
 // External helper methods
-Reef.debug = _.setDebug;
-Reef.clone = _.copy;
-Reef.emit = _.emit;
-Reef.err = _.err;
+Constructor.debug = _.setDebug;
+Constructor.clone = _.copy;
+Constructor.emit = _.emit;
+Constructor.err = _.err;
 
 // Emit ready event
 _.emit(document, 'reef:ready');
 
 
-export default Reef;
+export default Constructor;
