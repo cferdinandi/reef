@@ -1,4 +1,5 @@
-import {isFalsy} from './utilities.js';
+import * as _ from './utilities.js';
+
 
 // Form fields and attributes that can be modified by users
 // They also have implicit values that make it hard to know if they were changed by the user or developer
@@ -91,7 +92,7 @@ function diffAttributes (template, existing) {
 		let attName = name.replace('reef-', '');
 
 		// If its a no-value property and it's falsey remove it
-		if (formAttsNoVal.includes(attName) && isFalsy(value)) {
+		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) {
 			removeAttribute(existing, attName);
 			continue;
 		}
@@ -146,7 +147,7 @@ function addDefaultAtts (elem) {
 		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
-		if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
+		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) continue;
 
 		// Add the plain attribute
 		addAttribute(elem, attName, value);
@@ -227,8 +228,9 @@ function removeScripts (elem) {
  * Diff the existing DOM node versus the template
  * @param  {Array} template The template HTML
  * @param  {Node}  existing The current DOM HTML
+ * @param  {Array} polyps   Attached components for this element
  */
-function diff (template, existing) {
+function diff (template, existing, polyps) {
 
 	// Get the nodes in the template and existing UI
 	let templateNodes = template.childNodes;
@@ -266,7 +268,10 @@ function diff (template, existing) {
 		}
 
 		// If element is an attached component, skip it
-		// @TODO
+		let isPolyp = polyps.filter(function (polyp) {
+			return ![3, 8].includes(node.nodeType) && node.matches(polyp);
+		});
+		if (isPolyp.length > 0) return;
 
 		// If content is different, update it
 		let templateContent = getNodeContent(node);
@@ -287,14 +292,14 @@ function diff (template, existing) {
 		// This uses a document fragment to minimize reflows
 		if (!existingNodes[index].childNodes.length && node.childNodes.length) {
 			let fragment = document.createDocumentFragment();
-			diff(node, fragment);
+			diff(node, fragment, polyps);
 			existingNodes[index].appendChild(fragment);
 			return;
 		}
 
 		// If there are nodes within it, recursively diff those
 		if (node.childNodes.length) {
-			diff(node, existingNodes[index]);
+			diff(node, existingNodes[index], polyps);
 		}
 
 	});
@@ -304,4 +309,19 @@ function diff (template, existing) {
 
 }
 
-export {diff};
+/**
+ * If there are linked Reefs, render them, too
+ * @param  {Array} polyps Attached Reef components
+ */
+function renderPolyps (polyps, reef) {
+	if (!polyps) return;
+	for (let coral of polyps) {
+		if (coral.attached.includes(reef)) return _.err(`"${reef.elem}" has attached nodes that it is also attached to, creating an infinite loop.`);
+		if ('render' in coral) {
+			coral.render();
+		}
+	}
+}
+
+
+export {diff, renderPolyps};

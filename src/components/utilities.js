@@ -1,78 +1,29 @@
-// If true, debug mode is enabled
-let debug = false;
-
-/**
- * Turn debug mode on or off
- * @param  {Boolean} on If true, turn debug mode on
- */
-function setDebug (on) {
-	debug = on ? true : false;
-}
-
-/**
- * Throw an error message
- * @param  {String} msg  The error message
- */
-function err (msg) {
-	if (debug) {
-		console.warn(msg);
-	}
-}
-
-/**
- * More accurately check the type of a JavaScript object
- * @param  {Object} obj The object
- * @return {String}     The object type
- */
-function trueTypeOf (obj) {
-	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
-}
-
-/**
- * Check if an attribute string has a stringified falsy value
- * @param  {String}  str The string
- * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
- */
-function isFalsy (str) {
-	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
-}
-
 /**
  * Emit a custom event
- * @param  {Node}    elem     The element to emit the custom event on
- * @param  {String}  name     The name of the custom event
- * @param  {*}       detail   Details to attach to the event
- * @param  {Boolean} noCancel If false, event cannot be cancelled
+ * @param  {String} type   The event type
+ * @param  {Object} detail Any details to pass along with the event
+ * @param  {Node}   elem   The element to attach the event to
  */
-function emit (elem, name, detail, noCancel) {
-	let event;
-	if (!elem || !name) return _.err('You did not provide an element or event name.');
-	event = new CustomEvent(name, {
+function emit (type, detail = {}, elem = document) {
+
+	// Create a new event
+	let event = new CustomEvent(`reef:${type}`, {
 		bubbles: true,
-		cancelable: !noCancel,
+		cancelable: true,
 		detail: detail
 	});
+
+	// Dispatch the event
 	return elem.dispatchEvent(event);
+
 }
 
 /**
- * Create an immutable copy of an object and recursively encode all of its data
- * @param  {*} obj The object to clone
- * @return {*}     The immutable, encoded object
+ * Create an immutable clone of data
+ * @param  {*} obj The data object to copy
+ * @return {*}     The clone of the array or object
  */
 function copy (obj) {
-
-	/**
-	 * Copy properties from the original object to the clone
-	 * @param {Object|Function} clone The cloned object
-	 */
-	function copyProps (clone) {
-		for (let key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				clone[key] = copy(obj[key]);
-			}
-		}
-	}
 
 	/**
 	 * Create an immutable copy of an object
@@ -80,7 +31,11 @@ function copy (obj) {
 	 */
 	function cloneObj () {
 		let clone = {};
-		copyProps(clone);
+		for (let key in obj) {
+			if (Object.prototype.hasOwnProperty.call(obj, key)) {
+				clone[key] = copy(obj[key]);
+			}
+		}
 		return clone;
 	}
 
@@ -94,49 +49,12 @@ function copy (obj) {
 		});
 	}
 
-	/**
-	 * Create an immutable copy of a Map
-	 * @return {Map}
-	 */
-	function cloneMap () {
-		let clone = new Map();
-		for (let [key, val] of obj) {
-			clone.set(key, copy(val));
-		}
-		return clone;
-	}
-
-	/**
-	 * Create an immutable clone of a Set
-	 * @return {Set}
-	 */
-	function cloneSet () {
-		let clone = new Set();
-		for (let item of set) {
-			clone.add(copy(item));
-		}
-		return clone;
-	}
-
-	/**
-	 * Create an immutable copy of a function
-	 * @return {Function}
-	 */
-	function cloneFunction () {
-		let clone = obj.bind(this);
-		copyProps(clone);
-		return clone;
-	}
-
 	// Get object type
-	let type = trueTypeOf(obj);
+	let type = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 
 	// Return a clone based on the object type
 	if (type === 'object') return cloneObj();
 	if (type === 'array') return cloneArr();
-	if (type === 'map') return cloneMap();
-	if (type === 'set') return cloneSet();
-	if (type === 'function') return cloneFunction();
 	return obj;
 
 }
@@ -145,56 +63,18 @@ function copy (obj) {
  * Debounce rendering for better performance
  * @param  {Constructor} instance The current instantiation
  */
-function debounceRender (instance) {
+function render (instance) {
 
 	// If there's a pending render, cancel it
-	if (instance.debounce) {
+	if (instance._debounce) {
 		window.cancelAnimationFrame(instance.debounce);
 	}
 
 	// Setup the new render to run at the next animation frame
-	instance.debounce = window.requestAnimationFrame(function () {
+	instance._debounce = window.requestAnimationFrame(function () {
 		instance.render();
 	});
 
-}
-
-/**
- * Create settings and getters for data Proxy
- * @param  {Constructor} instance The current instantiation
- * @return {Object}               The setter and getter methods for the Proxy
- */
-function dataHandler (instance) {
-	return {
-		get: function (obj, prop) {
-			if (['object', 'array'].includes(trueTypeOf(obj[prop]))) {
-				return new Proxy(obj[prop], dataHandler(instance));
-			}
-			return obj[prop];
-		},
-		set: function (obj, prop, value) {
-			if (obj[prop] === value) return true;
-			obj[prop] = value;
-			debounceRender(instance);
-			return true;
-		},
-		deleteProperty: function (obj, prop) {
-			delete obj[prop];
-			debounceRender(instance);
-			return true;
-		}
-	};
-}
-
-/**
- * Create a proxy from a data object
- * @param  {Object}     options  The options object
- * @param  {Contructor} instance The current Reef instantiation
- * @return {Proxy}               The Proxy
- */
-function makeProxy (options, instance) {
-	if (options.setters) return !options.store ? options.data : null;
-	return options.data ? new Proxy(options.data, dataHandler(instance)) : null;
 }
 
 /**
@@ -219,5 +99,13 @@ function stringToHTML (str) {
 
 }
 
+/**
+ * Check if an attribute string has a stringified falsy value
+ * @param  {String}  str The string
+ * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
+ */
+function isFalsy (str) {
+	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
+}
 
-export {setDebug, err, trueTypeOf, isFalsy, emit, copy, debounceRender, dataHandler, makeProxy, stringToHTML};
+export {emit, copy, render, stringToHTML, isFalsy};
