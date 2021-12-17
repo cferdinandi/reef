@@ -7,7 +7,7 @@
 
 	<style type="text/css">
 		body {
-			margin: 0 auto;
+			margin: 1em auto;
 			max-width: 32em;
 			width: 88%;
 		}
@@ -20,6 +20,8 @@
 	</style>
 </head>
 <body>
+
+	<h1>Mirror Text</h1>
 
 	<div id="app"></div>
 
@@ -36,19 +38,17 @@
 			template: function (props) {
 				return `
 					<label for="mirror">Whatever you type shows up below the field</label>
-					<input type="text" id="mirror">
+					<input type="text" oninput="mirror()" id="mirror">
 					<div><em aria-live="polite">${props.text.length ? props.text : 'Type something above to change this text'}</em></div>`;
+			},
+			listeners: {
+				mirror: function (event) {
+					this.data.text = event.target.value;
+				}
 			}
 		});
 
 		app.render();
-
-		// Update state on input change
-		// Rendering is debounced for performance
-		document.addEventListener('input', function (event) {
-			if (!event.target.matches('#mirror')) return;
-			app.data.text = event.target.value;
-		}, false);
 	</script>
 
 </body>

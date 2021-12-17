@@ -1,16 +1,11 @@
-import * as _ from './utilities.js';
-
+import {isFalsy} from './utilities.js';
+import {addEvent, removeAllEvents} from './events.js';
 
 // Form fields and attributes that can be modified by users
 // They also have implicit values that make it hard to know if they were changed by the user or developer
 let formFields = ['input', 'option', 'textarea'];
 let formAtts = ['value', 'checked', 'selected'];
 let formAttsNoVal = ['checked', 'selected'];
-
-// Dynamic field value setters
-// These help indicate intent for fields that have implicit properties whether set or not
-let reefAtts = ['reef-checked', 'reef-selected', 'reef-value'];
-let reefAttsDef = ['reef-default-checked', 'reef-default-selected', 'reef-default-value'];
 
 /**
  * Check if attribute should be skipped (sanitize properties)
@@ -70,7 +65,7 @@ function removeAttribute (elem, att) {
  * @param  {Node} template The new template
  * @param  {Node} existing The existing DOM node
  */
-function diffAttributes (template, existing) {
+function diffAttributes (template, existing, instance) {
 
 	// If the node is not an element, bail
 	if (template.nodeType !== 1) return;
@@ -82,18 +77,24 @@ function diffAttributes (template, existing) {
 	// Add and update attributes from the template into the DOM
 	for (let {name, value} of templateAtts) {
 
-		// Skip [reef-default-*] attributes
-		if (name.slice(0, 13) === 'reef-default-') continue;
+		// Skip [#*] attributes
+		if (name.startsWith('#')) continue;
 
 		// Skip user-editable form field attributes
 		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) continue;
 
-		// Convert [reef-*] names to their real attribute name
-		let attName = name.replace('reef-', '');
+		// Convert [@*] names to their real attribute name
+		let attName = name.startsWith('@') ? name.slice(1) : name;
 
-		// If its a no-value property and it's falsey remove it
-		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) {
+		// If its a no-value property and it's falsy remove it
+		if (formAttsNoVal.includes(attName) && isFalsy(value)) {
 			removeAttribute(existing, attName);
+			continue;
+		}
+
+		// If its an event handler, maybe add it
+		if (name.startsWith('on')) {
+			addEvent(existing, name, value, instance);
 			continue;
 		}
 
@@ -122,14 +123,19 @@ function diffAttributes (template, existing) {
  * Add default attributes to a newly created element
  * @param  {Node} elem The element
  */
-function addDefaultAtts (elem) {
+function addDefaultAtts (elem, instance) {
 
 	// Only run on elements
 	if (elem.nodeType !== 1) return;
 
-	// Remove [reef-default-*] and [reef-*] attributes and replace them with the plain attributes
+	// Remove [@*] and [#*] attributes and replace them with the plain attributes
 	// Remove unsafe HTML attributes
 	for (let {name, value} of elem.attributes) {
+
+		// If its an event handler, maybe add it
+		if (name.startsWith('on')) {
+			addEvent(elem, name, value, instance);
+		}
 
 		// If the attribute should be skipped, remove it
 		if (skipAttribute(name, value)) {
@@ -137,17 +143,17 @@ function addDefaultAtts (elem) {
 			continue;
 		}
 
-		// If the attribute isn't a [reef-default-*] or [reef-*], skip it
-		if (name.slice(0, 5) !== 'reef-') continue;
+		// If the attribute isn't a [@*] or [#*], skip it
+		if (!name.startsWith('@') && !name.startsWith('#')) continue;
 
 		// Get the plain attribute name
-		let attName = name.replace('reef-default-', '').replace('reef-', '');
+		let attName = name.slice(1);
 
-		// Remove the [reef-default-*] or [reef-*] attribute
+		// Remove the [@*] or [#*] attribute
 		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
-		if (formAttsNoVal.includes(attName) && _.isFalsy(value)) continue;
+		if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
 
 		// Add the plain attribute
 		addAttribute(elem, attName, value);
@@ -157,7 +163,7 @@ function addDefaultAtts (elem) {
 	// If there are child elems, recursively add defaults to them
 	if (elem.childNodes) {
 		for (let node of elem.childNodes) {
-			addDefaultAtts(node);
+			addDefaultAtts(node, instance);
 		}
 	}
 
@@ -205,10 +211,11 @@ function aheadInTree (node, existingNodes, index) {
  * @param  {Array} existingNodes      The existing DOM
  * @param  {Array} templateNodes The template
  */
-function trimExtraNodes (existingNodes, templateNodes) {
+function trimExtraNodes (existingNodes, templateNodes, instance) {
 	let extra = existingNodes.length - templateNodes.length;
 	if (extra < 1)  return;
 	for (; extra > 0; extra--) {
+		removeAllEvents([existingNodes[existingNodes.length - 1]], instance);
 		existingNodes[existingNodes.length - 1].remove();
 	}
 }
@@ -228,9 +235,8 @@ function removeScripts (elem) {
  * Diff the existing DOM node versus the template
  * @param  {Array} template The template HTML
  * @param  {Node}  existing The current DOM HTML
- * @param  {Array} polyps   Attached components for this element
  */
-function diff (template, existing, polyps) {
+function diff (template, existing, instance) {
 
 	// Get the nodes in the template and existing UI
 	let templateNodes = template.childNodes;
@@ -244,8 +250,9 @@ function diff (template, existing, polyps) {
 
 		// If element doesn't exist, create it
 		if (!existingNodes[index]) {
-			addDefaultAtts(node);
-			existing.append(node.cloneNode(true));
+			let clone = node.cloneNode(true);
+			addDefaultAtts(clone, instance);
+			existing.append(clone);
 			return;
 		}
 
@@ -257,8 +264,9 @@ function diff (template, existing, polyps) {
 
 			// If not, insert the node before the current one
 			if (!ahead) {
-				addDefaultAtts(node);
-				existingNodes[index].before(node.cloneNode(true));
+				let clone = node.cloneNode(true);
+				addDefaultAtts(clone, instance);
+				existingNodes[index].before(clone);
 				return;
 			}
 
@@ -267,12 +275,6 @@ function diff (template, existing, polyps) {
 
 		}
 
-		// If element is an attached component, skip it
-		let isPolyp = polyps.filter(function (polyp) {
-			return ![3, 8].includes(node.nodeType) && node.matches(polyp);
-		});
-		if (isPolyp.length > 0) return;
-
 		// If content is different, update it
 		let templateContent = getNodeContent(node);
 		if (templateContent && templateContent !== getNodeContent(existingNodes[index])) {
@@ -280,10 +282,11 @@ function diff (template, existing, polyps) {
 		}
 
 		// If attributes are different, update them
-		diffAttributes(node, existingNodes[index]);
+		diffAttributes(node, existingNodes[index], instance);
 
 		// If there shouldn't be child nodes but there are, remove them
 		if (!node.childNodes.length && existingNodes[index].childNodes.length) {
+			removeAllEvents(node.children, instance);
 			existingNodes[index].innerHTML = '';
 			return;
 		}
@@ -292,36 +295,21 @@ function diff (template, existing, polyps) {
 		// This uses a document fragment to minimize reflows
 		if (!existingNodes[index].childNodes.length && node.childNodes.length) {
 			let fragment = document.createDocumentFragment();
-			diff(node, fragment, polyps);
+			diff(node, fragment, instance);
 			existingNodes[index].appendChild(fragment);
 			return;
 		}
 
 		// If there are nodes within it, recursively diff those
 		if (node.childNodes.length) {
-			diff(node, existingNodes[index], polyps);
+			diff(node, existingNodes[index], instance);
 		}
 
 	});
 
 	// If extra elements in DOM, remove them
-	trimExtraNodes(existingNodes, templateNodes);
+	trimExtraNodes(existingNodes, templateNodes, instance);
 
 }
 
-/**
- * If there are linked Reefs, render them, too
- * @param  {Array} polyps Attached Reef components
- */
-function renderPolyps (polyps, reef) {
-	if (!polyps) return;
-	for (let coral of polyps) {
-		if (coral.attached.includes(reef)) return _.err(`"${reef.elem}" has attached nodes that it is also attached to, creating an infinite loop.`);
-		if ('render' in coral) {
-			coral.render();
-		}
-	}
-}
-
-
-export {diff, renderPolyps};
+export {diff};

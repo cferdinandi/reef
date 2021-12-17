@@ -1,79 +1,51 @@
-/*! Reef v10.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
-// If true, debug mode is enabled
-let debug = false;
+/*! Reef v11.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+// Is debugging enabled
+let on = false;
 
 /**
- * Turn debug mode on or off
- * @param  {Boolean} on If true, turn debug mode on
+ * Turn debugging on or off
+ * @param  {Boolean} val If true, enables debugging
  */
-function setDebug (on) {
-	debug = on ? true : false;
+function debug (val) {
+    on = !!val;
 }
 
 /**
- * Throw an error message
- * @param  {String} msg  The error message
+ * Show an error message in the console if debugging is enabled
+ * @param  {String} msg The message to log
  */
 function err (msg) {
-	if (debug) {
-		console.warn(msg);
-	}
-}
-
-/**
- * More accurately check the type of a JavaScript object
- * @param  {Object} obj The object
- * @return {String}     The object type
- */
-function trueTypeOf (obj) {
-	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
-}
-
-/**
- * Check if an attribute string has a stringified falsy value
- * @param  {String}  str The string
- * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
- */
-function isFalsy (str) {
-	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
+    if (on) {
+        console.warn(`[Reef] ${msg}`);
+    }
 }
 
 /**
  * Emit a custom event
- * @param  {Node}    elem     The element to emit the custom event on
- * @param  {String}  name     The name of the custom event
- * @param  {*}       detail   Details to attach to the event
- * @param  {Boolean} noCancel If false, event cannot be cancelled
+ * @param  {String} type   The event type
+ * @param  {Object} detail Any details to pass along with the event
+ * @param  {Node}   elem   The element to attach the event to
  */
-function emit (elem, name, detail, noCancel) {
-	let event;
-	if (!elem || !name) return _.err('You did not provide an element or event name.');
-	event = new CustomEvent(name, {
+function emit (type, detail = {}, elem = document) {
+
+	// Create a new event
+	let event = new CustomEvent(`reef:${type}`, {
 		bubbles: true,
-		cancelable: !noCancel,
+		cancelable: true,
 		detail: detail
 	});
+
+	// Dispatch the event
 	return elem.dispatchEvent(event);
+
 }
 
 /**
- * Create an immutable copy of an object and recursively encode all of its data
- * @param  {*} obj The object to clone
- * @return {*}     The immutable, encoded object
+ * Create an immutable clone of data
+ * @param  {*} obj The data object to copy
+ * @return {*}     The clone of the array or object
  */
 function copy (obj) {
-
-	/**
-	 * Copy properties from the original object to the clone
-	 * @param {Object|Function} clone The cloned object
-	 */
-	function copyProps (clone) {
-		for (let key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				clone[key] = copy(obj[key]);
-			}
-		}
-	}
 
 	/**
 	 * Create an immutable copy of an object
@@ -81,7 +53,11 @@ function copy (obj) {
 	 */
 	function cloneObj () {
 		let clone = {};
-		copyProps(clone);
+		for (let key in obj) {
+			if (Object.prototype.hasOwnProperty.call(obj, key)) {
+				clone[key] = copy(obj[key]);
+			}
+		}
 		return clone;
 	}
 
@@ -95,49 +71,12 @@ function copy (obj) {
 		});
 	}
 
-	/**
-	 * Create an immutable copy of a Map
-	 * @return {Map}
-	 */
-	function cloneMap () {
-		let clone = new Map();
-		for (let [key, val] of obj) {
-			clone.set(key, copy(val));
-		}
-		return clone;
-	}
-
-	/**
-	 * Create an immutable clone of a Set
-	 * @return {Set}
-	 */
-	function cloneSet () {
-		let clone = new Set();
-		for (let item of set) {
-			clone.add(copy(item));
-		}
-		return clone;
-	}
-
-	/**
-	 * Create an immutable copy of a function
-	 * @return {Function}
-	 */
-	function cloneFunction () {
-		let clone = obj.bind(this);
-		copyProps(clone);
-		return clone;
-	}
-
 	// Get object type
-	let type = trueTypeOf(obj);
+	let type = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 
 	// Return a clone based on the object type
 	if (type === 'object') return cloneObj();
 	if (type === 'array') return cloneArr();
-	if (type === 'map') return cloneMap();
-	if (type === 'set') return cloneSet();
-	if (type === 'function') return cloneFunction();
 	return obj;
 
 }
@@ -146,57 +85,30 @@ function copy (obj) {
  * Debounce rendering for better performance
  * @param  {Constructor} instance The current instantiation
  */
-function debounceRender (instance) {
+function render (instance) {
 
 	// If there's a pending render, cancel it
-	if (instance.debounce) {
+	if (instance._debounce) {
 		window.cancelAnimationFrame(instance.debounce);
 	}
 
 	// Setup the new render to run at the next animation frame
-	instance.debounce = window.requestAnimationFrame(function () {
+	instance._debounce = window.requestAnimationFrame(function () {
 		instance.render();
 	});
 
 }
 
 /**
- * Create settings and getters for data Proxy
- * @param  {Constructor} instance The current instantiation
- * @return {Object}               The setter and getter methods for the Proxy
+ * Get instance render details
+ * @param  {Constructor} instance The Constructor instance
+ * @return {Object}               The element, data, and template details
  */
-function dataHandler (instance) {
-	return {
-		get: function (obj, prop) {
-			if (prop === '_isProxy') return true;
-			if (typeof obj[prop] === 'object' && !obj[prop]._isProxy) {
-				obj[prop] = new Proxy(obj[prop], dataHandler(instance));
-			}
-			return obj[prop];
-		},
-		set: function (obj, prop, value) {
-			if (obj[prop] === value) return true;
-			obj[prop] = value;
-			debounceRender(instance);
-			return true;
-		},
-		deleteProperty: function (obj, prop) {
-			delete obj[prop];
-			debounceRender(instance);
-			return true;
-		}
-	};
-}
-
-/**
- * Create a proxy from a data object
- * @param  {Object}     options  The options object
- * @param  {Contructor} instance The current Reef instantiation
- * @return {Proxy}               The Proxy
- */
-function makeProxy (options, instance) {
-	if (options.setters) return !options.store ? options.data : null;
-	return options.data ? new Proxy(options.data, dataHandler(instance)) : null;
+function getRenderDetails (instance) {
+	let elem = instance.elem;
+	let data = copy(instance._store ? Object.assign(instance._store.data, instance.data || {}) : instance.data);
+	let template = instance._template(data, elem);
+	return {elem, data, template};
 }
 
 /**
@@ -219,6 +131,153 @@ function stringToHTML (str) {
 
 	return doc.body || document.createElement('body');
 
+}
+
+/**
+ * Check if an attribute string has a stringified falsy value
+ * @param  {String}  str The string
+ * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
+ */
+function isFalsy (str) {
+	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
+}
+
+/**
+ * Create settings and getters for data Proxy
+ * @param  {Constructor} instance The current instantiation
+ * @return {Object}               The setter and getter methods for the Proxy
+ */
+function handler (instance) {
+	return {
+		get: function (obj, prop) {
+			if (prop === '_isProxy') return true;
+			if (typeof obj[prop] === 'object' && !obj[prop]._isProxy) {
+				obj[prop] = new Proxy(obj[prop], handler(instance));
+			}
+			return obj[prop];
+		},
+		set: function (obj, prop, value) {
+			if (obj[prop] === value) return true;
+			obj[prop] = value;
+			render(instance);
+			return true;
+		},
+		deleteProperty: function (obj, prop) {
+			delete obj[prop];
+			render(instance);
+			return true;
+		}
+	};
+}
+
+/**
+ * Create a proxy from a data object
+ * @param  {Object}     options  The options object
+ * @param  {Contructor} instance The current Reef instantiation
+ * @return {Proxy}               The Proxy
+ */
+function makeProxy (data, instance) {
+	if (!data) return null;
+	return new Proxy(data, handler(instance));
+}
+
+//  Hold all events by type
+let events = {};
+
+/**
+ * Handle listeners after event fires
+ * @param {Event} event The event
+ */
+var eventHandler = function (event) {
+	if (!events[event.type]) return;
+	for (let listener of events[event.type]) {
+		let {elem, callback} = listener;
+		if (elem === event.target || elem.contains(event.target)) {
+			callback.call(listener.instance, event);
+		}
+	}
+};
+
+/**
+ * Start event listeners for an event type
+ * @param {String} type The event type
+ */
+function startListener (type) {
+	if (events[type]) return;
+	events[type] = [];
+	document.addEventListener(type, eventHandler, true);
+}
+
+/**
+ * Stop event listeners for an event type
+ * @param {String} type The event type
+ */
+function stopListener (type) {
+	if (!events[type]) return;
+	delete events[type];
+	document.removeEventListener(type, eventHandler, true);
+}
+
+/**
+ * Check if listener is already active
+ * @param  {String}   type     The event type
+ * @param  {Node}     elem     The elem to listen to
+ * @param  {Function} callback The callback function to run
+ * @return {Boolean}           If true, listener already exists
+ */
+function getListener (type, elem, callback) {
+	return events[type].find(function (listener) {
+		return elem === listener.elem && callback === listener.callback;
+	});
+}
+
+/**
+ * Add an event listener
+ * @param {Node}        elem     The element to attach the listener to
+ * @param {String}      name     The event attribute name
+ * @param {String}      value    The event attribute value
+ * @param {Constructor} instance The Reef instance the element is in
+ */
+function addEvent (elem, name, value, instance) {
+
+	// If there are no listeners, do nothing
+	if (!instance._listeners) return;
+
+	// Get event details
+	let type = name.slice(2);
+	let callback = instance._listeners[value.slice(0, -2)];
+
+	// Make sure event is for a valid listener
+	if (!callback) return;
+
+	// Start listener for this type if not already running
+	startListener(type);
+
+	// If element already has a listener, do nothing
+	if (getListener(type, elem, callback)) return;
+
+	// Otherwise, add listener
+	events[type].push({elem, callback, instance});
+
+}
+
+/**
+ * Remove all events attached to an element
+ * @param  {NodeList}    elems    The elements to remove events from
+ * @param  {Constructor} instance The Reef instance the elements are in
+ */
+function removeAllEvents (elems, instance) {
+	if (!instance._listeners) return;
+	for (let elem of elems) {
+		for (let type in events) {
+			events[type] = events[type].filter(function (listener) {
+				return listener.elem !== elem;
+			});
+			if (!events[type].length) {
+				stopListener(type);
+			}
+		}
+	}
 }
 
 // Form fields and attributes that can be modified by users
@@ -285,7 +344,7 @@ function removeAttribute (elem, att) {
  * @param  {Node} template The new template
  * @param  {Node} existing The existing DOM node
  */
-function diffAttributes (template, existing) {
+function diffAttributes (template, existing, instance) {
 
 	// If the node is not an element, bail
 	if (template.nodeType !== 1) return;
@@ -297,18 +356,24 @@ function diffAttributes (template, existing) {
 	// Add and update attributes from the template into the DOM
 	for (let {name, value} of templateAtts) {
 
-		// Skip [reef-default-*] attributes
-		if (name.slice(0, 13) === 'reef-default-') continue;
+		// Skip [#*] attributes
+		if (name.startsWith('#')) continue;
 
 		// Skip user-editable form field attributes
 		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) continue;
 
-		// Convert [reef-*] names to their real attribute name
-		let attName = name.replace('reef-', '');
+		// Convert [@*] names to their real attribute name
+		let attName = name.startsWith('@') ? name.slice(1) : name;
 
-		// If its a no-value property and it's falsey remove it
+		// If its a no-value property and it's falsy remove it
 		if (formAttsNoVal.includes(attName) && isFalsy(value)) {
 			removeAttribute(existing, attName);
+			continue;
+		}
+
+		// If its an event handler, maybe add it
+		if (name.startsWith('on')) {
+			addEvent(existing, name, value, instance);
 			continue;
 		}
 
@@ -337,14 +402,19 @@ function diffAttributes (template, existing) {
  * Add default attributes to a newly created element
  * @param  {Node} elem The element
  */
-function addDefaultAtts (elem) {
+function addDefaultAtts (elem, instance) {
 
 	// Only run on elements
 	if (elem.nodeType !== 1) return;
 
-	// Remove [reef-default-*] and [reef-*] attributes and replace them with the plain attributes
+	// Remove [@*] and [#*] attributes and replace them with the plain attributes
 	// Remove unsafe HTML attributes
 	for (let {name, value} of elem.attributes) {
+
+		// If its an event handler, maybe add it
+		if (name.startsWith('on')) {
+			addEvent(elem, name, value, instance);
+		}
 
 		// If the attribute should be skipped, remove it
 		if (skipAttribute(name, value)) {
@@ -352,13 +422,13 @@ function addDefaultAtts (elem) {
 			continue;
 		}
 
-		// If the attribute isn't a [reef-default-*] or [reef-*], skip it
-		if (name.slice(0, 5) !== 'reef-') continue;
+		// If the attribute isn't a [@*] or [#*], skip it
+		if (!name.startsWith('@') && !name.startsWith('#')) continue;
 
 		// Get the plain attribute name
-		let attName = name.replace('reef-default-', '').replace('reef-', '');
+		let attName = name.slice(1);
 
-		// Remove the [reef-default-*] or [reef-*] attribute
+		// Remove the [@*] or [#*] attribute
 		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
@@ -372,7 +442,7 @@ function addDefaultAtts (elem) {
 	// If there are child elems, recursively add defaults to them
 	if (elem.childNodes) {
 		for (let node of elem.childNodes) {
-			addDefaultAtts(node);
+			addDefaultAtts(node, instance);
 		}
 	}
 
@@ -420,10 +490,11 @@ function aheadInTree (node, existingNodes, index) {
  * @param  {Array} existingNodes      The existing DOM
  * @param  {Array} templateNodes The template
  */
-function trimExtraNodes (existingNodes, templateNodes) {
+function trimExtraNodes (existingNodes, templateNodes, instance) {
 	let extra = existingNodes.length - templateNodes.length;
 	if (extra < 1)  return;
 	for (; extra > 0; extra--) {
+		removeAllEvents([existingNodes[existingNodes.length - 1]], instance);
 		existingNodes[existingNodes.length - 1].remove();
 	}
 }
@@ -443,9 +514,8 @@ function removeScripts (elem) {
  * Diff the existing DOM node versus the template
  * @param  {Array} template The template HTML
  * @param  {Node}  existing The current DOM HTML
- * @param  {Array} polyps   Attached components for this element
  */
-function diff (template, existing, polyps) {
+function diff (template, existing, instance) {
 
 	// Get the nodes in the template and existing UI
 	let templateNodes = template.childNodes;
@@ -459,8 +529,9 @@ function diff (template, existing, polyps) {
 
 		// If element doesn't exist, create it
 		if (!existingNodes[index]) {
-			addDefaultAtts(node);
-			existing.append(node.cloneNode(true));
+			let clone = node.cloneNode(true);
+			addDefaultAtts(clone, instance);
+			existing.append(clone);
 			return;
 		}
 
@@ -472,8 +543,9 @@ function diff (template, existing, polyps) {
 
 			// If not, insert the node before the current one
 			if (!ahead) {
-				addDefaultAtts(node);
-				existingNodes[index].before(node.cloneNode(true));
+				let clone = node.cloneNode(true);
+				addDefaultAtts(clone, instance);
+				existingNodes[index].before(clone);
 				return;
 			}
 
@@ -482,12 +554,6 @@ function diff (template, existing, polyps) {
 
 		}
 
-		// If element is an attached component, skip it
-		let isPolyp = polyps.filter(function (polyp) {
-			return ![3, 8].includes(node.nodeType) && node.matches(polyp);
-		});
-		if (isPolyp.length > 0) return;
-
 		// If content is different, update it
 		let templateContent = getNodeContent(node);
 		if (templateContent && templateContent !== getNodeContent(existingNodes[index])) {
@@ -495,10 +561,11 @@ function diff (template, existing, polyps) {
 		}
 
 		// If attributes are different, update them
-		diffAttributes(node, existingNodes[index]);
+		diffAttributes(node, existingNodes[index], instance);
 
 		// If there shouldn't be child nodes but there are, remove them
 		if (!node.childNodes.length && existingNodes[index].childNodes.length) {
+			removeAllEvents(node.children, instance);
 			existingNodes[index].innerHTML = '';
 			return;
 		}
@@ -507,225 +574,163 @@ function diff (template, existing, polyps) {
 		// This uses a document fragment to minimize reflows
 		if (!existingNodes[index].childNodes.length && node.childNodes.length) {
 			let fragment = document.createDocumentFragment();
-			diff(node, fragment, polyps);
+			diff(node, fragment, instance);
 			existingNodes[index].appendChild(fragment);
 			return;
 		}
 
 		// If there are nodes within it, recursively diff those
 		if (node.childNodes.length) {
-			diff(node, existingNodes[index], polyps);
+			diff(node, existingNodes[index], instance);
 		}
 
 	});
 
 	// If extra elements in DOM, remove them
-	trimExtraNodes(existingNodes, templateNodes);
+	trimExtraNodes(existingNodes, templateNodes, instance);
 
 }
 
 /**
- * If there are linked Reefs, render them, too
- * @param  {Array} polyps Attached Reef components
- */
-function renderPolyps (polyps, reef) {
-	if (!polyps) return;
-	for (let coral of polyps) {
-		if (coral.attached.includes(reef)) return err(`"${reef.elem}" has attached nodes that it is also attached to, creating an infinite loop.`);
-		if ('render' in coral) {
-			coral.render();
-		}
-	}
-}
-
-/**
- * Create the Reef object
+ * Create the Constructor object
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-function Reef (elem, options = {}) {
+function Constructor (elem, options = {}) {
+
+	// Get variables from options
+	let {data, store, template, isStore, setters, listeners, after} = options;
 
 	// Make sure an element is provided
-	if (!elem && !options.lagoon) return err('You did not provide an element to make into a component.');
+	if (!elem && !isStore) {
+		return err('Element not found.');
+	}
 
 	// Make sure a template is provided
-	if (!options.template && !options.lagoon) return err('You did not provide a template for this component.');
+	if (!template && !isStore) {
+		return err('Please provide a template function.');
+	}
 
-	// Get the component properties
-	let _this = this;
-	let _data = makeProxy(options, _this);
-	let _attachTo = options.attachTo ? (trueTypeOf(options.attachTo) === 'array' ? options.attachTo : [options.attachTo]) : [];
-	let {store: _store, setters: _setters, getters: _getters} = options;
-	_this.debounce = null;
+	// Cache an immutable copy of the data
+	let $data = setters ? copy(data) : makeProxy(data, this);
 
-	// Set the component properties
-	Object.defineProperties(_this, {
+	// Define instance properties
+	Object.defineProperties(this, {
 
-		// Read-only properties
-		elem: {value: elem},
-		template: {value: options.template},
-		lagoon: {value: options.lagoon},
-		store: {value: _store},
-		attached: {value: []},
+		// Internal props
+		_store: {value: store},
+		_template: {value: template},
+		_debounce: {value: false, writable: true},
+		_isStore: {value: isStore},
+		_components: isStore ? {value: [], writable: true} : {value: null},
+		_listeners: {value: Object.freeze(listeners)},
 
-		// getter/setter for data
+		// Public props
+		elem: {
+			get: function () {
+				return typeof elem === 'string' ? document.querySelector(elem) : elem;
+			}
+		},
 		data: {
 			get: function () {
-				return _setters ? copy(_data) : _data;
+				return setters ? copy($data) : $data;
 			},
 			set: function (data) {
-				if (_store || _setters) return true;
-				_data = new Proxy(data, dataHandler(_this));
-				debounceRender(_this);
+				if (setters) return true;
+				$data = makeProxy(data, this);
+				render(this);
 				return true;
 			},
 			configurable: true
 		},
-
-		// immutable data getter
 		dataCopy: {
 			get: function () {
-				return copy(_data);
+				return copy($data);
 			}
 		},
-
-		// do() method for options.setters
 		do: {
-			value: function (id) {
-				if (_store || !_setters) return err('There are no setters for this component.');
-				if (!_setters[id]) return err('There is no setter with this name.');
-				let args = Array.from(arguments);
-				args[0] = _data;
-				_setters[id].apply(_this, args);
-				debounceRender(_this);
-			}
-		},
+			value: function (id, ...args) {
 
-		// get() method for options.getters
-		get: {
-			value: function (id) {
-				if (_store || !_getters) return err('There are no getters for this component.');
-				if (!_getters[id]) return err('There is no getter with this name.');
-				let args = Array.from(arguments);
-				args[0] = _data;
-				return _getters[id].apply(_this, args);
+				// Make sure there are setters
+				if (!setters) {
+					return err('No setters for this component.');
+				}
+
+				// Make sure there's a setter with the correct ID
+				if (!setters[id]) {
+					return err(`No setter named "${id}".`);
+				}
+
+				// Run the setter function
+				setters[id].apply(this, [$data, ...args]);
+
+				// Update the data
+				$data = copy($data);
+
+				// Render a new UI
+				render(this);
+
 			}
 		}
 
 	});
 
-	// Attach to store
-	if (_store && 'attach' in _store) {
-		_store.attach(_this);
-	}
-
-	// Attach linked components
-	if (_attachTo.length) {
-		_attachTo.forEach(function (coral) {
-			if ('attach' in coral) {
-				coral.attach(_this);
-			}
-		});
+	// Attach component to store
+	if (store) {
+		store._components.push(this);
 	}
 
 	// Emit initialized event
-	emit(document, 'reef:initialized', _this);
+	emit('initialize', this);
 
 }
 
 /**
- * Render a template into the DOM
- * @return {Node}  The elemenft
+ * Get the compiled HTML string
+ * @return {String} The HTML string
  */
-Reef.prototype.render = function () {
+Constructor.prototype.html = function () {
+	let details = getRenderDetails(this);
+	return details.template;
+};
 
-	// If this is used only for data, render attached and bail
-	if (this.lagoon) {
-		renderPolyps(this.attached, this);
+/**
+ * Render a template into the DOM
+ * @return {Node}  The element
+ */
+Constructor.prototype.render = function () {
+
+	// If a store, render components
+	if (this._isStore) {
+		for (let component of this._components) {
+			if ('render' in component && typeof component.render === 'function') {
+				component.render();
+			}
+		}
 		return;
 	}
 
-	// Make sure there's a template
-	if (!this.template) return err('No template was provided.');
+	// Get the render details
+	let details = getRenderDetails(this);
 
-	// If elem is an element, use it
-	// If it's a selector, get it
-	let elem = trueTypeOf(this.elem) === 'string' ? document.querySelector(this.elem) : this.elem;
-	if (!elem) return err('The DOM element to render your template into was not found.');
-
-	// Merge store and local data into a single object
-	let data = Object.assign({}, (this.store ? this.store.data : {}), (this.data ? this.data : {}));
-
-	// Get the template
-	let template = (trueTypeOf(this.template) === 'function' ? this.template(copy(data), elem) : this.template);
+	// Make sure there's an element to render into
+	if (!details.elem) {
+		return err('Render target not found.');
+	}
 
 	// Emit pre-render event
 	// If the event was cancelled, bail
-	let canceled = !emit(elem, 'reef:before-render', data);
-	if (canceled) return;
+	let cancel = !emit('before-render', {data: details.data, component: this}, details.elem);
+	if (cancel) return;
 
 	// Diff and update the DOM
-	let polyps = this.attached.map(function (polyp) { return polyp.elem; });
-	diff(stringToHTML(template), elem, polyps);
+	diff(stringToHTML(details.template), details.elem, this);
 
 	// Dispatch a render event
-	emit(elem, 'reef:render', data);
-
-	// If there are linked Reefs, render them, too
-	renderPolyps(this.attached, this);
+	emit('render', {data: details.data, component: this}, details.elem);
 
 	// Return the elem for use elsewhere
-	return elem;
-
-};
-
-/**
- * Get an immutable copy of the data
- * @return {Object} The app data
- */
-Reef.prototype.immutableData = function () {
-	return copy(this.data);
-};
-
-/**
- * Attach a component to this one
- * @param  {Function|Array} coral The component(s) to attach
- */
-Reef.prototype.attach = function (coral) {
-
-	// Attach components
-	let polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
-	for (let polyp of polyps) {
-		this.attached.push(polyp);
-	}
-
-	// Emit attached event
-	emit(document, 'reef:attached', {
-		component: this,
-		attached: polyps
-	});
-
-};
-
-/**
- * Detach a linked component to this one
- * @param  {Function|Array} coral The linked component(s) to detach
- */
-Reef.prototype.detach = function (coral) {
-
-	// Detach components
-	let polyps = trueTypeOf(coral) === 'array' ? coral : [coral];
-	for (let polyp of polyps) {
-		let index = this.attached.indexOf(polyp);
-		if (index < 0) return;
-		this.attached.splice(index, 1);
-	}
-
-	// Emit detached event
-	emit(document, 'reef:detached', {
-		component: this,
-		detached: polyps
-	});
+	return details.elem;
 
 };
 
@@ -733,18 +738,15 @@ Reef.prototype.detach = function (coral) {
  * Store constructor
  * @param {Object} options The data store options
  */
-Reef.Store = function (options) {
-	options.lagoon = true;
-	return new Reef(null, options);
+Constructor.Store = function (options) {
+	options.isStore = true;
+	return new Constructor(null, options);
 };
 
 // External helper methods
-Reef.debug = setDebug;
-Reef.clone = copy;
-Reef.emit = emit;
-Reef.err = err;
+Constructor.debug = debug;
 
 // Emit ready event
-emit(document, 'reef:ready');
+emit('ready');
 
-export default Reef;
+export default Constructor;

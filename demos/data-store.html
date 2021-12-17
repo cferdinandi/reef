@@ -28,6 +28,11 @@
 		var store = Reef.Store({
 			data: {
 				todos: ['Swim', 'Climb', 'Jump', 'Play']
+			},
+			setters: {
+				addTodo: function (props, todo) {
+					props.todos.push(todo);
+				}
 			}
 		});
 
@@ -49,14 +54,18 @@
 			}
 		});
 
+		document.addEventListener('reef:render', function (event) {
+			console.log(event.detail);
+		});
+
 		app.render();
 
-		// After 3 seconds, update the store data
+		// After 2 seconds, update the store data
 		// The app will re-render with the new data
 		setTimeout(function () {
 			app.data.heading = 'Stuff to do';
 			store.data.todos.push('Take a nap... zzzz');
-		}, 3000);
+		}, 2000);
 	</script>
 
 </body>
