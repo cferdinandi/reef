@@ -107,8 +107,8 @@ function render (instance) {
  * @return {Object}               The element, data, and template details
  */
 function getRenderDetails (instance) {
-	let elem = instance._elem;
-	let data = instance._store ? Object.assign(instance._store.data, instance.data || {}) : instance.data;
+	let elem = instance.elem;
+	let data = copy(instance._store ? Object.assign(instance._store.data, instance.data || {}) : instance.data);
 	let template = instance._template(data, elem);
 	return {elem, data, template};
 }
@@ -144,6 +144,45 @@ function isFalsy (str) {
 	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
 }
 
+/**
+ * Create settings and getters for data Proxy
+ * @param  {Constructor} instance The current instantiation
+ * @return {Object}               The setter and getter methods for the Proxy
+ */
+function handler (instance) {
+	return {
+		get: function (obj, prop) {
+			if (prop === '_isProxy') return true;
+			if (typeof obj[prop] === 'object' && !obj[prop]._isProxy) {
+				obj[prop] = new Proxy(obj[prop], handler(instance));
+			}
+			return obj[prop];
+		},
+		set: function (obj, prop, value) {
+			if (obj[prop] === value) return true;
+			obj[prop] = value;
+			render(instance);
+			return true;
+		},
+		deleteProperty: function (obj, prop) {
+			delete obj[prop];
+			render(instance);
+			return true;
+		}
+	};
+}
+
+/**
+ * Create a proxy from a data object
+ * @param  {Object}     options  The options object
+ * @param  {Contructor} instance The current Reef instantiation
+ * @return {Proxy}               The Proxy
+ */
+function makeProxy (data, instance) {
+	if (!data) return null;
+	return new Proxy(data, handler(instance));
+}
+
 //  Hold all events by type
 let events = {};
 
@@ -156,7 +195,7 @@ var eventHandler = function (event) {
 	for (let listener of events[event.type]) {
 		let {elem, callback} = listener;
 		if (elem === event.target || elem.contains(event.target)) {
-			callback(event);
+			callback.call(listener.instance, event);
 		}
 	}
 };
@@ -220,7 +259,7 @@ function addEvent (elem, name, value, instance) {
 	if (getListener(type, elem, callback)) return;
 
 	// Otherwise, add listener
-	events[type].push({elem, callback});
+	events[type].push({elem, callback, instance});
 
 }
 
@@ -575,29 +614,40 @@ function Constructor (elem, options = {}) {
 	}
 
 	// Cache an immutable copy of the data
-	let dataCopy = copy(data);
+	let $data = setters ? copy(data) : makeProxy(data, this);
 
 	// Define instance properties
 	Object.defineProperties(this, {
 
 		// Internal props
-		_elem: {
-			get: function () {
-				return typeof elem === 'string' ? document.querySelector(elem) : elem;
-			}
-		},
 		_store: {value: store},
 		_template: {value: template},
 		_debounce: {value: false, writable: true},
 		_isStore: {value: isStore},
 		_components: isStore ? {value: [], writable: true} : {value: null},
 		_listeners: {value: Object.freeze(listeners)},
-		_after: {value: Object.freeze(after || {})},
 
 		// Public props
+		elem: {
+			get: function () {
+				return typeof elem === 'string' ? document.querySelector(elem) : elem;
+			}
+		},
 		data: {
 			get: function () {
-				return dataCopy;
+				return setters ? copy($data) : $data;
+			},
+			set: function (data) {
+				if (setters) return true;
+				$data = makeProxy(data, this);
+				render(this);
+				return true;
+			},
+			configurable: true
+		},
+		dataCopy: {
+			get: function () {
+				return copy($data);
 			}
 		},
 		do: {
@@ -614,11 +664,10 @@ function Constructor (elem, options = {}) {
 				}
 
 				// Run the setter function
-				setters[id].apply(this, [dataCopy, ...args]);
+				setters[id].apply(this, [$data, ...args]);
 
 				// Update the data
-				data = dataCopy;
-				dataCopy = copy(data);
+				$data = copy($data);
 
 				// Render a new UI
 				render(this);
@@ -628,8 +677,13 @@ function Constructor (elem, options = {}) {
 
 	});
 
+	// Attach component to store
+	if (store) {
+		store._components.push(this);
+	}
+
 	// Emit initialized event
-	emit('initialized', this);
+	emit('initialize', this);
 
 }
 
@@ -640,20 +694,6 @@ function Constructor (elem, options = {}) {
 Constructor.prototype.html = function () {
 	let details = getRenderDetails(this);
 	return details.template;
-};
-
-// @todo pick one: nest or html
-
-/**
- * Nest this component inside another one
- * @return {String} The HTML string
- */
-Constructor.prototype.nest = function (component) {
-	let instance = this;
-	component._elem.addEventListener('reef:render', function () {
-		instance.render();
-	}, {once: true});
-	return '';
 };
 
 /**
@@ -682,19 +722,14 @@ Constructor.prototype.render = function () {
 
 	// Emit pre-render event
 	// If the event was cancelled, bail
-	let cancel = !emit('before-render', details.data, details.elem);
+	let cancel = !emit('before-render', {data: details.data, component: this}, details.elem);
 	if (cancel) return;
 
 	// Diff and update the DOM
 	diff(stringToHTML(details.template), details.elem, this);
 
-	// Run any render effects
-	if (this._after.render && typeof this._after.render === 'function') {
-		this._after.render(this.data);
-	}
-
 	// Dispatch a render event
-	emit('render', details.data, details.elem);
+	emit('render', {data: details.data, component: this}, details.elem);
 
 	// Return the elem for use elsewhere
 	return details.elem;
@@ -712,7 +747,6 @@ Constructor.Store = function (options) {
 
 // External helper methods
 Constructor.debug = debug;
-Constructor.clone = copy;
 
 // Emit ready event
 emit('ready');

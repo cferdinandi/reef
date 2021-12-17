@@ -58,21 +58,21 @@
 
 		app.render();
 
-		// After 3 seconds, try to update the data
+		// After 2 seconds, try to update the data
 		// This won't do anything, because setters were defined
 		// When setters are defined, only explicit setter functions can update state
 		// The state returned from app.data is an immutable, so store.data is never updated
 		setTimeout(function () {
 			store.data.todos.push('Take a nap... zzzz');
 			console.log('Update state directly', store.data.todos);
-		}, 3000);
+		}, 2000);
 
-		// After 6 seconds, add a todo using the addTodo setter
+		// After 4 seconds, add a todo using the addTodo setter
 		// This WILL update the state and render an updated UI
 		setTimeout(function () {
 			store.do('addTodo', 'Take a nap... zzzz');
 			console.log('Update state with setter', store.data.todos);
-		}, 6000);
+		}, 4000);
 	</script>
 
 </body>

@@ -28,7 +28,7 @@
 				showStyles: false
 			},
 			template: function (props) {
-				if (!props.showStyles) return '<p>Hi</p>';
+				if (!props.showStyles) return '<p>Hi!</p>';
 				return `
 					<style>.color { color: red; }</style>
 					<p class="color">Hi!</p>`;
@@ -37,10 +37,10 @@
 
 		app.render();
 
-		// After 3 seconds, update with styles
+		// After 2 seconds, update with styles
 		setTimeout(function () {
 			app.data.showStyles = true;
-		}, 3000);
+		}, 2000);
 	</script>
 
 </body>

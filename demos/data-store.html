@@ -51,12 +51,11 @@
 						}).join('')}
 					</ul>`;
 
-			},
-			setters: {
-				changeHeading: function (props, heading) {
-					props.heading = heading;
-				}
 			}
+		});
+
+		document.addEventListener('reef:render', function (event) {
+			console.log(event.detail);
 		});
 
 		app.render();
@@ -64,13 +63,9 @@
 		// After 2 seconds, update the store data
 		// The app will re-render with the new data
 		setTimeout(function () {
-			app.do('changeHeading', 'Stuff to do');
-			store.do('addTodo', 'Take a nap... zzzz');
+			app.data.heading = 'Stuff to do';
+			store.data.todos.push('Take a nap... zzzz');
 		}, 2000);
-
-		document.addEventListener('reef:render', function (event) {
-			console.log(event);
-		});
 	</script>
 
 </body>

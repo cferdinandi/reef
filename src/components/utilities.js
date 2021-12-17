@@ -83,8 +83,8 @@ function render (instance) {
  * @return {Object}               The element, data, and template details
  */
 function getRenderDetails (instance) {
-	let elem = instance._elem;
-	let data = instance._store ? Object.assign(instance._store.data, instance.data || {}) : instance.data;
+	let elem = instance.elem;
+	let data = copy(instance._store ? Object.assign(instance._store.data, instance.data || {}) : instance.data);
 	let template = instance._template(data, elem);
 	return {elem, data, template};
 }

@@ -31,13 +31,8 @@
 				return `
 					<h1>${props.heading}</h1>
 					<div id="todos">
-						${todos.nest(this)}
+						${todos.html()}
 					</div>`;
-			},
-			setters: {
-				changeHeading: function (props, heading) {
-					props.heading = heading;
-				}
 			}
 		});
 
@@ -50,19 +45,9 @@
 				return `
 					<ul>
 						${props.todos.map(function (todo) {
-							return `<li onClick="log()">${todo}</li>`;
+							return `<li>${todo}</li>`;
 						}).join('')}
 					</ul>`;
-			},
-			setters: {
-				addTodo: function (props, todo) {
-					props.todos.push(todo);
-				}
-			},
-			listeners: {
-				log: function (event) {
-					console.log('log', event.target);
-				}
 			}
 		});
 
@@ -78,15 +63,14 @@
 		// After 2 seconds, update the store data
 		// The app will re-render with the new data
 		setTimeout(function () {
-			app.do('changeHeading', 'Stuff to do');
-			todos.do('addTodo', 'Take a nap... zzzz');
+			app.data.heading = 'Stuff to do';
+			todos.data.todos.push('Take a nap... zzzz');
 		}, 2000);
 
-		// After 2 seconds, update the store data
+		// After 4 seconds, update the store data
 		// The app will re-render with the new data
 		setTimeout(function () {
-			// app.do('changeHeading', 'Stuff to do');
-			todos.do('addTodo', 'Wake up!');
+			todos.data.todos.push('Wake up!');
 		}, 4000);
 	</script>
 

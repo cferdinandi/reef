@@ -10,7 +10,7 @@ var eventHandler = function (event) {
 	for (let listener of events[event.type]) {
 		let {elem, callback} = listener;
 		if (elem === event.target || elem.contains(event.target)) {
-			callback(event);
+			callback.call(listener.instance, event);
 		}
 	}
 };
@@ -74,7 +74,7 @@ function addEvent (elem, name, value, instance) {
 	if (getListener(type, elem, callback)) return;
 
 	// Otherwise, add listener
-	events[type].push({elem, callback});
+	events[type].push({elem, callback, instance});
 
 }
 
