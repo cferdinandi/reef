@@ -78,6 +78,18 @@ function render (instance) {
 }
 
 /**
+ * Get instance render details
+ * @param  {Constructor} instance The Constructor instance
+ * @return {Object}               The element, data, and template details
+ */
+function getRenderDetails (instance) {
+	let elem = instance._elem;
+	let data = instance._store ? Object.assign(instance._store.data, instance.data || {}) : instance.data;
+	let template = instance._template(data, elem);
+	return {elem, data, template};
+}
+
+/**
  * Convert a template string into HTML DOM nodes
  * @param  {String} str The template string
  * @return {Node}       The template HTML
@@ -108,4 +120,4 @@ function isFalsy (str) {
 	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
 }
 
-export {emit, copy, render, stringToHTML, isFalsy};
+export {emit, copy, render, getRenderDetails, stringToHTML, isFalsy};

@@ -1,5 +1,5 @@
 import {debug, err} from './debug.js';
-import {copy, render, emit, stringToHTML} from './utilities.js';
+import {copy, render, getRenderDetails, emit, stringToHTML} from './utilities.js';
 import {diff} from './dom.js';
 
 /**
@@ -9,18 +9,21 @@ import {diff} from './dom.js';
  */
 function Constructor (elem, options = {}) {
 
+	// Get variables from options
+	let {data, store, template, isStore, setters, listeners, after} = options;
+
 	// Make sure an element is provided
-	if (!elem && !options.lagoon) {
+	if (!elem && !isStore) {
 		return err('Element not found.');
 	}
 
 	// Make sure a template is provided
-	if (!options.template && !options.lagoon) {
+	if (!template && !isStore) {
 		return err('Please provide a template function.');
 	}
 
-	// Extract data from the options
-	let {data, store, template, isStore, setters} = options;
+	// Cache an immutable copy of the data
+	let dataCopy = copy(data);
 
 	// Define instance properties
 	Object.defineProperties(this, {
@@ -34,11 +37,15 @@ function Constructor (elem, options = {}) {
 		_store: {value: store},
 		_template: {value: template},
 		_debounce: {value: false, writable: true},
+		_isStore: {value: isStore},
+		_components: isStore ? {value: [], writable: true} : {value: null},
+		_listeners: {value: Object.freeze(listeners)},
+		_after: {value: Object.freeze(after || {})},
 
 		// Public props
 		data: {
 			get: function () {
-				return store ? Object.assign(store.data, copy(data)) : copy(data);
+				return dataCopy;
 			}
 		},
 		do: {
@@ -55,7 +62,11 @@ function Constructor (elem, options = {}) {
 				}
 
 				// Run the setter function
-				setters[id].apply(this, [data, ...args]);
+				setters[id].apply(this, [dataCopy, ...args]);
+
+				// Update the data
+				data = dataCopy;
+				dataCopy = copy(data);
 
 				// Render a new UI
 				render(this);
@@ -70,9 +81,27 @@ function Constructor (elem, options = {}) {
 
 }
 
+/**
+ * Get the compiled HTML string
+ * @return {String} The HTML string
+ */
 Constructor.prototype.html = function () {
-	let elem = typeof this._elem === 'string' ? document.querySelector(this._elem) : this._elem;
-	return this._template(this.data, elem);
+	let details = getRenderDetails(this);
+	return details.template;
+};
+
+// @todo pick one: nest or html
+
+/**
+ * Nest this component inside another one
+ * @return {String} The HTML string
+ */
+Constructor.prototype.nest = function (component) {
+	let instance = this;
+	component._elem.addEventListener('reef:render', function () {
+		instance.render();
+	}, {once: true});
+	return '';
 };
 
 /**
@@ -81,27 +110,52 @@ Constructor.prototype.html = function () {
  */
 Constructor.prototype.render = function () {
 
-	// If elem is an element, use it
-	// If it's a selector, get it
-	let elem = this._elem;
-	if (!elem) {
+	// If a store, render components
+	if (this._isStore) {
+		for (let component of this._components) {
+			if ('render' in component && typeof component.render === 'function') {
+				component.render();
+			}
+		}
+		return;
+	}
+
+	// Get the render details
+	let details = getRenderDetails(this);
+
+	// Make sure there's an element to render into
+	if (!details.elem) {
 		return err('Render target not found.');
 	}
 
 	// Emit pre-render event
 	// If the event was cancelled, bail
-	let cancel = !emit('before-render', this.data, elem);
+	let cancel = !emit('before-render', details.data, details.elem);
 	if (cancel) return;
 
 	// Diff and update the DOM
-	diff(stringToHTML(this._template(this.data, elem)), elem);
+	diff(stringToHTML(details.template), details.elem, this);
+
+	// Run any render effects
+	if (this._after.render && typeof this._after.render === 'function') {
+		this._after.render(this.data);
+	}
 
 	// Dispatch a render event
-	emit('render', this.data, elem);
+	emit('render', details.data, details.elem);
 
 	// Return the elem for use elsewhere
-	return elem;
+	return details.elem;
 
+};
+
+/**
+ * Store constructor
+ * @param {Object} options The data store options
+ */
+Constructor.Store = function (options) {
+	options.isStore = true;
+	return new Constructor(null, options);
 };
 
 // External helper methods

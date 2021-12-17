@@ -23,19 +23,26 @@
 		Reef.debug(true);
 
 		// Parent component
-		var app = new Reef('#app', {
+		let app = new Reef('#app', {
 			data: {
 				heading: 'My Todos'
 			},
 			template: function (props) {
 				return `
 					<h1>${props.heading}</h1>
-					<div id="todos"></div>`;
+					<div id="todos">
+						${todos.nest(this)}
+					</div>`;
+			},
+			setters: {
+				changeHeading: function (props, heading) {
+					props.heading = heading;
+				}
 			}
 		});
 
 		// Nested component
-		var todos = new Reef('#todos', {
+		let todos = new Reef('#todos', {
 			data: {
 				todos: ['Swim', 'Climb', 'Jump', 'Play']
 			},
@@ -43,11 +50,20 @@
 				return `
 					<ul>
 						${props.todos.map(function (todo) {
-							return `<li>${todo}</li>`;
+							return `<li onClick="log()">${todo}</li>`;
 						}).join('')}
 					</ul>`;
 			},
-			attachTo: app
+			setters: {
+				addTodo: function (props, todo) {
+					props.todos.push(todo);
+				}
+			},
+			listeners: {
+				log: function (event) {
+					console.log('log', event.target);
+				}
+			}
 		});
 
 		// Log rendered elements
@@ -59,17 +75,19 @@
 		// Todos must be manually rendered because they're not attached
 		app.render();
 
-		// After three seconds, update app state
-		// Both #app and #todos are rendered
-		window.setTimeout(function () {
-			app.data.heading = 'Stuff to get done';
-		}, 3000);
+		// After 2 seconds, update the store data
+		// The app will re-render with the new data
+		setTimeout(function () {
+			app.do('changeHeading', 'Stuff to do');
+			todos.do('addTodo', 'Take a nap... zzzz');
+		}, 2000);
 
-		// After six seconds, add a todo
-		// Only #todos is rendered
-		window.setTimeout(function () {
-			todos.data.todos.push('Take a nap... zzzz');
-		}, 6000);
+		// After 2 seconds, update the store data
+		// The app will re-render with the new data
+		setTimeout(function () {
+			// app.do('changeHeading', 'Stuff to do');
+			todos.do('addTodo', 'Wake up!');
+		}, 4000);
 	</script>
 
 </body>

@@ -35,13 +35,21 @@
 					<h1>${heading} ${emoji}</h1>
 					<ul>
 						${todos.map(function (todo) {
-							return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+							return `<li onClick="log()" id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
 						}).join('')}
 					</ul>`;
 			},
 			setters: {
 				addTodo: function (props, todo) {
 					props.todos.push(todo);
+				},
+				removeAll: function (props) {
+					props.todos = [];
+				}
+			},
+			listeners: {
+				log: function (event) {
+					console.log('log', event.target);
 				}
 			}
 		});
