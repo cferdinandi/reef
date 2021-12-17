@@ -1,4 +1,4 @@
-/*! Reef v10.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v10.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var Reef = (function () {
 	'use strict';
 
@@ -171,8 +171,9 @@ var Reef = (function () {
 	function dataHandler (instance) {
 		return {
 			get: function (obj, prop) {
-				if (['object', 'array'].includes(trueTypeOf(obj[prop]))) {
-					return new Proxy(obj[prop], dataHandler(instance));
+				if (prop === '_isProxy') return true;
+				if (typeof obj[prop] === 'object' && !obj[prop]._isProxy) {
+					obj[prop] = new Proxy(obj[prop], dataHandler(instance));
 				}
 				return obj[prop];
 			},
@@ -659,7 +660,7 @@ var Reef = (function () {
 		let data = Object.assign({}, (this.store ? this.store.data : {}), (this.data ? this.data : {}));
 
 		// Get the template
-		let template = (trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
+		let template = (trueTypeOf(this.template) === 'function' ? this.template(copy(data), elem) : this.template);
 
 		// Emit pre-render event
 		// If the event was cancelled, bail

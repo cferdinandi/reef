@@ -120,7 +120,7 @@ Reef.prototype.render = function () {
 	let data = Object.assign({}, (this.store ? this.store.data : {}), (this.data ? this.data : {}));
 
 	// Get the template
-	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(data, elem) : this.template);
+	let template = (_.trueTypeOf(this.template) === 'function' ? this.template(_.copy(data), elem) : this.template);
 
 	// Emit pre-render event
 	// If the event was cancelled, bail
