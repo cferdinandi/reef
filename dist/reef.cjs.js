@@ -1,4 +1,4 @@
-/*! Reef v10.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v11.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 // Is debugging enabled
@@ -358,14 +358,14 @@ function diffAttributes (template, existing, instance) {
 	// Add and update attributes from the template into the DOM
 	for (let {name, value} of templateAtts) {
 
-		// Skip [reef-default-*] attributes
-		if (name.slice(0, 13) === 'reef-default-') continue;
+		// Skip [#*] attributes
+		if (name.startsWith('#')) continue;
 
 		// Skip user-editable form field attributes
 		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) continue;
 
-		// Convert [reef-*] names to their real attribute name
-		let attName = name.replace('reef-', '');
+		// Convert [@*] names to their real attribute name
+		let attName = name.startsWith('@') ? name.slice(1) : name;
 
 		// If its a no-value property and it's falsy remove it
 		if (formAttsNoVal.includes(attName) && isFalsy(value)) {
@@ -409,7 +409,7 @@ function addDefaultAtts (elem, instance) {
 	// Only run on elements
 	if (elem.nodeType !== 1) return;
 
-	// Remove [reef-default-*] and [reef-*] attributes and replace them with the plain attributes
+	// Remove [@*] and [#*] attributes and replace them with the plain attributes
 	// Remove unsafe HTML attributes
 	for (let {name, value} of elem.attributes) {
 
@@ -424,13 +424,13 @@ function addDefaultAtts (elem, instance) {
 			continue;
 		}
 
-		// If the attribute isn't a [reef-default-*] or [reef-*], skip it
-		if (name.slice(0, 5) !== 'reef-') continue;
+		// If the attribute isn't a [@*] or [#*], skip it
+		if (!name.startsWith('@') && !name.startsWith('#')) continue;
 
 		// Get the plain attribute name
-		let attName = name.replace('reef-default-', '').replace('reef-', '');
+		let attName = name.slice(1);
 
-		// Remove the [reef-default-*] or [reef-*] attribute
+		// Remove the [@*] or [#*] attribute
 		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
@@ -750,10 +750,5 @@ Constructor.debug = debug;
 
 // Emit ready event
 emit('ready');
-
-// @TODO
-// - ✓ Add store
-// - ✓ Add nested components
-// - Add on-* event methods
 
 module.exports = Constructor;
