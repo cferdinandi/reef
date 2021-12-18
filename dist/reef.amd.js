@@ -1,4 +1,4 @@
-/*! Reef v11.0.0 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! Reef v11.0.1 | (c) 2021 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 define(function () { 'use strict';
 
     // Is debugging enabled
@@ -43,6 +43,15 @@ define(function () { 'use strict';
     }
 
     /**
+     * Get an object's type
+     * @param  {*}      obj The object
+     * @return {String}     The type
+     */
+    function getType (obj) {
+    	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+    }
+
+    /**
      * Create an immutable clone of data
      * @param  {*} obj The data object to copy
      * @return {*}     The clone of the array or object
@@ -74,7 +83,7 @@ define(function () { 'use strict';
     	}
 
     	// Get object type
-    	let type = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+    	let type = getType(obj);
 
     	// Return a clone based on the object type
     	if (type === 'object') return cloneObj();
@@ -153,7 +162,7 @@ define(function () { 'use strict';
     	return {
     		get: function (obj, prop) {
     			if (prop === '_isProxy') return true;
-    			if (typeof obj[prop] === 'object' && !obj[prop]._isProxy) {
+    			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
     				obj[prop] = new Proxy(obj[prop], handler(instance));
     			}
     			return obj[prop];

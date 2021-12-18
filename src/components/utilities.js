@@ -19,6 +19,15 @@ function emit (type, detail = {}, elem = document) {
 }
 
 /**
+ * Get an object's type
+ * @param  {*}      obj The object
+ * @return {String}     The type
+ */
+function getType (obj) {
+	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+}
+
+/**
  * Create an immutable clone of data
  * @param  {*} obj The data object to copy
  * @return {*}     The clone of the array or object
@@ -50,7 +59,7 @@ function copy (obj) {
 	}
 
 	// Get object type
-	let type = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+	let type = getType(obj);
 
 	// Return a clone based on the object type
 	if (type === 'object') return cloneObj();
@@ -120,4 +129,4 @@ function isFalsy (str) {
 	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
 }
 
-export {emit, copy, render, getRenderDetails, stringToHTML, isFalsy};
+export {emit, getType, copy, render, getRenderDetails, stringToHTML, isFalsy};

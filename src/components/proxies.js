@@ -1,4 +1,4 @@
-import {render} from './utilities.js';
+import {getType, render} from './utilities.js';
 
 /**
  * Create settings and getters for data Proxy
@@ -9,7 +9,7 @@ function handler (instance) {
 	return {
 		get: function (obj, prop) {
 			if (prop === '_isProxy') return true;
-			if (typeof obj[prop] === 'object' && !obj[prop]._isProxy) {
+			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
 				obj[prop] = new Proxy(obj[prop], handler(instance));
 			}
 			return obj[prop];
