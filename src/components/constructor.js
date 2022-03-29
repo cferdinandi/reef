@@ -13,11 +13,6 @@ function Constructor (elem = null, options = {}) {
 	// Get variables from options
 	let {data, store, template, isStore, setters, listeners, after} = options;
 
-	// Make sure an element is provided
-	if (!elem && !isStore) {
-		return err('Element not found.');
-	}
-
 	// Make sure a template is provided
 	if (!template && !isStore) {
 		return err('Please provide a template function.');
