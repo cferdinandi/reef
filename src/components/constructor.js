@@ -8,7 +8,7 @@ import {diff} from './dom.js';
  * @param {String|Node} elem    The element to make into a component
  * @param {Object}      options The component options
  */
-function Constructor (elem, options = {}) {
+function Constructor (elem = null, options = {}) {
 
 	// Get variables from options
 	let {data, store, template, isStore, setters, listeners, after} = options;
