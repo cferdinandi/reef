@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Web Components</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="./wc-count.js"></script>
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {store, component} = reef;
+
+		// Create a reactive store
+		let data = store({
+			heading: 'My Counter',
+			emoji: '👋🎉'
+		});
+
+		// Create a template
+		function template () {
+			let {heading, emoji} = data;
+			return `
+				<h1>${heading} ${emoji}</h1>
+				<count-up></count-up>`;
+		}
+
+		// Create a reactive component
+		// It automatically renders into the UI
+		component('#app', template);
+
+		// After count-up button is clicked, updated UI data 5 seconds later
+		document.addEventListener('reef:render', function () {
+			let btn = document.querySelector('button');
+			btn.addEventListener('click', function () {
+				setTimeout(function () {
+					console.log(btn);
+					data.heading = 'Count It';
+					data.emoji = '🔥';
+				}, 3000);
+			}, {once: true});
+		}, {once: true});
+	</script>
+
+</body>
+</html>

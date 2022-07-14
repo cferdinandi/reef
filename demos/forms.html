@@ -33,102 +33,65 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {render} = reef;
 
-		// Create an app
-		var app = new Reef('#app', {
-			data: {
-				heading: 'My Form',
-				todos: ['Swim', 'Climb', 'Jump', 'Play'],
-				typed: 'This field is overwritten on each update',
-				typed2: 'This field has a default value by keeps your changes on future renders',
-				wizard: 'hermione',
-				checked: true
-			},
-			template: function (props) {
-				// return `
-				// 	<h1>${props.heading}</h1>
+		// Non-reactive state
+		let data = {
+			heading: 'My Form',
+			todos: ['Swim', 'Climb', 'Jump', 'Play'],
+			typed: 'This field is overwritten on each update',
+			typed2: 'This field has a default value by keeps your changes on future renders',
+			wizard: 'merlin',
+			checked: false
+		};
 
-				// 	<label for="type">Type Something</label>
-				// 	<input type="text" id="type" reef-value="${props.typed}">
+		// Create a template
+		function template () {
+			return `
+				<h1>${data.heading}</h1>
 
-				// 	<label for="type2">Type Something</label>
-				// 	<input type="text" id="type2" reef-default-value="${props.typed2}">
+				<label for="type">Type Something</label>
+				<input type="text" id="type" @value="${data.typed}">
 
-				// 	<label>
-				// 		<input type="checkbox" id="check" reef-checked="${props.checked}">
-				// 		This field does whatever the checked property is set to
-				// 	</label>
+				<label for="type2">Type Something</label>
+				<input type="text" id="type2" #value="${data.typed2}">
 
-				// 	<label>
-				// 		<input type="checkbox" id="check2" reef-default-checked="${props.checked}">
-				// 		This field is checked by default but stays however you set it on future renders
-				// 	</label>
+				<label>
+					<input type="checkbox" id="check" @checked="${data.checked}">
+					This field does whatever the checked property is set to
+				</label>
 
-				// 	<br>
+				<label>
+					<input type="checkbox" id="check2" #checked="${data.checked}">
+					This field is checked by default but stays however you set it on future renders
+				</label>
 
-				// 	<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
-				// 	<select id="wizards">
-				// 		<option id="harry" value="harry" reef-selected="${props.wizard === 'harry'}">Harry</option>
-				// 		<option id="hermione" value="hermione" reef-selected="${props.wizard === 'hermione'}">Hermione</option>
-				// 		<option id="neville" value="neville" reef-selected="${props.wizard === 'neville'}">Neville</option>
-				// 	</select>
+				<br>
 
-				// 	<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
-				// 	<select id="wizards2">
-				// 		<option id="harry" value="harry" reef-default-selected="${props.wizard === 'harry'}">Harry</option>
-				// 		<option id="hermione" value="hermione" reef-default-selected="${props.wizard === 'hermione'}">Hermione</option>
-				// 		<option id="neville" value="neville" reef-default-selected="${props.wizard === 'neville'}">Neville</option>
-				// 	</select>
+				<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
+				<select id="wizards">
+					<option id="gandalf" value="gandalf" @selected="${data.wizard === 'gandalf'}">Gandalf</option>
+					<option id="merlin" value="merlin" @selected="${data.wizard === 'merlin'}">Merlin</option>
+					<option id="ursula" value="ursula" @selected="${data.wizard === 'ursula'}">Ursula</option>
+				</select>
 
-				// 	<p><button>Render App</button></p>`;
-				return `
-					<h1>${props.heading}</h1>
+				<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
+				<select id="wizards2">
+					<option id="gandalf" value="gandalf" #selected="${data.wizard === 'gandalf'}">Gandalf</option>
+					<option id="merlin" value="merlin" #selected="${data.wizard === 'merlin'}">Merlin</option>
+					<option id="ursula" value="ursula" #selected="${data.wizard === 'ursula'}">Ursula</option>
+				</select>
 
-					<label for="type">Type Something</label>
-					<input type="text" id="type" @value="${props.typed}">
-
-					<label for="type2">Type Something</label>
-					<input type="text" id="type2" #value="${props.typed2}">
-
-					<label>
-						<input type="checkbox" id="check" @checked="${props.checked}">
-						This field does whatever the checked property is set to
-					</label>
-
-					<label>
-						<input type="checkbox" id="check2" #checked="${props.checked}">
-						This field is checked by default but stays however you set it on future renders
-					</label>
-
-					<br>
-
-					<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
-					<select id="wizards">
-						<option id="harry" value="harry" @selected="${props.wizard === 'harry'}">Harry</option>
-						<option id="hermione" value="hermione" @selected="${props.wizard === 'hermione'}">Hermione</option>
-						<option id="neville" value="neville" @selected="${props.wizard === 'neville'}">Neville</option>
-					</select>
-
-					<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
-					<select id="wizards2">
-						<option id="harry" value="harry" #selected="${props.wizard === 'harry'}">Harry</option>
-						<option id="hermione" value="hermione" #selected="${props.wizard === 'hermione'}">Hermione</option>
-						<option id="neville" value="neville" #selected="${props.wizard === 'neville'}">Neville</option>
-					</select>
-
-					<p><button>Render App</button></p>`;
-			}
-		});
+				<p><button>Render App</button></p>`;
+		}
 
 		// Render the app
-		app.render();
+		render('#app', template());
 
-		// Render whever the button is clicked
+		// Render whenever the button is clicked, re-render
 		document.addEventListener('click', function (event) {
 			if (!event.target.matches('button')) return;
-			app.render();
+			render('#app', template());
 		});
 	</script>
 

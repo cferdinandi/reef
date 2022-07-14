@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Lifecycle Events</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {store, component} = reef;
+
+		// Create a reactive store
+		let data = store({
+			greeting: 'Hello',
+			name: 'World'
+		});
+
+		// Create a template
+		function template () {
+			let {greeting, name} = data;
+			return `<p>${greeting}, ${name}!</p>`;
+		}
+
+		// Log lifecyle events
+		document.addEventListener('reef:start', function (event) { console.log('started'); });
+		document.addEventListener('reef:stop', function (event) { console.log('stopped'); });
+		document.addEventListener('reef:render', function (event) { console.log('rendered'); });
+
+		// Create a reactive component
+		// It automatically renders into the UI
+		let app = component('#app', template);
+
+		// Update the state
+		setTimeout(function () {
+			data.greeting = 'Hi';
+		}, 1000);
+
+		// Stop reactive rendering and make an update
+		setTimeout(function () {
+			app.stop();
+			data.name = 'Universe';
+		}, 2000);
+
+		// Restart reactive rendering
+		setTimeout(function () {
+			app.start();
+		}, 3000);
+
+		// Make another update
+		setTimeout(function () {
+			data.greeting = 'Heyo';
+		}, 4000);
+	</script>
+
+</body>
+</html>

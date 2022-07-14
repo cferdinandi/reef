@@ -27,28 +27,28 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		// Turn on debug mode
-		Reef.debug(true);
+		let {store, component} = reef;
 
-		// Create an app
-		var app = new Reef('#app', {
-			data: {
-				text: ''
-			},
-			template: function (props) {
-				return `
-					<label for="mirror">Whatever you type shows up below the field</label>
-					<input type="text" oninput="mirror()" id="mirror">
-					<div><em aria-live="polite">${props.text.length ? props.text : 'Type something above to change this text'}</em></div>`;
-			},
-			listeners: {
-				mirror: function (event) {
-					this.data.text = event.target.value;
-				}
-			}
+		// Create a reactive store
+		let data = store({
+			text: ''
 		});
 
-		app.render();
+		// Create a template
+		function template () {
+			return `
+				<label for="mirror">Whatever you type shows up below the field</label>
+				<input type="text" oninput="mirror(event)" id="mirror">
+				<div><em aria-live="polite">${data.text.length ? data.text : 'Type something above to change this text'}</em></div>`;
+		}
+
+		// Update the data with the field value
+		function mirror (event) {
+			data.text = event.target.value;
+		}
+
+		// Create a reactive component
+		component('#app', template, {events: true});
 	</script>
 
 </body>

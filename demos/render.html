@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>XSS Prevention</title>
+	<title>render()</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -18,24 +18,16 @@
 	<div id="app"></div>
 
 	<script src="../dist/reef.js"></script>
-	<script src="xss.js"></script>
 	<script>
 		let {render} = reef;
 
-		// Setup a cross-site scripting attack
-		// The data object is in xss.js
+		// Create a template
 		function template () {
-			return xss.map(function (elem) {
-				return elem;
-			}).join('');
+			return '<p>Hello, world!</p>';
 		}
 
-		// Render into the UI
-		// Template is sanitized, so no XSS happens
+		// Render it into the #app element
 		render('#app', template());
-
-		// By allowing on* events, we open up an XSS attack vector
-		// render('#app', template(), {events: true});
 	</script>
 
 </body>
