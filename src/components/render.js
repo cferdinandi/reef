@@ -1,5 +1,5 @@
-import {isFalsy} from './utilities.js';
-import {addEvent, removeAllEvents} from './events.js';
+import {emit, getElem} from './utilities.js';
+
 
 // Form fields and attributes that can be modified by users
 // They also have implicit values that make it hard to know if they were changed by the user or developer
@@ -8,17 +8,49 @@ let formAtts = ['value', 'checked', 'selected'];
 let formAttsNoVal = ['checked', 'selected'];
 
 /**
- * Check if attribute should be skipped (sanitize properties)
- * @param  {String}  name  The attribute name
- * @param  {String}  value The attribute value
- * @return {Boolean}       If true, skip the attribute
+ * Convert a template string into HTML DOM nodes
+ * @param  {String} str The template string
+ * @return {Node}       The template HTML
  */
-function skipAttribute (name, value) {
+function stringToHTML (str) {
+
+    // Create document
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(str, 'text/html');
+
+    // If there are items in the head, move them to the body
+    if (doc.head && doc.head.childNodes.length) {
+        Array.from(doc.head.childNodes).reverse().forEach(function (node) {
+            doc.body.insertBefore(node, doc.body.firstChild);
+        });
+    }
+
+    return doc.body || document.createElement('body');
+
+}
+
+/**
+ * Check if an attribute string has a stringified falsy value
+ * @param  {String}  str The string
+ * @return {Boolean}     If true, value is falsy (yea, I know, that's a little confusing)
+ */
+function isFalsy (str) {
+	return ['false', 'null', 'undefined', '0', '-0', 'NaN', '0n', '-0n'].includes(str);
+}
+
+/**
+ * Check if attribute should be skipped (sanitize properties)
+ * @param  {String}  name   The attribute name
+ * @param  {String}  value  The attribute value
+ * @param  {Boolean} events If true, inline events are allowed
+ * @return {Boolean}        If true, skip the attribute
+ */
+function skipAttribute (name, value, events) {
 	let val = value.replace(/\s+/g, '').toLowerCase();
 	if (['src', 'href', 'xlink:href'].includes(name)) {
 		if (val.includes('javascript:') || val.includes('data:text/html')) return true;
 	}
-	if (name.startsWith('on')) return true;
+	if (!events && name.startsWith('on')) return true;
 }
 
 /**
@@ -26,11 +58,12 @@ function skipAttribute (name, value) {
  * @param {Node}   elem The element
  * @param {String} att  The attribute
  * @param {String} val  The value
+ * @param  {Boolean} events If true, inline events are allowed
  */
-function addAttribute (elem, att, val) {
+function addAttribute (elem, att, val, events) {
 
 	// Sanitize dangerous attributes
-	if (skipAttribute(att, val)) return;
+	if (skipAttribute(att, val, events)) return;
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -62,10 +95,11 @@ function removeAttribute (elem, att) {
 
 /**
  * Compare the existing node attributes to the template node attributes and make updates
- * @param  {Node} template The new template
- * @param  {Node} existing The existing DOM node
+ * @param  {Node}    template The new template
+ * @param  {Node}    existing The existing DOM node
+ * @param  {Boolean} events   If true, inline events allowed
  */
-function diffAttributes (template, existing, instance) {
+function diffAttributes (template, existing, events) {
 
 	// If the node is not an element, bail
 	if (template.nodeType !== 1) return;
@@ -92,14 +126,8 @@ function diffAttributes (template, existing, instance) {
 			continue;
 		}
 
-		// If its an event handler, maybe add it
-		if (name.startsWith('on')) {
-			addEvent(existing, name, value, instance);
-			continue;
-		}
-
 		// Otherwise, add the attribute
-		addAttribute(existing, attName, value);
+		addAttribute(existing, attName, value, events);
 
 	}
 
@@ -123,7 +151,7 @@ function diffAttributes (template, existing, instance) {
  * Add default attributes to a newly created element
  * @param  {Node} elem The element
  */
-function addDefaultAtts (elem, instance) {
+function addDefaultAtts (elem, events) {
 
 	// Only run on elements
 	if (elem.nodeType !== 1) return;
@@ -132,13 +160,8 @@ function addDefaultAtts (elem, instance) {
 	// Remove unsafe HTML attributes
 	for (let {name, value} of elem.attributes) {
 
-		// If its an event handler, maybe add it
-		if (name.startsWith('on')) {
-			addEvent(elem, name, value, instance);
-		}
-
 		// If the attribute should be skipped, remove it
-		if (skipAttribute(name, value)) {
+		if (skipAttribute(name, value, events)) {
 			removeAttribute(elem, name);
 			continue;
 		}
@@ -156,14 +179,14 @@ function addDefaultAtts (elem, instance) {
 		if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
 
 		// Add the plain attribute
-		addAttribute(elem, attName, value);
+		addAttribute(elem, attName, value, events);
 
 	}
 
 	// If there are child elems, recursively add defaults to them
 	if (elem.childNodes) {
 		for (let node of elem.childNodes) {
-			addDefaultAtts(node, instance);
+			addDefaultAtts(node, events);
 		}
 	}
 
@@ -211,11 +234,10 @@ function aheadInTree (node, existingNodes, index) {
  * @param  {Array} existingNodes      The existing DOM
  * @param  {Array} templateNodes The template
  */
-function trimExtraNodes (existingNodes, templateNodes, instance) {
+function trimExtraNodes (existingNodes, templateNodes) {
 	let extra = existingNodes.length - templateNodes.length;
 	if (extra < 1)  return;
 	for (; extra > 0; extra--) {
-		removeAllEvents([existingNodes[existingNodes.length - 1]], instance);
 		existingNodes[existingNodes.length - 1].remove();
 	}
 }
@@ -233,10 +255,11 @@ function removeScripts (elem) {
 
 /**
  * Diff the existing DOM node versus the template
- * @param  {Array} template The template HTML
- * @param  {Node}  existing The current DOM HTML
+ * @param  {Array}   template The template HTML
+ * @param  {Node}    existing The current DOM HTML
+ * @param  {Boolean} events   If true, inline events allowed
  */
-function diff (template, existing, instance) {
+function diff (template, existing, events) {
 
 	// Get the nodes in the template and existing UI
 	let templateNodes = template.childNodes;
@@ -251,7 +274,7 @@ function diff (template, existing, instance) {
 		// If element doesn't exist, create it
 		if (!existingNodes[index]) {
 			let clone = node.cloneNode(true);
-			addDefaultAtts(clone, instance);
+			addDefaultAtts(clone, events);
 			existing.append(clone);
 			return;
 		}
@@ -265,7 +288,7 @@ function diff (template, existing, instance) {
 			// If not, insert the node before the current one
 			if (!ahead) {
 				let clone = node.cloneNode(true);
-				addDefaultAtts(clone, instance);
+				addDefaultAtts(clone, events);
 				existingNodes[index].before(clone);
 				return;
 			}
@@ -275,18 +298,20 @@ function diff (template, existing, instance) {
 
 		}
 
+		// If attributes are different, update them
+		diffAttributes(node, existingNodes[index], events);
+
+		// Stop diffing if a native web component
+		if (node.nodeName.includes('-')) return;
+
 		// If content is different, update it
 		let templateContent = getNodeContent(node);
 		if (templateContent && templateContent !== getNodeContent(existingNodes[index])) {
 			existingNodes[index].textContent = templateContent;
 		}
 
-		// If attributes are different, update them
-		diffAttributes(node, existingNodes[index], instance);
-
 		// If there shouldn't be child nodes but there are, remove them
 		if (!node.childNodes.length && existingNodes[index].childNodes.length) {
-			removeAllEvents(node.children, instance);
 			existingNodes[index].innerHTML = '';
 			return;
 		}
@@ -295,21 +320,34 @@ function diff (template, existing, instance) {
 		// This uses a document fragment to minimize reflows
 		if (!existingNodes[index].childNodes.length && node.childNodes.length) {
 			let fragment = document.createDocumentFragment();
-			diff(node, fragment, instance);
+			diff(node, fragment, events);
 			existingNodes[index].appendChild(fragment);
 			return;
 		}
 
 		// If there are nodes within it, recursively diff those
 		if (node.childNodes.length) {
-			diff(node, existingNodes[index], instance);
+			diff(node, existingNodes[index], events);
 		}
 
 	});
 
 	// If extra elements in DOM, remove them
-	trimExtraNodes(existingNodes, templateNodes, instance);
+	trimExtraNodes(existingNodes, templateNodes);
 
 }
 
-export {diff};
+/**
+ * Render a template into the UI
+ * @param  {Node|String} elem     The element or selector to render the template into
+ * @param  {String}      template The template to render
+ * @param  {Boolean}     events   If true, inline events allowed
+ */
+function render (elem, template, events) {
+	let node = getElem(elem);
+	let html = stringToHTML(template);
+	diff(html, node, events);
+	emit('render', null, node);
+}
+
+export default render;

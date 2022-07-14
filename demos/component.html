@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Basic Setup</title>
+	<title>component()</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -19,7 +19,7 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, render} = reef;
+		let {store, component} = reef;
 
 		// Create a reactive store
 		let data = store({
@@ -40,13 +40,9 @@
 				</ul>`;
 		}
 
-		// Render the template into the UI
-		render('#app', template());
-
-		// Listen for data updates, and re-render
-		document.addEventListener('reef:store', function () {
-			render('#app', template());
-		});
+		// Create a reactive component
+		// It automatically renders into the UI
+		component('#app', template);
 
 		// After two seconds, add an item to the todo list
 		setTimeout(function () {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Basic Setup</title>
+	<title>store()</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -19,7 +19,7 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, render} = reef;
+		let {store} = reef;
 
 		// Create a reactive store
 		let data = store({
@@ -28,24 +28,12 @@
 			emoji: '👋🎉'
 		});
 
-		// Create a template
-		function template () {
-			let {heading, todos, emoji} = data;
-			return `
-				<h1>${heading} ${emoji}</h1>
-				<ul>
-					${todos.map(function (todo) {
-						return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
-					}).join('')}
-				</ul>`;
-		}
-
-		// Render the template into the UI
-		render('#app', template());
-
 		// Listen for data updates, and re-render
-		document.addEventListener('reef:store', function () {
-			render('#app', template());
+		document.addEventListener('reef:store', function (event) {
+			console.log(
+				event.detail,
+				Array.from(event.detail.todos)
+			);
 		});
 
 		// After two seconds, add an item to the todo list

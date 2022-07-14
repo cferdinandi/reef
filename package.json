@@ -1,7 +1,7 @@
 {
 	"name": "reefjs",
-	"version": "11.0.1",
-	"description": "A lightweight library for creating reactive, state-based UI",
+	"version": "12.0.0",
+	"description": "A tiny utility library for building reactive state-based UI.",
 	"main": "./dist/reef.cjs.min.js",
 	"module": "./dist/reef.es.min.js",
 	"browser": {

@@ -1,4 +1,4 @@
-let data = [
+let xss = [
 	`<p><img src="x" onerror="alert(1)"></p>`,
 	`<p>abc<iframe//src=jAva&Tab;script:alert(3)>def</p>`,
 	`<svg><g/onload=alert(2)//<p>`,

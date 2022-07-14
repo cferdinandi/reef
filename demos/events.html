@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Style Elements</title>
+	<title>Event Binding</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -21,26 +21,22 @@
 	<script>
 		let {store, component} = reef;
 
-		// Create a reactive store
-		let data = store({
-			showStyles: false
-		});
+		// Track clicks
+		let data = store({count: 0});
 
-		// Create a template
-		function template () {
-			if (!data.showStyles) return '<p>Hi!</p>';
-			return `
-				<style>.color { color: red; }</style>
-				<p class="color">Hi!</p>`;
+		// Log clicks
+		function log () {
+			data.count++;
 		}
 
-		// Create a reactive component
-		component('#app', template);
+		function template () {
+			return `
+				<p>Clicked ${data.count} times.</p>
+				<p><button onclick="log()">Activate Me</button></p>`
+		}
 
-		// After 2 seconds, update with styles
-		setTimeout(function () {
-			data.showStyles = true;
-		}, 2000);
+		// Render a button with an onclick event
+		component('#app', template, {events: true});
 	</script>
 
 </body>
