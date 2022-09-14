@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Basic Setup</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {store, component} = reef;
+
+		// Create a reactive store
+		let count = store(0);
+
+		// Create a template
+		function template () {
+			return `<p><button>Activated ${count.value} times</button></p>`;
+		}
+
+		// Render the template into the UI
+		component('#app', template);
+
+		// Listen for button clicks
+		document.addEventListener('click', function (event) {
+			if (event.target.matches('button')) {
+				count.value++;
+			}
+		});
+	</script>
+
+</body>
+</html>

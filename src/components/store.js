@@ -1,4 +1,4 @@
-import {emit} from './utilities.js';
+import {emit, getType} from './utilities.js';
 
 
 /**
@@ -12,7 +12,7 @@ function handler (name, data) {
 	return {
 		get (obj, prop) {
 			if (prop === '_isProxy') return true;
-			if (['object', 'array'].includes(Object.prototype.toString.call(obj[prop]).slice(8, -1).toLowerCase()) && !obj[prop]._isProxy) {
+			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
 				obj[prop] = new Proxy(obj[prop], handler(name, data));
 			}
 			return obj[prop];
@@ -38,6 +38,7 @@ function handler (name, data) {
  * @return {Proxy}       The reactive proxy
  */
 function store (data = {}, name = '') {
+	data = ['array', 'object'].includes(getType(data)) ? data : {value: data};
 	return new Proxy(data, handler(name, data));
 }
 

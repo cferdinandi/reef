@@ -1,4 +1,4 @@
-/*! reef v12.0.0 | (c) 2022 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.1.0 | (c) 2022 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
@@ -32,6 +32,56 @@ var reef = (function (exports) {
 	}
 
 	/**
+	 * Get an object's type
+	 * @param  {*}      obj The object
+	 * @return {String}     The type
+	 */
+	function getType (obj) {
+		return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
+	}
+
+	/**
+	 * Create an immutable clone of data
+	 * @param  {*} obj The data object to copy
+	 * @return {*}     The clone of the array or object
+	 */
+	function copy (obj) {
+
+		/**
+		 * Create an immutable copy of an object
+		 * @return {Object}
+		 */
+		function cloneObj () {
+			let clone = {};
+			for (let key in obj) {
+				if (Object.prototype.hasOwnProperty.call(obj, key)) {
+					clone[key] = copy(obj[key]);
+				}
+			}
+			return clone;
+		}
+
+		/**
+		 * Create an immutable copy of an array
+		 * @return {Array}
+		 */
+		function cloneArr () {
+			return obj.map(function (item) {
+				return copy(item);
+			});
+		}
+
+		// Get object type
+		let type = getType(obj);
+
+		// Return a clone based on the object type
+		if (type === 'object') return cloneObj();
+		if (type === 'array') return cloneArr();
+		return obj;
+
+	}
+
+	/**
 	 * Create a Proxy handler object
 	 * @param  {String} name The custom event namespace
 	 * @param  {Object} data The data object
@@ -42,7 +92,7 @@ var reef = (function (exports) {
 		return {
 			get (obj, prop) {
 				if (prop === '_isProxy') return true;
-				if (['object', 'array'].includes(Object.prototype.toString.call(obj[prop]).slice(8, -1).toLowerCase()) && !obj[prop]._isProxy) {
+				if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
 					obj[prop] = new Proxy(obj[prop], handler(name, data));
 				}
 				return obj[prop];
@@ -68,7 +118,59 @@ var reef = (function (exports) {
 	 * @return {Proxy}       The reactive proxy
 	 */
 	function store (data = {}, name = '') {
+		data = ['array', 'object'].includes(getType(data)) ? data : {value: data};
 		return new Proxy(data, handler(name, data));
+	}
+
+	/**
+	 * Setter Class
+	 */
+	class Setter {
+
+		/**
+		 * The constructor object
+		 * @param  {Node|String} elem     The element or selector to render the template into
+		 * @param  {Function}    template The template function to run when the data updates
+		 * @param  {Object}      options  Additional options
+		 */
+		constructor (data, setters, name = '') {
+
+			// Get store type
+			let type = 'store' + (name ? `-${name}` : '');
+
+			// Create data property setter/getter
+			Object.defineProperties(this, {
+				data: {
+					get () {
+						return copy(data);
+					},
+					set () {
+						return true;
+					}
+				}
+			});
+
+			// Add setter functions
+			for (let fn in setters) {
+				if (typeof setters[fn] !== 'function') continue;
+				this[fn] = function (...args) {
+					setters[fn](data, ...args);
+					emit(type, data);
+				};
+			}
+
+		}
+
+	}
+
+	/**
+	 * Create a new store
+	 * @param  {Object} data The data object
+	 * @param  {String} name The custom event namespace
+	 * @return {Proxy}       The reactive proxy
+	 */
+	function setter (data = {}, setters = {}, name = '') {
+		return new Setter(data, setters, name);
 	}
 
 	// Form fields and attributes that can be modified by users
@@ -511,8 +613,10 @@ var reef = (function (exports) {
 
 	exports.component = component;
 	exports.render = render;
+	exports.setter = setter;
 	exports.store = store;
 
 	return exports;
 
 }({}));
+//# sourceMappingURL=reef.js.map

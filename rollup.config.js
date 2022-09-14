@@ -11,7 +11,8 @@ let configs = {
 	default: 'iife',
 	pathIn: 'src',
 	pathOut: 'dist',
-	minify: true
+	minify: true,
+	sourceMap: true
 };
 
 // Banner
@@ -32,6 +33,7 @@ function createOutput (filename, minify) {
 		if (minify) {
 			output.plugins = [terser()];
 		}
+		output.sourcemap = configs.sourceMap
 		return output;
 	});
 }
