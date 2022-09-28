@@ -1,4 +1,4 @@
-/*! reef v12.1.0 | (c) 2022 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.1.1 | (c) 2022 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
@@ -381,10 +381,10 @@ var reef = (function (exports) {
 	 */
 	function isDifferentNode (node1, node2) {
 		return (
-			node1.nodeType !== node2.nodeType ||
-			node1.tagName !== node2.tagName ||
-			node1.id !== node2.id ||
-			node1.src !== node2.src
+			(typeof node1.nodeType === 'number' && node1.nodeType !== node2.nodeType) ||
+			(typeof node1.tagName === 'string' && node1.tagName !== node2.tagName) ||
+			(typeof node1.id === 'string' && node1.id !== node2.id) ||
+			(typeof node1.src === 'string' && node1.src !== node2.src)
 		);
 	}
 

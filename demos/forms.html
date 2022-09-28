@@ -33,65 +33,68 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {render} = reef;
+		let {store, component} = reef;
 
-		// Non-reactive state
-		let data = {
+		// Reactive data
+		let data = store({
 			heading: 'My Form',
 			todos: ['Swim', 'Climb', 'Jump', 'Play'],
 			typed: 'This field is overwritten on each update',
 			typed2: 'This field has a default value by keeps your changes on future renders',
 			wizard: 'merlin',
 			checked: false
-		};
+		});
 
 		// Create a template
 		function template () {
 			return `
 				<h1>${data.heading}</h1>
 
-				<label for="type">Type Something</label>
-				<input type="text" id="type" @value="${data.typed}">
+				<form>
+					<label for="type">Type Something</label>
+					<input type="text" id="type" @value="${data.typed}">
 
-				<label for="type2">Type Something</label>
-				<input type="text" id="type2" #value="${data.typed2}">
+					<label for="type2">Type Something</label>
+					<input type="text" id="id" #value="${data.typed2}">
 
-				<label>
-					<input type="checkbox" id="check" @checked="${data.checked}">
-					This field does whatever the checked property is set to
-				</label>
+					<label>
+						<input type="checkbox" id="check" @checked="${data.checked}">
+						This field does whatever the checked property is set to
+					</label>
 
-				<label>
-					<input type="checkbox" id="check2" #checked="${data.checked}">
-					This field is checked by default but stays however you set it on future renders
-				</label>
+					<label>
+						<input type="checkbox" id="check2" #checked="${data.checked}">
+						This field is checked by default but stays however you set it on future renders
+					</label>
 
-				<br>
+					<br>
 
-				<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
-				<select id="wizards">
-					<option id="gandalf" value="gandalf" @selected="${data.wizard === 'gandalf'}">Gandalf</option>
-					<option id="merlin" value="merlin" @selected="${data.wizard === 'merlin'}">Merlin</option>
-					<option id="ursula" value="ursula" @selected="${data.wizard === 'ursula'}">Ursula</option>
-				</select>
+					<label for="wizards">Who is the best wizard? (Is set to the wizards property)</label>
+					<select id="wizards">
+						<option id="gandalf" value="gandalf" @selected="${data.wizard === 'gandalf'}">Gandalf</option>
+						<option id="merlin" value="merlin" @selected="${data.wizard === 'merlin'}">Merlin</option>
+						<option id="ursula" value="ursula" @selected="${data.wizard === 'ursula'}">Ursula</option>
+					</select>
 
-				<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
-				<select id="wizards2">
-					<option id="gandalf" value="gandalf" #selected="${data.wizard === 'gandalf'}">Gandalf</option>
-					<option id="merlin" value="merlin" #selected="${data.wizard === 'merlin'}">Merlin</option>
-					<option id="ursula" value="ursula" #selected="${data.wizard === 'ursula'}">Ursula</option>
-				</select>
+					<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
+					<select id="wizards2">
+						<option id="gandalf" value="gandalf" #selected="${data.wizard === 'gandalf'}">Gandalf</option>
+						<option id="merlin" value="merlin" #selected="${data.wizard === 'merlin'}">Merlin</option>
+						<option id="ursula" value="ursula" #selected="${data.wizard === 'ursula'}">Ursula</option>
+					</select>
 
-				<p><button>Render App</button></p>`;
+					<p><button>Render App</button></p>
+				</form>`;
 		}
 
 		// Render the app
-		render('#app', template());
+		component('#app', template);
 
-		// Render whenever the button is clicked, re-render
-		document.addEventListener('click', function (event) {
-			if (!event.target.matches('button')) return;
-			render('#app', template());
+		// Whenever the form is submitted, re-render
+		document.addEventListener('submit', function (event) {
+			event.preventDefault();
+			data.typed1 = 'hahaha';
+			data.typed2 = 'hahaha';
 		});
 	</script>
 
