@@ -55,7 +55,7 @@
 					<input type="text" id="type" @value="${data.typed}">
 
 					<label for="type2">Type Something</label>
-					<input type="text" id="id" #value="${data.typed2}">
+					<input type="text" id="id" @value="${data.typed2}">
 
 					<label>
 						<input type="checkbox" id="check" @checked="${data.checked}">
@@ -63,7 +63,7 @@
 					</label>
 
 					<label>
-						<input type="checkbox" id="check2" #checked="${data.checked}">
+						<input type="checkbox" id="check2" @checked="${data.checked}">
 						This field is checked by default but stays however you set it on future renders
 					</label>
 
@@ -78,9 +78,9 @@
 
 					<label for="wizards2">Who is the best wizard? (Only has a default value)</label>
 					<select id="wizards2">
-						<option id="gandalf" value="gandalf" #selected="${data.wizard === 'gandalf'}">Gandalf</option>
-						<option id="merlin" value="merlin" #selected="${data.wizard === 'merlin'}">Merlin</option>
-						<option id="ursula" value="ursula" #selected="${data.wizard === 'ursula'}">Ursula</option>
+						<option id="gandalf" value="gandalf" @selected="${data.wizard === 'gandalf'}">Gandalf</option>
+						<option id="merlin" value="merlin" @selected="${data.wizard === 'merlin'}">Merlin</option>
+						<option id="ursula" value="ursula" @selected="${data.wizard === 'ursula'}">Ursula</option>
 					</select>
 
 					<p><button>Render App</button></p>
@@ -93,7 +93,7 @@
 		// Whenever the form is submitted, re-render
 		document.addEventListener('submit', function (event) {
 			event.preventDefault();
-			data.typed1 = 'hahaha';
+			data.typed = 'hahaha';
 			data.typed2 = 'hahaha';
 		});
 	</script>
