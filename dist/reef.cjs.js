@@ -1,4 +1,4 @@
-/*! reef v12.1.1 | (c) 2022 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.2.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -165,10 +165,11 @@ class Setter {
 }
 
 /**
- * Create a new store
- * @param  {Object} data The data object
- * @param  {String} name The custom event namespace
- * @return {Proxy}       The reactive proxy
+ * Create a new setter
+ * @param  {Object} data    The data object
+ * @param  {Object} setters The setter functions
+ * @param  {String} name    The custom event namespace
+ * @return {Proxy}          The reactive proxy
  */
 function setter (data = {}, setters = {}, name = '') {
 	return new Setter(data, setters, name);
@@ -384,8 +385,8 @@ function isDifferentNode (node1, node2) {
 	return (
 		(typeof node1.nodeType === 'number' && node1.nodeType !== node2.nodeType) ||
 		(typeof node1.tagName === 'string' && node1.tagName !== node2.tagName) ||
-		(typeof node1.id === 'string' && node1.id !== node2.id) ||
-		(typeof node1.src === 'string' && node1.src !== node2.src)
+		node1.getAttribute('id') !== node2.getAttribute('id') ||
+		node1.getAttribute('src') !== node2.getAttribute('src')
 	);
 }
 
@@ -519,6 +520,7 @@ function diff (template, existing, events) {
 function render (elem, template, events) {
 	let node = getElem(elem);
 	let html = stringToHTML(template);
+	if (!emit('before-render', null, node)) return;
 	diff(html, node, events);
 	emit('render', null, node);
 }

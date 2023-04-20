@@ -211,8 +211,8 @@ function isDifferentNode (node1, node2) {
 	return (
 		(typeof node1.nodeType === 'number' && node1.nodeType !== node2.nodeType) ||
 		(typeof node1.tagName === 'string' && node1.tagName !== node2.tagName) ||
-		(typeof node1.id === 'string' && node1.id !== node2.id) ||
-		(typeof node1.src === 'string' && node1.src !== node2.src)
+		node1.getAttribute('id') !== node2.getAttribute('id') ||
+		node1.getAttribute('src') !== node2.getAttribute('src')
 	);
 }
 
@@ -346,6 +346,7 @@ function diff (template, existing, events) {
 function render (elem, template, events) {
 	let node = getElem(elem);
 	let html = stringToHTML(template);
+	if (!emit('before-render', null, node)) return;
 	diff(html, node, events);
 	emit('render', null, node);
 }

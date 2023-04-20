@@ -27,6 +27,7 @@
 			},
 			delete (todos, todo) {
 				let index = todos.indexOf(todo);
+				if (index < 0) return;
 				todos.splice(index, 1);
 			}
 		});
@@ -48,7 +49,14 @@
 		// After two seconds, add an item to the todo list
 		setTimeout(function () {
 			todos.data.push('Take a nap... zzzz');
+			console.log('push', todos.data);
 		}, 2000);
+
+		// After four seconds, use the setter method
+		setTimeout(function () {
+			todos.add('Take a nap... zzzz');
+			console.log('setter', todos.data);
+		}, 4000);
 	</script>
 
 </body>

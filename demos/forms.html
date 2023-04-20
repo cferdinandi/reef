@@ -39,7 +39,7 @@
 		let data = store({
 			heading: 'My Form',
 			todos: ['Swim', 'Climb', 'Jump', 'Play'],
-			typed: 'This field is overwritten on each update',
+			typed1: 'This field is overwritten on each update',
 			typed2: 'This field has a default value by keeps your changes on future renders',
 			wizard: 'merlin',
 			checked: false
@@ -52,7 +52,7 @@
 
 				<form>
 					<label for="type">Type Something</label>
-					<input type="text" id="type" @value="${data.typed}">
+					<input type="text" id="type" @value="${data.typed1}">
 
 					<label for="type2">Type Something</label>
 					<input type="text" id="id" #value="${data.typed2}">

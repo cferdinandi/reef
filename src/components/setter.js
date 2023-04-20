@@ -43,10 +43,11 @@ class Setter {
 }
 
 /**
- * Create a new store
- * @param  {Object} data The data object
- * @param  {String} name The custom event namespace
- * @return {Proxy}       The reactive proxy
+ * Create a new setter
+ * @param  {Object} data    The data object
+ * @param  {Object} setters The setter functions
+ * @param  {String} name    The custom event namespace
+ * @return {Proxy}          The reactive proxy
  */
 function setter (data = {}, setters = {}, name = '') {
 	return new Setter(data, setters, name);
