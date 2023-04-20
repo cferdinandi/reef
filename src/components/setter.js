@@ -1,4 +1,4 @@
-import {emit, copy} from './utilities.js';
+import {emit} from './utilities.js';
 
 
 /**
@@ -21,7 +21,7 @@ class Setter {
 		Object.defineProperties(this, {
 			data: {
 				get () {
-					return copy(data);
+					return structuredClone(data);
 				},
 				set () {
 					return true;

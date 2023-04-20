@@ -36,46 +36,5 @@ function getType (obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 }
 
-/**
- * Create an immutable clone of data
- * @param  {*} obj The data object to copy
- * @return {*}     The clone of the array or object
- */
-function copy (obj) {
 
-	/**
-	 * Create an immutable copy of an object
-	 * @return {Object}
-	 */
-	function cloneObj () {
-		let clone = {};
-		for (let key in obj) {
-			if (Object.prototype.hasOwnProperty.call(obj, key)) {
-				clone[key] = copy(obj[key]);
-			}
-		}
-		return clone;
-	}
-
-	/**
-	 * Create an immutable copy of an array
-	 * @return {Array}
-	 */
-	function cloneArr () {
-		return obj.map(function (item) {
-			return copy(item);
-		});
-	}
-
-	// Get object type
-	let type = getType(obj);
-
-	// Return a clone based on the object type
-	if (type === 'object') return cloneObj();
-	if (type === 'array') return cloneArr();
-	return obj;
-
-}
-
-
-export {emit, getElem, getType, copy};
+export {emit, getElem, getType};
