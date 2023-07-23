@@ -50,6 +50,7 @@ function skipAttribute (name, value, events) {
 	if (['src', 'href', 'xlink:href'].includes(name)) {
 		if (val.includes('javascript:') || val.includes('data:text/html')) return true;
 	}
+	if (name.startsWith('@on') || name.startsWith('#on')) return true;
 	if (!events && name.startsWith('on')) return true;
 }
 
@@ -64,6 +65,12 @@ function addAttribute (elem, att, val, events) {
 
 	// Sanitize dangerous attributes
 	if (skipAttribute(att, val, events)) return;
+
+	// If there's a Listeners object, handle delegation
+	if (events.delegate) {
+		events.delegate(elem, att, val);
+		return;
+	}
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -137,6 +144,9 @@ function diffAttributes (template, existing, events) {
 		// If the attribute exists in the template, skip it
 		if (templateAtts[name]) continue;
 
+		// Skip reef-on* attributes if there's a matching listener in the template
+		if (name.startsWith('reef-on') && templateAtts[name.replace('reef-', '')]) continue;
+
 		// Skip user-editable form field attributes
 		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) continue;
 
@@ -162,6 +172,13 @@ function addDefaultAtts (elem, events) {
 
 		// If the attribute should be skipped, remove it
 		if (skipAttribute(name, value, events)) {
+			removeAttribute(elem, name);
+			continue;
+		}
+
+		// If there's a Listeners object, handle delegation
+		if (events.delegate) {
+			events.delegate(elem, name, value);
 			removeAttribute(elem, name);
 			continue;
 		}

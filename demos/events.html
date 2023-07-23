@@ -15,28 +15,41 @@
 </head>
 <body>
 
+
 	<div id="app"></div>
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {store, component, listeners} = reef;
 
 		// Track clicks
 		let data = store({count: 0});
 
-		// Log clicks
-		function log () {
+		// Increase the count
+		function increase () {
 			data.count++;
 		}
 
-		function template () {
-			return `
-				<p>Clicked ${data.count} times.</p>
-				<p><button onclick="log()">Activate Me</button></p>`
+		// Decrease the count
+		function decrease () {
+			data.count--;
 		}
 
-		// Render a button with an onclick event
-		component('#app', template, {events: true});
+		// Register allowed listeners
+		let events = listeners({increase, decrease});
+
+		// The template
+		function template () {
+			return `
+				<p>
+					<button onclick="increase()">Increase</button>
+					<button onclick="decrease()">Decrease</button>
+				</p>
+				<div aria-live="polite">Count: ${data.count}</div>`;
+		}
+
+		// Render a template with on* events
+		component('#app', template, {events});
 	</script>
 
 </body>
