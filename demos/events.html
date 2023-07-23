@@ -15,24 +15,35 @@
 </head>
 <body>
 
+	<button reef-onclick="940dac57-688f-4ff1-b5ba-9acacce30ba7">CLICK ME!</button>
 	<div id="app"></div>
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {store, component, listeners} = reef;
 
 		// Track clicks
 		let data = store({count: 0});
 
 		// Log clicks
-		function log () {
+		function increase () {
+			console.log(event);
 			data.count++;
 		}
 
+		function decrease () {
+			data.count--;
+		}
+
+		let events = listeners({increase, decrease});
+
 		function template () {
 			return `
-				<p>Clicked ${data.count} times.</p>
-				<p><button onclick="log()">Activate Me</button></p>`
+				<p>
+					<button onclick="increase()">Increase</button>
+					<button onclick="decrease()">Decrease</button>
+				</p>
+				<div aria-live="polite">Count: ${data.count}</div>`;
 		}
 
 		// Render a button with an onclick event
