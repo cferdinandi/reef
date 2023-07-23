@@ -1,4 +1,4 @@
-/*! reef v12.2.2 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.3.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom event
  * @param  {String} type   The event type
@@ -179,6 +179,7 @@ function skipAttribute (name, value, events) {
 	if (['src', 'href', 'xlink:href'].includes(name)) {
 		if (val.includes('javascript:') || val.includes('data:text/html')) return true;
 	}
+	if (name.startsWith('@on') || name.startsWith('#on')) return true;
 	if (!events && name.startsWith('on')) return true;
 }
 
@@ -193,6 +194,12 @@ function addAttribute (elem, att, val, events) {
 
 	// Sanitize dangerous attributes
 	if (skipAttribute(att, val, events)) return;
+
+	// If there's a Listeners object, handle delegation
+	if (events.delegate) {
+		events.delegate(elem, att, val);
+		return;
+	}
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -266,6 +273,9 @@ function diffAttributes (template, existing, events) {
 		// If the attribute exists in the template, skip it
 		if (templateAtts[name]) continue;
 
+		// Skip reef-on* attributes if there's a matching listener in the template
+		if (name.startsWith('reef-on') && templateAtts[name.replace('reef-', '')]) continue;
+
 		// Skip user-editable form field attributes
 		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) continue;
 
@@ -291,6 +301,13 @@ function addDefaultAtts (elem, events) {
 
 		// If the attribute should be skipped, remove it
 		if (skipAttribute(name, value, events)) {
+			removeAttribute(elem, name);
+			continue;
+		}
+
+		// If there's a Listeners object, handle delegation
+		if (events.delegate) {
+			events.delegate(elem, name, value);
 			removeAttribute(elem, name);
 			continue;
 		}
@@ -596,11 +613,13 @@ class Listeners {
 			this.#ids[id] = key;
 		}
 
-		console.log(this.#ids);
-		console.log(this.#listeners);
-
 	}
 
+	/**
+	 * Create an event listener handler method
+	 * @param  {Instance} instance The Listener class instance
+	 * @return {Function}          The event handler method
+	 */
 	static getHandler (instance) {
 		return function (event) {
 			let target = event.target.closest(`[reef-on${event.type}]`);
@@ -611,14 +630,29 @@ class Listeners {
 		}
 	}
 
+	/**
+	 * Delegate the event on an element
+	 * @param  {Element} elem  The element to delegate events on
+	 * @param  {String}  event The event name
+	 * @param  {String}  val   The function to run for the event
+	 */
+	delegate (elem, event, val) {
 
+		// Get the event listener ID
+		let fnName = val.split('(')[0];
+		let listener = this.#listeners[fnName];
+		if (!listener) return;
 
-	listen (type) {
+		// Add the reef-on* attribute and remove the original
+		elem.setAttribute(`reef-${event}`, listener.id);
+
+		// If there's not already a listener, start one
+		let type = event.replace('on', '');
 		if (this.#events.includes(type)) return;
 		document.addEventListener(type, Listeners.getHandler(this), true);
 		this.#events.push(type);
-	}
 
+	}
 
 }
 

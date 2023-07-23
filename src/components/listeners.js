@@ -25,11 +25,13 @@ class Listeners {
 			this.#ids[id] = key;
 		}
 
-		console.log(this.#ids);
-		console.log(this.#listeners);
-
 	}
 
+	/**
+	 * Create an event listener handler method
+	 * @param  {Instance} instance The Listener class instance
+	 * @return {Function}          The event handler method
+	 */
 	static getHandler (instance) {
 		return function (event) {
 			let target = event.target.closest(`[reef-on${event.type}]`);
@@ -40,14 +42,29 @@ class Listeners {
 		}
 	}
 
+	/**
+	 * Delegate the event on an element
+	 * @param  {Element} elem  The element to delegate events on
+	 * @param  {String}  event The event name
+	 * @param  {String}  val   The function to run for the event
+	 */
+	delegate (elem, event, val) {
 
+		// Get the event listener ID
+		let fnName = val.split('(')[0];
+		let listener = this.#listeners[fnName];
+		if (!listener) return;
 
-	listen (type) {
+		// Add the reef-on* attribute and remove the original
+		elem.setAttribute(`reef-${event}`, listener.id);
+
+		// If there's not already a listener, start one
+		let type = event.replace('on', '');
 		if (this.#events.includes(type)) return;
 		document.addEventListener(type, Listeners.getHandler(this), true);
 		this.#events.push(type);
-	}
 
+	}
 
 }
 

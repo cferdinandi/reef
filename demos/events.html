@@ -15,7 +15,7 @@
 </head>
 <body>
 
-	<button reef-onclick="940dac57-688f-4ff1-b5ba-9acacce30ba7">CLICK ME!</button>
+
 	<div id="app"></div>
 
 	<script src="../dist/reef.js"></script>
@@ -25,18 +25,20 @@
 		// Track clicks
 		let data = store({count: 0});
 
-		// Log clicks
+		// Increase the count
 		function increase () {
-			console.log(event);
 			data.count++;
 		}
 
+		// Decrease the count
 		function decrease () {
 			data.count--;
 		}
 
+		// Register allowed listeners
 		let events = listeners({increase, decrease});
 
+		// The template
 		function template () {
 			return `
 				<p>
@@ -46,8 +48,8 @@
 				<div aria-live="polite">Count: ${data.count}</div>`;
 		}
 
-		// Render a button with an onclick event
-		component('#app', template, {events: true});
+		// Render a template with on* events
+		component('#app', template, {events});
 	</script>
 
 </body>
