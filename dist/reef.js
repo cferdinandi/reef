@@ -1,4 +1,4 @@
-/*! reef v12.3.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.3.1 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
@@ -199,7 +199,7 @@ var reef = (function (exports) {
 		if (skipAttribute(att, val, events)) return;
 
 		// If there's a Listeners object, handle delegation
-		if (events.delegate) {
+		if (events && events.delegate) {
 			events.delegate(elem, att, val);
 			return;
 		}
@@ -309,7 +309,7 @@ var reef = (function (exports) {
 			}
 
 			// If there's a Listeners object, handle delegation
-			if (events.delegate) {
+			if (events && events.delegate) {
 				events.delegate(elem, name, value);
 				removeAttribute(elem, name);
 				continue;

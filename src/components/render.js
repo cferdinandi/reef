@@ -67,7 +67,7 @@ function addAttribute (elem, att, val, events) {
 	if (skipAttribute(att, val, events)) return;
 
 	// If there's a Listeners object, handle delegation
-	if (events.delegate) {
+	if (events && events.delegate) {
 		events.delegate(elem, att, val);
 		return;
 	}
@@ -177,7 +177,7 @@ function addDefaultAtts (elem, events) {
 		}
 
 		// If there's a Listeners object, handle delegation
-		if (events.delegate) {
+		if (events && events.delegate) {
 			events.delegate(elem, name, value);
 			removeAttribute(elem, name);
 			continue;
