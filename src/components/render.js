@@ -177,7 +177,7 @@ function addDefaultAtts (elem, events) {
 		}
 
 		// If there's a Listeners object, handle delegation
-		if (events && events.delegate) {
+		if (name.startsWith('on') && events && events.delegate) {
 			events.delegate(elem, name, value);
 			removeAttribute(elem, name);
 			continue;

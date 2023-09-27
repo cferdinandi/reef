@@ -1,4 +1,4 @@
-/*! reef v12.3.1 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.3.2 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom event
  * @param  {String} type   The event type
@@ -306,7 +306,7 @@ function addDefaultAtts (elem, events) {
 		}
 
 		// If there's a Listeners object, handle delegation
-		if (events && events.delegate) {
+		if (name.startsWith('on') && events && events.delegate) {
 			events.delegate(elem, name, value);
 			removeAttribute(elem, name);
 			continue;

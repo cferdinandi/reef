@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Debu</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+
+		.red {
+		  color: red;
+		}
+
+		.blue {
+		  color: blue;
+		}
+
+		.yellow {
+		  color: yellow;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {store, component, listeners} = reef;
+
+		// Create a reactive data store
+		let data = store({
+			greeting: 'Hello',
+			name: 'World'
+		});
+
+		// Create a template function
+		function template () {
+			let {greeting, name} = data;
+			return `
+			  <button type="button" onclick="log();" data-type="avatar" data-placement="bottom-end" data-skid="-8">
+			    <span class="red">
+			      <span class="blue">${greeting}</span>, <span class="yellow">${name}</span>!
+			     </span>
+			   </button>`;
+		}
+
+		// Track clicks
+		let count = 0;
+
+		// Log clicks
+		function log () {
+			count++;
+			console.log(`Clicked ${count} times.`);
+		}
+
+		// Register event handlers
+		let events = listeners({log});
+
+		// Create a component
+		// Renders into the UI, and updates whenever the data changes
+		let app = component('#app', template, {events});
+	</script>
+
+</body>
+</html>
