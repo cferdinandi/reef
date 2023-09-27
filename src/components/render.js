@@ -39,38 +39,58 @@ function isFalsy (str) {
 }
 
 /**
+ * Add an event listener to an element
+ * @param  {Element} elem   The element to delegate events on
+ * @param  {String}  event  The event name
+ * @param  {String}  val    The function to run for the event
+ * @param  {Object}  events The allowed event functions
+ */
+function listen (elem, event, val, events) {
+
+	// Only run if there are events
+	if (!event.startsWith('on') || !events) return;
+
+	// If there's already a listener for this event, skip
+	if (!!elem[event]) return;
+
+	// Get the event listener ID
+	let fnName = val.split('(')[0];
+	let listener = events[fnName];
+	if (!listener) return;
+
+	// Start listening
+	elem[event] = listener;
+
+}
+
+/**
  * Check if attribute should be skipped (sanitize properties)
  * @param  {String}  name   The attribute name
  * @param  {String}  value  The attribute value
- * @param  {Boolean} events If true, inline events are allowed
  * @return {Boolean}        If true, skip the attribute
  */
-function skipAttribute (name, value, events) {
+function skipAttribute (name, value) {
 	let val = value.replace(/\s+/g, '').toLowerCase();
 	if (['src', 'href', 'xlink:href'].includes(name)) {
 		if (val.includes('javascript:') || val.includes('data:text/html')) return true;
 	}
-	if (name.startsWith('@on') || name.startsWith('#on')) return true;
-	if (!events && name.startsWith('on')) return true;
+	if (name.startsWith('on') || name.startsWith('@on') || name.startsWith('#on')) return true;
 }
 
 /**
  * Add an attribute to an element
- * @param {Node}   elem The element
- * @param {String} att  The attribute
- * @param {String} val  The value
- * @param  {Boolean} events If true, inline events are allowed
+ * @param {Node}   elem   The element
+ * @param {String} att    The attribute
+ * @param {String} val    The value
+ * @param {Object} events The allowed event functions
  */
 function addAttribute (elem, att, val, events) {
 
-	// Sanitize dangerous attributes
-	if (skipAttribute(att, val, events)) return;
+	// If there's an event object, add listener
+	listen(elem, att, val, events);
 
-	// If there's a Listeners object, handle delegation
-	if (events && events.delegate) {
-		events.delegate(elem, att, val);
-		return;
-	}
+	// Sanitize dangerous attributes
+	if (skipAttribute(att, val)) return;
 
 	// If it's a form attribute, set the property directly
 	if (formAtts.includes(att)) {
@@ -79,7 +99,6 @@ function addAttribute (elem, att, val, events) {
 
 	// Update the attribute
 	elem.setAttribute(att, val);
-
 
 }
 
@@ -102,9 +121,9 @@ function removeAttribute (elem, att) {
 
 /**
  * Compare the existing node attributes to the template node attributes and make updates
- * @param  {Node}    template The new template
- * @param  {Node}    existing The existing DOM node
- * @param  {Boolean} events   If true, inline events allowed
+ * @param  {Node}   template The new template
+ * @param  {Node}   existing The existing DOM node
+ * @param  {Object} events   The allowed event functions
  */
 function diffAttributes (template, existing, events) {
 
@@ -144,9 +163,6 @@ function diffAttributes (template, existing, events) {
 		// If the attribute exists in the template, skip it
 		if (templateAtts[name]) continue;
 
-		// Skip reef-on* attributes if there's a matching listener in the template
-		if (name.startsWith('reef-on') && templateAtts[name.replace('reef-', '')]) continue;
-
 		// Skip user-editable form field attributes
 		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) continue;
 
@@ -159,7 +175,8 @@ function diffAttributes (template, existing, events) {
 
 /**
  * Add default attributes to a newly created element
- * @param  {Node} elem The element
+ * @param  {Node}   elem   The element
+ * @param  {Object} events The allowed event functions
  */
 function addDefaultAtts (elem, events) {
 
@@ -171,15 +188,9 @@ function addDefaultAtts (elem, events) {
 	for (let {name, value} of elem.attributes) {
 
 		// If the attribute should be skipped, remove it
-		if (skipAttribute(name, value, events)) {
+		if (skipAttribute(name, value)) {
 			removeAttribute(elem, name);
-			continue;
-		}
-
-		// If there's a Listeners object, handle delegation
-		if (name.startsWith('on') && events && events.delegate) {
-			events.delegate(elem, name, value);
-			removeAttribute(elem, name);
+			listen(elem, name, value, events);
 			continue;
 		}
 
@@ -272,9 +283,9 @@ function removeScripts (elem) {
 
 /**
  * Diff the existing DOM node versus the template
- * @param  {Array}   template The template HTML
- * @param  {Node}    existing The current DOM HTML
- * @param  {Boolean} events   If true, inline events allowed
+ * @param  {Array}  template The template HTML
+ * @param  {Node}   existing The current DOM HTML
+ * @param  {Object} events   The allowed event functions
  */
 function diff (template, existing, events) {
 
@@ -300,6 +311,7 @@ function diff (template, existing, events) {
 		if (isDifferentNode(node, existingNodes[index])) {
 
 			// Check if node exists further in the tree
+			// @todo change how this works for performance improvement
 			let ahead = aheadInTree(node, existingNodes, index);
 
 			// If not, insert the node before the current one
@@ -358,7 +370,7 @@ function diff (template, existing, events) {
  * Render a template into the UI
  * @param  {Node|String} elem     The element or selector to render the template into
  * @param  {String}      template The template to render
- * @param  {Boolean}     events   If true, inline events allowed
+ * @param  {Object}      events   The allowed event functions
  */
 function render (elem, template, events) {
 	let node = getElem(elem);

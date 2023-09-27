@@ -20,7 +20,7 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component, listeners} = reef;
+		let {store, component} = reef;
 
 		// Track clicks
 		let data = store({count: 0});
@@ -35,9 +35,6 @@
 			data.count--;
 		}
 
-		// Register allowed listeners
-		let events = listeners({increase, decrease});
-
 		// The template
 		function template () {
 			return `
@@ -49,7 +46,7 @@
 		}
 
 		// Render a template with on* events
-		component('#app', template, {events});
+		component('#app', template, {events: {increase, decrease}});
 	</script>
 
 </body>
