@@ -1,4 +1,4 @@
-/*! reef v12.4.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v12.5.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
@@ -191,7 +191,7 @@ var reef = (function (exports) {
 		if (!listener) return;
 
 		// Start listening
-		elem[event] = listener;
+		elem.setAttribute(event, val);
 
 	}
 

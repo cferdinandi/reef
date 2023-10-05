@@ -35,18 +35,24 @@
 			data.count--;
 		}
 
+		// Log to the console
+		function wave (msg) {
+			console.log(msg);
+		}
+
 		// The template
 		function template () {
 			return `
 				<p>
 					<button onclick="increase()">Increase</button>
 					<button onclick="decrease()">Decrease</button>
+					<button onclick="wave('hello 👋')">Say Hi</button>
 				</p>
 				<div aria-live="polite">Count: ${data.count}</div>`;
 		}
 
 		// Render a template with on* events
-		component('#app', template, {events: {increase, decrease}});
+		component('#app', template, {events: {increase, decrease, wave}});
 	</script>
 
 </body>

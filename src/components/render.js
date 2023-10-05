@@ -59,7 +59,7 @@ function listen (elem, event, val, events) {
 	if (!listener) return;
 
 	// Start listening
-	elem[event] = listener;
+	elem.setAttribute(event, val);
 
 }
 
