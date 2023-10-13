@@ -1,4 +1,4 @@
-/*! reef v12.5.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -51,8 +51,8 @@ function handler (name, data) {
 	let type = 'signal' + (name ? `-${name}` : '');
 	return {
 		get (obj, prop) {
-			if (prop === '_isProxy') return true;
-			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
+			if (prop === '_isSignal') return true;
+			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isSignal) {
 				obj[prop] = new Proxy(obj[prop], handler(name));
 			}
 			return obj[prop];

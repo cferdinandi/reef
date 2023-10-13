@@ -11,8 +11,8 @@ function handler (name, data) {
 	let type = 'signal' + (name ? `-${name}` : '');
 	return {
 		get (obj, prop) {
-			if (prop === '_isProxy') return true;
-			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
+			if (prop === '_isSignal') return true;
+			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isSignal) {
 				obj[prop] = new Proxy(obj[prop], handler(name, data));
 			}
 			return obj[prop];
