@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Web Components</title>
+	<title>[reef-ignore]</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -17,7 +17,6 @@
 
 	<div id="app"></div>
 
-	<script src="./wc-count.js"></script>
 	<script src="../dist/reef.js"></script>
 	<script>
 		let {signal, component} = reef;
@@ -33,7 +32,9 @@
 			let {heading, emoji} = data;
 			return `
 				<h1>${heading} ${emoji}</h1>
-				<count-up></count-up>`;
+				<p reef-ignore>
+					Ignored: <button class="count-up" aria-live="polite">Activated 0 times</button>
+				</p>`;
 		}
 
 		// Create a reactive component
@@ -42,7 +43,18 @@
 
 		// After count-up button is clicked, updated UI data 5 seconds later
 		document.addEventListener('reef:render', function () {
+
+			// Variables
 			let btn = document.querySelector('button');
+			let count = 0;
+
+			// Update the count
+			btn.addEventListener('click', function () {
+				count++;
+				btn.textContent = `Activated ${count} times`;
+			});
+
+			// Update the state
 			btn.addEventListener('click', function () {
 				setTimeout(function () {
 					console.log(btn);
@@ -50,6 +62,7 @@
 					data.emoji = '🔥';
 				}, 3000);
 			}, {once: true});
+
 		}, {once: true});
 	</script>
 

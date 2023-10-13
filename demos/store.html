@@ -19,27 +19,44 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store} = reef;
+		let {store, component} = reef;
 
-		// Create a reactive store
-		let data = store({
-			heading: 'My Todos',
-			todos: ['Swim', 'Climb', 'Jump', 'Play'],
-			emoji: '👋🎉'
+		let todos = store(['Swim', 'Climb', 'Jump', 'Play'], {
+			add (todos, todo) {
+				todos.push(todo);
+			},
+			delete (todos, todo) {
+				let index = todos.indexOf(todo);
+				if (index < 0) return;
+				todos.splice(index, 1);
+			}
 		});
 
-		// Listen for data updates, and re-render
-		document.addEventListener('reef:store', function (event) {
-			console.log(
-				event.detail,
-				Array.from(event.detail.todos)
-			);
-		});
+		// Create a template
+		function template () {
+			return `
+				<ul>
+					${todos.value.map(function (todo) {
+						return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+					}).join('')}
+				</ul>`;
+		}
+
+		// Create a reactive component
+		// It automatically renders into the UI
+		component('#app', template);
 
 		// After two seconds, add an item to the todo list
 		setTimeout(function () {
-			data.todos.push('Take a nap... zzzz');
+			todos.value.push('Take a nap... zzzz');
+			console.log('push', todos.value);
 		}, 2000);
+
+		// After four seconds, use the setter method
+		setTimeout(function () {
+			todos.add('Take a nap... zzzz');
+			console.log('setter', todos.value);
+		}, 4000);
 	</script>
 
 </body>

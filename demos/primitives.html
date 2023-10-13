@@ -19,10 +19,10 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {signal, component} = reef;
 
-		// Create a reactive store
-		let count = store(0);
+		// Create a signal
+		let count = signal(0);
 
 		// Create a template
 		function template () {

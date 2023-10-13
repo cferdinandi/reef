@@ -9,8 +9,8 @@ let formAttsNoVal = ['checked', 'selected'];
 
 /**
  * Convert a template string into HTML DOM nodes
- * @param  {String} str The template string
- * @return {Node}       The template HTML
+ * @param  {String}  str The template string
+ * @return {Element}     The template HTML
  */
 function stringToHTML (str) {
 
@@ -59,7 +59,7 @@ function listen (elem, event, val, events) {
 	if (!listener) return;
 
 	// Start listening
-	elem.setAttribute(event, val);
+	elem[event] = listener;
 
 }
 
@@ -231,36 +231,48 @@ function getNodeContent (node) {
 
 /**
  * Check if two nodes are different
- * @param  {Node}  node1 The first node
- * @param  {Node}  node2 The second node
- * @return {Boolean}     If true, they're not the same node
+ * @param  {Node}    node1 The first node
+ * @param  {Node}    node2 The second node
+ * @return {Boolean}       If true, they're not the same node
  */
 function isDifferentNode (node1, node2) {
 	return (
 		(typeof node1.nodeType === 'number' && node1.nodeType !== node2.nodeType) ||
 		(typeof node1.tagName === 'string' && node1.tagName !== node2.tagName) ||
-		(typeof node1.id === 'string' && node1.id !== node2.id) ||
-		(typeof node1.src === 'string' && node1.src !== node2.src)
+		(typeof node1.id === 'string' && !!node1.id && node1.id !== node2.id) ||
+		('getAttribute' in node1 && 'getAttribute' in node2 && node1.getAttribute('key') !== node2.getAttribute('key')) ||
+		(typeof node1.src === 'string' && !!node1.src && node1.src !== node2.src)
 	);
 }
 
 /**
- * Check if the desired node is further ahead in the DOM existingNodes
- * @param  {Node}     node           The node to look for
- * @param  {NodeList} existingNodes  The DOM existingNodes
- * @param  {Integer}  index          The indexing index
- * @return {Integer}                 How many nodes ahead the target node is
+ * Check if the desired node is further ahead in the current DOM tree branch
+ * @param  {Node}     node     The node to look for
+ * @param  {NodeList} existing The existing nodes in the DOM
+ * @return {Node}              The element from the DOM
  */
-function aheadInTree (node, existingNodes, index) {
-	return Array.from(existingNodes).slice(index + 1).find(function (branch) {
-		return !isDifferentNode(node, branch);
-	});
+function aheadInTree (node, existing) {
+
+	// If the node isn't an element, bail
+	if (node.nodeType !== 1) return;
+
+	// Look for the ID or [key] attribute
+	let id = node.getAttribute('id');
+	let key = node.getAttribute('key');
+	if (!id || !key) return;
+
+	// Use the ID or [key] as the selector
+	let selector = id ? `#${id}` : `[key="${key}"]`;
+
+	// Look for the corresponding element in the DOM
+	return existing.querySelector(`:scope > ${selector}`);
+
 }
 
 /**
  * If there are extra elements in DOM, remove them
- * @param  {Array} existingNodes      The existing DOM
- * @param  {Array} templateNodes The template
+ * @param  {Array} existingNodes The existing DOM nodes
+ * @param  {Array} templateNodes The template nodes
  */
 function trimExtraNodes (existingNodes, templateNodes) {
 	let extra = existingNodes.length - templateNodes.length;
@@ -272,7 +284,7 @@ function trimExtraNodes (existingNodes, templateNodes) {
 
 /**
  * Remove scripts from HTML
- * @param  {Node}    elem The element to remove scripts from
+ * @param  {Node} elem The element to remove scripts from
  */
 function removeScripts (elem) {
 	let scripts = elem.querySelectorAll('script');
@@ -299,7 +311,7 @@ function diff (template, existing, events) {
 	// Loop through each node in the template and compare it to the matching element in the UI
 	templateNodes.forEach(function (node, index) {
 
-		// If element doesn't exist, create it
+		// If there's no existing element, create and append
 		if (!existingNodes[index]) {
 			let clone = node.cloneNode(true);
 			addDefaultAtts(clone, events);
@@ -307,14 +319,13 @@ function diff (template, existing, events) {
 			return;
 		}
 
-		// If there is, but it's not the same node type, insert the new node before the existing one
+		// If there is, but it's not the same node type...
 		if (isDifferentNode(node, existingNodes[index])) {
 
 			// Check if node exists further in the tree
-			// @todo change how this works for performance improvement
-			let ahead = aheadInTree(node, existingNodes, index);
+			let ahead = aheadInTree(node, existing);
 
-			// If not, insert the node before the current one
+			// If not, insert the new node before the current one
 			if (!ahead) {
 				let clone = node.cloneNode(true);
 				addDefaultAtts(clone, events);
@@ -322,10 +333,13 @@ function diff (template, existing, events) {
 				return;
 			}
 
-			// Otherwise, move it to the current spot
+			// Otherwise, move existing node to the current spot
 			existingNodes[index].before(ahead);
 
 		}
+
+		// Stop diffing if element should be ignored
+		if ('hasAttribute' in node && node.hasAttribute('reef-ignore')) return;
 
 		// If attributes are different, update them
 		diffAttributes(node, existingNodes[index], events);
@@ -379,5 +393,6 @@ function render (elem, template, events) {
 	diff(html, node, events);
 	emit('render', null, node);
 }
+
 
 export default render;

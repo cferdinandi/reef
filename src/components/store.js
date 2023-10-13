@@ -1,45 +1,56 @@
-import {emit, getType} from './utilities.js';
+import {emit} from './utilities.js';
 
 
 /**
- * Create a Proxy handler object
- * @param  {String} name The custom event namespace
- * @param  {Object} data The data object
- * @return {Object}      The handler object
+ * Store Class
  */
-function handler (name, data) {
-	let type = 'store' + (name ? `-${name}` : '');
-	return {
-		get (obj, prop) {
-			if (prop === '_isProxy') return true;
-			if (['object', 'array'].includes(getType(obj[prop])) && !obj[prop]._isProxy) {
-				obj[prop] = new Proxy(obj[prop], handler(name, data));
+class Store {
+
+	/**
+	 * The constructor object
+	 * @param  {Object} data    The data object
+	 * @param  {Object} actions The store functions
+	 * @param  {String} name    The custom event namespace for the signal
+	 */
+	constructor (data, actions, name = '') {
+
+		// Get signal type
+		let type = 'signal' + (name ? `-${name}` : '');
+
+		// Create data property setter/getter
+		Object.defineProperties(this, {
+			value: {
+				get () {
+					return structuredClone(data);
+				},
+				set () {
+					return true;
+				}
 			}
-			return obj[prop];
-		},
-		set (obj, prop, value) {
-			if (obj[prop] === value) return true;
-			obj[prop] = value;
-			emit(type, data);
-			return true;
-		},
-		deleteProperty (obj, prop) {
-			delete obj[prop];
-			emit(type, data);
-			return true;
+		});
+
+		// Add store functions
+		for (let fn in actions) {
+			if (typeof actions[fn] !== 'function') continue;
+			this[fn] = function (...args) {
+				actions[fn](data, ...args);
+				emit(type, data);
+			};
 		}
-	};
+
+	}
+
 }
 
 /**
  * Create a new store
- * @param  {Object} data The data object
- * @param  {String} name The custom event namespace
- * @return {Proxy}       The reactive proxy
+ * @param  {Object} data    The data object
+ * @param  {Object} setters The store functions
+ * @param  {String} name    The custom event namespace for the signal
+ * @return {Proxy}          The Store instance
  */
-function store (data = {}, name = '') {
-	data = ['array', 'object'].includes(getType(data)) ? data : {value: data};
-	return new Proxy(data, handler(name, data));
+function store (data = {}, setters = {}, name = '') {
+	return new Store(data, setters, name);
 }
 
 

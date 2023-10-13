@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>Reef</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	</head>
+
+	<body>
+
+		<div id="app"></div>
+
+		<script src="../dist/reef.js"></script>
+		<script type="module">
+			let {signal, component} = reef;
+
+			// Start
+			let start = performance.now();
+
+			let rows = signal([]);
+
+			function template () {
+				return `
+					<table>
+					    <thead>
+					        <tr>
+					            <th>First Name</th>
+					            <th>Last Name</th>
+					            <th>Super Hero</th>
+					        </tr>
+					    </thead>
+					    <tbody>
+					    	${rows.map(function (row) {
+					    		// return `<tr id="row-${row.col1}-${row.col2}-${row.col3}">
+						     //        <td id="col-${row.col1}">${row.col1}</td>
+						     //        <td id="col-${row.col2}">${row.col2}</td>
+						     //        <td id="col-${row.col3}">${row.col3}</td>
+						     //    </tr>`;
+				         		return `<tr id="row-${row.col1}-${row.col2}-${row.col3}">
+				     	            <td id="col-${row.col1}">${row.col1}</td>
+				     	            <td id="col-${row.col2}">${row.col2}</td>
+				     	            <td id="col-${row.col3}">${row.col3}</td>
+				     	        </tr>`;
+					    	}).join('')}
+					    </tbody>
+					</table>`;
+			}
+
+			component('#app', template);
+
+			function addRows () {
+				for (let i = 0; i < 1000; i++) {
+					rows.push({
+						col1: crypto.randomUUID(),
+						col2: crypto.randomUUID(),
+						col3: crypto.randomUUID()
+					});
+				}
+			}
+
+			function swapRows () {
+				let cloned = rows.slice(500, 1500);
+				rows.splice(500, 1000, ...cloned);
+			}
+
+			function deleteRows () {
+				rows.splice(125, 250);
+			}
+
+			function delay (fn) {
+				return new Promise(function (resolve) {
+					setTimeout(function () {
+						fn();
+						resolve();
+					}, 500);
+				});
+			}
+
+			// addRows();
+			// addRows();
+			// addRows();
+			// addRows();
+			// swapRows();
+			// deleteRows();
+			// deleteRows();
+			// addRows();
+			// swapRows();
+			// addRows();
+			// addRows();
+			// addRows();
+			// addRows();
+			// swapRows();
+			// deleteRows();
+			// deleteRows();
+			// addRows();
+			// swapRows();
+
+			await delay(addRows);
+			await delay(addRows);
+			await delay(addRows);
+			await delay(addRows);
+			await delay(swapRows);
+			await delay(deleteRows);
+			await delay(deleteRows);
+			await delay(addRows);
+			await delay(swapRows);
+			await delay(addRows);
+			await delay(addRows);
+			await delay(addRows);
+			await delay(addRows);
+			await delay(swapRows);
+			await delay(deleteRows);
+			await delay(deleteRows);
+			await delay(addRows);
+			await delay(swapRows);
+
+			// End
+			let end = performance.now();
+			console.log(`Perf: ${end - start}ms - ${(end - start) / 1000}s`);
+		</script>
+	</body>
+</html>

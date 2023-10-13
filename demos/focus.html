@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Batch Rendering Updates</title>
+	<title>Focus After Render</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -15,11 +15,11 @@
 </head>
 <body>
 
-	<div id="app"></div>
+	<div id="app">Loading...</div>
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {signal, component} = reef;
+		let {signal, component, focus} = reef;
 
 		// Create a signal
 		let data = signal({
@@ -40,21 +40,16 @@
 				</ul>`;
 		}
 
-		// Listen for render events
-		document.addEventListener('reef:render', function (event) {
-			console.log(`The #${event.target.id} element was rendered.`);
-		});
-
-		// Create a reactive component
-		// It automatically renders into the UI
-		component('#app', template);
-
-		// After two seconds, add an item to the todo list
+		// Delay initial rendering for a bit (like after an API response)
 		setTimeout(function () {
-			data.todos.push('Take a nap... zzzz');
-			data.todos.push('Wake up');
+			focus('h1');
+			component('#app', template);
+		}, 3000);
+
+		// Delay initial rendering for a bit (like after an API response)
+		setTimeout(function () {
 			data.todos.push('Repeat');
-		}, 2000);
+		}, 5000);
 	</script>
 
 </body>

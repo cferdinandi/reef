@@ -20,24 +20,19 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {signal, component} = reef;
 
 		// Track clicks
-		let data = store({count: 0});
+		let count = signal(0);
 
 		// Increase the count
 		function increase () {
-			data.count++;
+			count.value++;
 		}
 
 		// Decrease the count
 		function decrease () {
-			data.count--;
-		}
-
-		// Log to the console
-		function wave (msg) {
-			console.log(msg);
+			count.value--;
 		}
 
 		// The template
@@ -46,13 +41,12 @@
 				<p>
 					<button onclick="increase()">Increase</button>
 					<button onclick="decrease()">Decrease</button>
-					<button onclick="wave('hello 👋')">Say Hi</button>
 				</p>
-				<div aria-live="polite">Count: ${data.count}</div>`;
+				<div aria-live="polite">Count: ${count.value}</div>`;
 		}
 
 		// Render a template with on* events
-		component('#app', template, {events: {increase, decrease, wave}});
+		component('#app', template, {events: {increase, decrease}});
 	</script>
 
 </body>

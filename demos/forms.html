@@ -33,10 +33,10 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {signal, component} = reef;
 
-		// Reactive data
-		let data = store({
+		// Create a signal
+		let data = signal({
 			heading: 'My Form',
 			todos: ['Swim', 'Climb', 'Jump', 'Play'],
 			typed1: 'This field is overwritten on each update',

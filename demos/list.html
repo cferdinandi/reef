@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Basic Setup</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {signal, component} = reef;
+
+		// Create a signal
+		let todos = signal(['Swim', 'Climb', 'Jump', 'Play']);
+
+		// Create a template
+		function template () {
+			return `
+				<h1>Todos</h1>
+				<ul>${todos.map(function (todo) {
+						return `<li key="${todo}">${todo}</li>`;
+					}).join('')}</ul>`;
+		}
+
+		// Render the template into the UI
+		component('#app', template);
+
+		// After two seconds, reverse and add an item to the todo list
+		setTimeout(function () {
+			todos.reverse();
+			todos.push('Take a nap... zzzz');
+		}, 2000);
+
+		// After four seconds, reverse and add an item to the todo list
+		setTimeout(function () {
+			todos.reverse();
+			todos.push('Repeat');
+		}, 4000);
+
+		// After six seconds, reverse
+		setTimeout(function () {
+			todos.reverse();
+		}, 6000);
+	</script>
+
+</body>
+</html>

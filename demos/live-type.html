@@ -27,28 +27,26 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {signal, component} = reef;
 
-		// Create a reactive store
-		let data = store({
-			text: ''
-		});
+		// Create a signal
+		let text = signal('');
 
 		// Create a template
 		function template () {
 			return `
 				<label for="mirror">Whatever you type shows up below the field</label>
-				<input type="text" oninput="mirror(event)" id="mirror">
-				<div><em aria-live="polite">${data.text.length ? data.text : 'Type something above to change this text'}</em></div>`;
+				<input type="text" oninput="mirror()" id="mirror">
+				<div><em aria-live="polite">${text.value.length ? text.value : 'Type something above to change this text'}</em></div>`;
 		}
 
 		// Update the data with the field value
 		function mirror (event) {
-			data.text = event.target.value;
+			text.value = event.target.value;
 		}
 
 		// Create a reactive component
-		component('#app', template, {events: true});
+		component('#app', template, {events: {mirror}});
 	</script>
 
 </body>

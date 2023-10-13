@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Multiple Stores</title>
+	<title>Multiple Signals</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -19,14 +19,14 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {signal, component} = reef;
 
-		// Create multiple reactive store
-		let data = store({
+		// Create multiple signals
+		let data = signal({
 			heading: 'My Todos',
 			emoji: '👋🎉'
 		});
-		let todos = store(['Swim', 'Climb', 'Jump', 'Play']);
+		let todos = signal(['Swim', 'Climb', 'Jump', 'Play']);
 
 		// Create a template
 		function template () {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Style Elements</title>
+	<title>signal()</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<style type="text/css">
@@ -19,25 +19,23 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {signal, component} = reef;
+		let {signal} = reef;
 
 		// Create a signal
-		let showStyles = signal(false);
+		let data = signal({
+			heading: 'My Todos',
+			todos: ['Swim', 'Climb', 'Jump', 'Play'],
+			emoji: '👋🎉'
+		});
 
-		// Create a template
-		function template () {
-			if (!showStyles.value) return '<p>Hi!</p>';
-			return `
-				<style>.color { color: red; }</style>
-				<p class="color">Hi!</p>`;
-		}
+		// Listen for data updates, and re-render
+		document.addEventListener('reef:signal', function (event) {
+			console.log(event.detail);
+		});
 
-		// Create a reactive component
-		component('#app', template);
-
-		// After 2 seconds, update with styles
+		// After two seconds, add an item to the todo list
 		setTimeout(function () {
-			showStyles.value = true;
+			data.todos.push('Take a nap... zzzz');
 		}, 2000);
 	</script>
 

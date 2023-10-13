@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Basic Setup</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let app = document.querySelector('#app');
+
+		function html (template, ...args) {
+			console.log(template, args);
+			return [template, args];
+		}
+
+		function render (el, template) {
+			let compiled = '';
+			console.log(template);
+			let [elems, vars] = template;
+			elems.forEach(function (elem, index) {
+				console.log(elem, vars[index]);
+				compiled += elem + (vars[index] || '');
+			});
+			el.innerHTML = compiled;
+		}
+
+		// Create a signal
+		let data = {
+			heading: 'My Todos',
+			todos: ['Swim', 'Climb', 'Jump', 'Play'],
+			emoji: '👋🎉'
+		};
+
+		// // Create a template
+		// function template () {
+		// 	let {heading, todos, emoji} = data;
+		// 	return htm`
+		// 		<h1>${heading} ${emoji}</h1>
+		// 		<ul>
+		// 			${todos.map(function (todo) {
+		// 				return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+		// 			}).join('')}
+		// 		</ul>`;
+		// }
+
+		let {heading, todos, emoji} = data;
+		let template = html`
+			<h1>${heading} ${emoji}</h1>
+			<ul>
+				${todos.map(function (todo) {
+					return html`<li key="${todo}">${todo}</li>`;
+				})}
+			</ul>`;
+
+		render(app, template);
+
+		// // Render the template into the UI
+		// render('#app', template());
+
+		// // Listen for data updates, and re-render
+		// document.addEventListener('reef:signal', function () {
+		// 	render('#app', template());
+		// });
+
+		// // After two seconds, add an item to the todo list
+		// setTimeout(function () {
+		// 	data.todos.push('Take a nap... zzzz');
+		// }, 2000);
+	</script>
+
+</body>
+</html>
