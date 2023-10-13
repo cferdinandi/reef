@@ -212,6 +212,8 @@ function isDifferentNode (node1, node2) {
 		(typeof node1.nodeType === 'number' && node1.nodeType !== node2.nodeType) ||
 		(typeof node1.tagName === 'string' && node1.tagName !== node2.tagName) ||
 		(typeof node1.id === 'string' && node1.id !== node2.id) ||
+		(typeof node1.getAttribute('key') === 'string' &&
+			node1.getAttribute('key') !== node2.getAttribute('key')) ||
 		(typeof node1.src === 'string' && node1.src !== node2.src)
 	);
 }
