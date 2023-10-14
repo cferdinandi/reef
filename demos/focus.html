@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Focus After Render</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app">Loading...</div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {signal, component, focus} = reef;
+
+		// Create a signal
+		let data = signal({
+			heading: 'My Todos',
+			todos: ['Swim', 'Climb', 'Jump', 'Play'],
+			emoji: '👋🎉'
+		});
+
+		// Create a template
+		function template () {
+			let {heading, todos, emoji} = data;
+			return `
+				<h1>${heading} ${emoji}</h1>
+				<ul>
+					${todos.map(function (todo) {
+						return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+					}).join('')}
+				</ul>`;
+		}
+
+		// Delay initial rendering for a bit (like after an API response)
+		setTimeout(function () {
+			focus('h1');
+			component('#app', template);
+		}, 3000);
+	</script>
+
+</body>
+</html>

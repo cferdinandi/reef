@@ -32,6 +32,10 @@
 			let {heading, emoji} = data;
 			return `
 				<h1>${heading} ${emoji}</h1>
+				<details>
+					<summary><strong>Tap me to open</strong></summary>
+					I'm open now!
+				</details>
 				<p reef-ignore>
 					Ignored: <button class="count-up" aria-live="polite">Activated 0 times</button>
 				</p>`;
