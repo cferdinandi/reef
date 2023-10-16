@@ -4,7 +4,7 @@ import {emit, getElem} from './utilities.js';
 
 /**
  * Create the event handler function
- * @param {Class} instance The instance
+ * @param {Class} instance The Component instance
  */
 function createHandler (instance) {
 	return function handler (event) {
@@ -19,16 +19,18 @@ class Component {
 
 	/**
 	 * The constructor object
-	 * @param  {Node|String} elem     The element or selector to render the template into
-	 * @param  {Function}    template The template function to run when the data updates
-	 * @param  {Object}      options  Additional options
+	 * @param  {Node|String} elem            The element or selector to render the template into
+	 * @param  {Function}    template        The template function to run when the data updates
+	 * @param  {Object}      options         Additional options
+	 * @param  {Array}       options.signals The names of the signals to listen for
+	 * @param  {Object}      options.events  The allowed event functions
 	 */
 	constructor (elem, template, options) {
 
 		// Create instance properties
 		this.elem = elem;
 		this.template = template;
-		this.stores = options.stores ? options.stores.map((store) => `reef:store-${store}`) : ['reef:store'];
+		this.signals = options.signals ? options.signals.map((signal) => `reef:signal-${signal}`) : ['reef:signal'];
 		this.events = options.events;
 		this.handler = createHandler(this);
 		this.debounce = null;
@@ -42,8 +44,8 @@ class Component {
 	 * Start reactive data rendering
 	 */
 	start () {
-		for (let store of this.stores) {
-			document.addEventListener(store, this.handler);
+		for (let signal of this.signals) {
+			document.addEventListener(signal, this.handler);
 		}
 		this.render();
 		emit('start', null, getElem(this.elem));
@@ -53,8 +55,8 @@ class Component {
 	 * Stop reactive data rendering
 	 */
 	stop () {
-		for (let store of this.stores) {
-			document.removeEventListener(store, this.handler);
+		for (let signal of this.signals) {
+			document.removeEventListener(signal, this.handler);
 		}
 		emit('stop', null, getElem(this.elem));
 	}

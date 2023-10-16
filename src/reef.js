@@ -1,7 +1,7 @@
+import signal from './components/signal.js';
 import store from './components/store.js';
-import setter from './components/setter.js';
 import render from './components/render.js';
 import component from './components/component.js';
-import listeners from './components/listeners.js';
+import focus from './components/focus.js';
 
-export {store, setter, render, component, listeners};
+export {signal, store, render, component, focus};

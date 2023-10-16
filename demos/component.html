@@ -19,10 +19,10 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, component} = reef;
+		let {signal, component} = reef;
 
-		// Create a reactive store
-		let data = store({
+		// Create a signal
+		let data = signal({
 			heading: 'My Todos',
 			todos: ['Swim', 'Climb', 'Jump', 'Play'],
 			emoji: '👋🎉'

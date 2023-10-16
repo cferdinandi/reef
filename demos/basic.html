@@ -19,10 +19,10 @@
 
 	<script src="../dist/reef.js"></script>
 	<script>
-		let {store, render} = reef;
+		let {signal, render} = reef;
 
-		// Create a reactive store
-		let data = store({
+		// Create a signal
+		let data = signal({
 			heading: 'My Todos',
 			todos: ['Swim', 'Climb', 'Jump', 'Play'],
 			emoji: '👋🎉'
@@ -44,7 +44,7 @@
 		render('#app', template());
 
 		// Listen for data updates, and re-render
-		document.addEventListener('reef:store', function () {
+		document.addEventListener('reef:signal', function () {
 			render('#app', template());
 		});
 
