@@ -24,7 +24,7 @@
 		// Create a signal
 		let data = signal({
 			heading: 'My Counter',
-			emoji: '👋🎉'
+			emoji: '👋'
 		});
 
 		// Create a template
@@ -34,40 +34,27 @@
 				<h1>${heading} ${emoji}</h1>
 				<details>
 					<summary><strong>Tap me to open</strong></summary>
-					I'm open now!
+					This element is not ignored.
 				</details>
-				<p reef-ignore>
-					Ignored: <button class="count-up" aria-live="polite">Activated 0 times</button>
-				</p>`;
+				<details reef-ignore>
+					<summary><strong>Tap me to open</strong></summary>
+					This element is ignored
+				</details>
+				<p>Open both sections, then click the button.</p>
+				<p><button data-render>Click to re-render</button></p>`;
 		}
 
 		// Create a reactive component
-		// It automatically renders into the UI
 		component('#app', template);
 
-		// After count-up button is clicked, updated UI data 5 seconds later
-		document.addEventListener('reef:render', function () {
-
-			// Variables
-			let btn = document.querySelector('button');
-			let count = 0;
-
-			// Update the count
-			btn.addEventListener('click', function () {
-				count++;
-				btn.textContent = `Activated ${count} times`;
-			});
-
-			// Update the state
-			btn.addEventListener('click', function () {
-				setTimeout(function () {
-					console.log(btn);
-					data.heading = 'Count It';
-					data.emoji = '🔥';
-				}, 3000);
-			}, {once: true});
-
-		}, {once: true});
+		// Update emoji
+		let emojiOptions = ['👋', '🎉'];
+		let currentEmoji = 0;
+		document.addEventListener('click', function (event) {
+			if (!event.target.matches('[data-render]')) return;
+			currentEmoji = currentEmoji === 0 ? 1 : 0;
+			data.emoji = emojiOptions[currentEmoji];
+		});
 	</script>
 
 </body>
