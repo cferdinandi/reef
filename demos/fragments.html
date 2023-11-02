@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Fragments</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 0 auto;
+			max-width: 40em;
+			width: 88%;
+		}
+
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+			margin-bottom: 1.5em;
+			max-width: 100%;
+			width: 100%;
+		}
+
+		th,
+		td {
+			text-align: left;
+			padding: 0.5em;
+		}
+
+		th {
+			border-bottom: 0.125em solid #e5e5e5;
+			font-weight: bold;
+			vertical-align: bottom;
+		}
+
+		td {
+			border-top: 1px solid #e5e5e5;
+			vertical-align: top;
+		}
+	</style>
+</head>
+<body>
+
+	<table>
+		<thead>
+			<tr>
+				<th>Number</th>
+				<th>Wizard</th>
+			</tr>
+		</thead>
+		<tbody id="app"></tbody>
+	</table>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let {render} = reef;
+
+		let wizards = ['Gandalf', 'Ursula', 'Merlin'];
+
+		function template () {
+			return wizards.map(function (wizard, index) {
+				return `
+					<tr>
+						<td>${index + 1}</td>
+						<td>${wizard}</td>
+					</tr>`;
+			}).join('');
+		}
+
+		reef.component('#app', template);
+	</script>
+
+</body>
+</html>
