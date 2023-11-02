@@ -1,4 +1,4 @@
-/*! reef v13.0.1 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.2 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
@@ -146,18 +146,17 @@ var reef = (function (exports) {
 	 */
 	function stringToHTML (str) {
 
-	    // Create document
-	    let parser = new DOMParser();
-	    let doc = parser.parseFromString(str, 'text/html');
+		// Create document
+		let parser = new DOMParser();
+		let doc = parser.parseFromString(`<body><template>${str}</template></body>`, 'text/html');
 
-	    // If there are items in the head, move them to the body
-	    if (doc.head && doc.head.childNodes.length) {
-	        Array.from(doc.head.childNodes).reverse().forEach(function (node) {
-	            doc.body.insertBefore(node, doc.body.firstChild);
-	        });
-	    }
+		// If there's a body, return it
+		if (doc.body) {
+			return doc.body.firstElementChild.content;
+		}
 
-	    return doc.body || document.createElement('body');
+		// Otherwise, create a body and return it
+		return document.createElement('body');
 
 	}
 

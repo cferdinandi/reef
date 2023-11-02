@@ -9,20 +9,22 @@ let formAttsNoVal = ['checked', 'selected'];
 
 /**
  * Convert a template string into HTML DOM nodes
- * @param  {String}                   str   The template string
- * @return {Element|DocumentFragment}       The template HTML
+ * @param  {String}  str The template string
+ * @return {Element}     The template HTML
  */
 function stringToHTML (str) {
 
-    // Create document
-    let parser = new DOMParser();
-    let doc = parser.parseFromString(`<body><template>${str}</template></body>`, 'text/html');
+	// Create document
+	let parser = new DOMParser();
+	let doc = parser.parseFromString(`<body><template>${str}</template></body>`, 'text/html');
 
-    if (doc.body) {
-        return doc.body.children[0].content;
-    } else {
-        return document.createElement('body');
-    }
+	// If there's a body, return it
+	if (doc.body) {
+		return doc.body.firstElementChild.content;
+	}
+
+	// Otherwise, create a body and return it
+	return document.createElement('body');
 
 }
 
