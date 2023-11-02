@@ -339,7 +339,7 @@ function diff (template, existing, events) {
 		}
 
 		// Stop diffing if element should be ignored
-		if ('hasAttribute' in node && node.hasAttribute('reef-ignore')) return;
+		if (templateNodes[index] && 'hasAttribute' in templateNodes[index] && templateNodes[index].hasAttribute('reef-ignore')) return;
 
 		// If attributes are different, update them
 		diffAttributes(node, existingNodes[index], events);

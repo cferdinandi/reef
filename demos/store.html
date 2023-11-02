@@ -35,9 +35,10 @@
 		// Create a template
 		function template () {
 			return `
+				<p>You have ${todos.value.length} todos:</p>
 				<ul>
 					${todos.value.map(function (todo) {
-						return `<li id="${todo.toLowerCase().replaceAll(' ', '-')}">${todo}</li>`;
+						return `<li key="${todo}">${todo}</li>`;
 					}).join('')}
 				</ul>`;
 		}

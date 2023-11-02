@@ -1,4 +1,4 @@
-/*! reef v13.0.0 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.1 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom reefevent
  * @param  {String} type   The event type
@@ -468,7 +468,7 @@ function diff (template, existing, events) {
 		}
 
 		// Stop diffing if element should be ignored
-		if ('hasAttribute' in node && node.hasAttribute('reef-ignore')) return;
+		if (templateNodes[index] && 'hasAttribute' in templateNodes[index] && templateNodes[index].hasAttribute('reef-ignore')) return;
 
 		// If attributes are different, update them
 		diffAttributes(node, existingNodes[index], events);
