@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Live Type</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<style type="text/css">
+		body {
+			margin: 1em auto;
+			max-width: 32em;
+			width: 88%;
+		}
+
+		label,
+		input {
+			display: block;
+			width: 100%;
+		}
+
+		.foobar {
+		  border-color: red;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>Mirror Text</h1>
+
+	<div id="app"></div>
+
+	<script src="../dist/reef.js"></script>
+	<script>
+		let { signal, render } = reef;
+
+		// Create a reactive signal
+		let username = signal({ test: "" });
+
+		// Create a template
+		function template() {
+		  return `
+		    <label for="username">What is your name?</label><br>
+		    <input class="foobar" id="username" placeholder="${username.test}">`;
+		}
+
+		render("#app", template());
+
+		// Update the DOM whenever the user types
+		document.addEventListener("input", function (event) {
+		  // Only run when the #username field is updated
+		  if (!event.target.matches("#username")) return;
+
+		  // Update the state and DOM
+		  username.value = event.target.value;
+		});
+
+		setTimeout(() => {
+		  username.test = "foobar";
+		  render("#app", template());
+		}, 2000);
+	</script>
+
+</body>
+</html>

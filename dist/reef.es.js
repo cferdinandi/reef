@@ -1,4 +1,4 @@
-/*! reef v13.0.3 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.4 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom reefevent
  * @param  {String} type   The event type
@@ -259,11 +259,11 @@ function diffAttributes (template, existing, events) {
 	if (template.nodeType !== 1) return;
 
 	// Get attributes for the template and existing DOM
-	let templateAtts = Array.from(template.attributes);
-	let existingAtts = Array.from(existing.attributes);
+	let templateAtts = template.attributes;
+	let existingAtts = existing.attributes;
 
 	// Add and update attributes from the template into the DOM
-	for (let {name, value} of templateAtts) {
+	for (let {name, value} of Array.from(templateAtts)) {
 
 		// Skip [#*] attributes
 		if (name.startsWith('#')) continue;
@@ -286,7 +286,7 @@ function diffAttributes (template, existing, events) {
 	}
 
 	// Remove attributes from the DOM that shouldn't be there
-	for (let {name, value} of existingAtts) {
+	for (let {name, value} of Array.from(existingAtts)) {
 
 		// If the attribute exists in the template, skip it
 		if (templateAtts[name]) continue;
@@ -313,7 +313,7 @@ function addDefaultAtts (elem, events) {
 
 	// Remove [@*] and [#*] attributes and replace them with the plain attributes
 	// Remove unsafe HTML attributes
-	Array.from(elem.attributes).forEach( ({name, value}) => {
+	for (let {name, value} of Array.from(elem.attributes)) {
 
 		// If the attribute should be skipped, remove it
 		if (skipAttribute(name, value)) {
@@ -323,7 +323,7 @@ function addDefaultAtts (elem, events) {
 		}
 
 		// If the attribute isn't a [@*] or [#*], skip it
-		if (!name.startsWith('@') && !name.startsWith('#')) return;
+		if (!name.startsWith('@') && !name.startsWith('#')) continue;
 
 		// Get the plain attribute name
 		let attName = name.slice(1);
@@ -332,12 +332,12 @@ function addDefaultAtts (elem, events) {
 		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
-		if (formAttsNoVal.includes(attName) && isFalsy(value)) return;
+		if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
 
 		// Add the plain attribute
 		addAttribute(elem, attName, value, events);
 
-	});
+	}
 
 	// If there are child elems, recursively add defaults to them
 	if (elem.childNodes) {
