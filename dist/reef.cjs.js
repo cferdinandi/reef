@@ -1,4 +1,4 @@
-/*! reef v13.0.2 | (c) 2023 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.3 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -263,8 +263,8 @@ function diffAttributes (template, existing, events) {
 	if (template.nodeType !== 1) return;
 
 	// Get attributes for the template and existing DOM
-	let templateAtts = template.attributes;
-	let existingAtts = existing.attributes;
+	let templateAtts = Array.from(template.attributes);
+	let existingAtts = Array.from(existing.attributes);
 
 	// Add and update attributes from the template into the DOM
 	for (let {name, value} of templateAtts) {
@@ -317,17 +317,17 @@ function addDefaultAtts (elem, events) {
 
 	// Remove [@*] and [#*] attributes and replace them with the plain attributes
 	// Remove unsafe HTML attributes
-	for (let {name, value} of elem.attributes) {
+	Array.from(elem.attributes).forEach( ({name, value}) => {
 
 		// If the attribute should be skipped, remove it
 		if (skipAttribute(name, value)) {
 			removeAttribute(elem, name);
 			listen(elem, name, value, events);
-			continue;
+			return;
 		}
 
 		// If the attribute isn't a [@*] or [#*], skip it
-		if (!name.startsWith('@') && !name.startsWith('#')) continue;
+		if (!name.startsWith('@') && !name.startsWith('#')) return;
 
 		// Get the plain attribute name
 		let attName = name.slice(1);
@@ -336,12 +336,12 @@ function addDefaultAtts (elem, events) {
 		removeAttribute(elem, name);
 
 		// If it's a no-value attribute and its falsy, skip it
-		if (formAttsNoVal.includes(attName) && isFalsy(value)) continue;
+		if (formAttsNoVal.includes(attName) && isFalsy(value)) return;
 
 		// Add the plain attribute
 		addAttribute(elem, attName, value, events);
 
-	}
+	});
 
 	// If there are child elems, recursively add defaults to them
 	if (elem.childNodes) {
