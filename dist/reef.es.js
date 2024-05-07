@@ -1,4 +1,4 @@
-/*! reef v13.0.2 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.3 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom reefevent
  * @param  {String} type   The event type
@@ -259,17 +259,17 @@ function diffAttributes (template, existing, events) {
 	if (template.nodeType !== 1) return;
 
 	// Get attributes for the template and existing DOM
-	let templateAtts = template.attributes;
-	let existingAtts = existing.attributes;
+	let templateAtts = Array.from(template.attributes);
+	let existingAtts = Array.from(existing.attributes);
 
 	// Add and update attributes from the template into the DOM
-	Array.from(templateAtts).forEach( ({name, value}) => {
+	for (let {name, value} of templateAtts) {
 
 		// Skip [#*] attributes
-		if (name.startsWith('#')) return;
+		if (name.startsWith('#')) continue;
 
 		// Skip user-editable form field attributes
-		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) return;
+		if (formAtts.includes(name) && formFields.includes(template.tagName.toLowerCase())) continue;
 
 		// Convert [@*] names to their real attribute name
 		let attName = name.startsWith('@') ? name.slice(1) : name;
@@ -277,27 +277,27 @@ function diffAttributes (template, existing, events) {
 		// If its a no-value property and it's falsy remove it
 		if (formAttsNoVal.includes(attName) && isFalsy(value)) {
 			removeAttribute(existing, attName);
-			return;
+			continue;
 		}
 
 		// Otherwise, add the attribute
 		addAttribute(existing, attName, value, events);
 
-	});
+	}
 
 	// Remove attributes from the DOM that shouldn't be there
-	Array.from(existingAtts).forEach( ({name, value}) => {
+	for (let {name, value} of existingAtts) {
 
 		// If the attribute exists in the template, skip it
-		if (templateAtts[name]) return;
+		if (templateAtts[name]) continue;
 
 		// Skip user-editable form field attributes
-		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) return;
+		if (formAtts.includes(name) && formFields.includes(existing.tagName.toLowerCase())) continue;
 
 		// Otherwise, remove it
 		removeAttribute(existing, name);
 
-	});
+	}
 
 }
 
