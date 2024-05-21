@@ -319,7 +319,7 @@ function addDefaultAtts (elem, events) {
 		if (skipAttribute(name, value)) {
 			removeAttribute(elem, name);
 			listen(elem, name, value, events);
-			return;
+			continue;
 		}
 
 		// If the attribute isn't a [@*] or [#*], skip it
