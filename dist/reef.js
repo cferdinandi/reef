@@ -322,7 +322,7 @@ var reef = (function (exports) {
 			if (skipAttribute(name, value)) {
 				removeAttribute(elem, name);
 				listen(elem, name, value, events);
-				return;
+				continue;
 			}
 
 			// If the attribute isn't a [@*] or [#*], skip it
