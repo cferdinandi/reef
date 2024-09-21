@@ -64,8 +64,9 @@ function handler (name, data) {
 			return true;
 		},
 		deleteProperty (obj, prop) {
+			let value = structuredClone(obj[prop]);
 			delete obj[prop];
-			emit(type, {prop, value: obj[prop], action: 'delete'});
+			emit(type, {prop, value, action: 'delete'});
 			return true;
 		}
 	};
