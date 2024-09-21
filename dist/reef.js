@@ -1,4 +1,4 @@
-/*! reef v13.0.4 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.5 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 var reef = (function (exports) {
 	'use strict';
 
