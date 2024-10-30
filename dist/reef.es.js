@@ -1,4 +1,4 @@
-/*! reef v13.0.5 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.6 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom reefevent
  * @param  {String} type   The event type
@@ -60,9 +60,8 @@ function handler (name, data) {
 			return true;
 		},
 		deleteProperty (obj, prop) {
-			let value = structuredClone(obj[prop]);
 			delete obj[prop];
-			emit(type, {prop, value, action: 'delete'});
+			emit(type, {prop, value: obj[prop], action: 'delete'});
 			return true;
 		}
 	};
