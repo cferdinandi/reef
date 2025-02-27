@@ -1,4 +1,4 @@
-/*! reef v13.0.6 | (c) 2024 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
+/*! reef v13.0.6 | (c) 2025 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/reef */
 /**
  * Emit a custom reefevent
  * @param  {String} type   The event type
@@ -39,12 +39,13 @@ function getType (obj) {
 
 /**
  * Create a Proxy handler object
- * @param  {String} name The custom event namespace
+ * @param  {Array} names The custom event namespaces
  * @param  {Object} data The data object
  * @return {Object}      The handler object
  */
-function handler (name, data) {
-	let type = 'signal' + (name ? `-${name}` : '');
+function handler (names, data) {
+	let types = Array.isArray(names) ? names : [names];
+	types.push('');
 	return {
 		get (obj, prop) {
 			if (prop === '_isSignal') return true;
@@ -56,12 +57,20 @@ function handler (name, data) {
 		set (obj, prop, value) {
 			if (obj[prop] === value) return true;
 			obj[prop] = value;
-			emit(type, {prop, value, action: 'set'});
+			const eventData = {prop, value, action: 'set'};
+			types.forEach(name => {
+				const type = 'signal' + (name ? `-${name}` : '');
+				emit(type, eventData);
+			});
 			return true;
 		},
 		deleteProperty (obj, prop) {
 			delete obj[prop];
-			emit(type, {prop, value: obj[prop], action: 'delete'});
+			const eventData = {prop, value: obj[prop], action: 'delete'};
+			types.forEach(name => {
+				const type = 'signal' + (name ? `-${name}` : '');
+				emit(type, eventData);
+			});
 			return true;
 		}
 	};
@@ -70,12 +79,12 @@ function handler (name, data) {
 /**
  * Create a new signal
  * @param  {Object} data The data object
- * @param  {String} name The custom event namespace
+ * @param  {Array} names The custom event namespaces
  * @return {Proxy}       The signal Proxy
  */
-function signal (data = {}, name = '') {
+function signal (data = {}, names = '') {
 	data = ['array', 'object'].includes(getType(data)) ? data : {value: data};
-	return new Proxy(data, handler(name));
+	return new Proxy(data, handler(names));
 }
 
 /**
@@ -87,12 +96,13 @@ class Store {
 	 * The constructor object
 	 * @param  {Object} data    The data object
 	 * @param  {Object} actions The store functions
-	 * @param  {String} name    The custom event namespace for the signal
+	 * @param  {Array} names    The custom event namespaces for the signal
 	 */
-	constructor (data, actions, name = '') {
+	constructor (data, actions, names = '') {
 
-		// Get signal type
-		let type = 'signal' + (name ? `-${name}` : '');
+		// Get signal types
+		let types = Array.isArray(names) ? names : [names];
+		types.push('');
 
 		// Create data property setter/getter
 		Object.defineProperties(this, {
@@ -111,7 +121,10 @@ class Store {
 			if (typeof actions[fn] !== 'function') continue;
 			this[fn] = function (...args) {
 				actions[fn](data, ...args);
-				emit(type, data);
+				types.forEach(name => {
+					const type = 'signal' + (name ? `-${name}` : '');
+					emit(type, data);
+				});
 			};
 		}
 
@@ -123,11 +136,11 @@ class Store {
  * Create a new store
  * @param  {Object} data    The data object
  * @param  {Object} setters The store functions
- * @param  {String} name    The custom event namespace for the signal
+ * @param  {Array} names    The custom event namespaces for the signal
  * @return {Proxy}          The Store instance
  */
-function store (data = {}, setters = {}, name = '') {
-	return new Store(data, setters, name);
+function store (data = {}, setters = {}, names = '') {
+	return new Store(data, setters, names);
 }
 
 // Form fields and attributes that can be modified by users

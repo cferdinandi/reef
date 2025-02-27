@@ -3,12 +3,13 @@ import {emit, getType} from './utilities.js';
 
 /**
  * Create a Proxy handler object
- * @param  {String} name The custom event namespace
+ * @param  {Array} names The custom event namespaces
  * @param  {Object} data The data object
  * @return {Object}      The handler object
  */
-function handler (name, data) {
-	let type = 'signal' + (name ? `-${name}` : '');
+function handler (names, data) {
+	let types = Array.isArray(names) ? names : [names];
+	types.push('');
 	return {
 		get (obj, prop) {
 			if (prop === '_isSignal') return true;
@@ -20,12 +21,20 @@ function handler (name, data) {
 		set (obj, prop, value) {
 			if (obj[prop] === value) return true;
 			obj[prop] = value;
-			emit(type, {prop, value, action: 'set'});
+			const eventData = {prop, value, action: 'set'};
+			types.forEach(name => {
+				const type = 'signal' + (name ? `-${name}` : '');
+				emit(type, eventData);
+			});
 			return true;
 		},
 		deleteProperty (obj, prop) {
 			delete obj[prop];
-			emit(type, {prop, value: obj[prop], action: 'delete'});
+			const eventData = {prop, value: obj[prop], action: 'delete'};
+			types.forEach(name => {
+				const type = 'signal' + (name ? `-${name}` : '');
+				emit(type, eventData);
+			});
 			return true;
 		}
 	};
@@ -34,12 +43,12 @@ function handler (name, data) {
 /**
  * Create a new signal
  * @param  {Object} data The data object
- * @param  {String} name The custom event namespace
+ * @param  {Array} names The custom event namespaces
  * @return {Proxy}       The signal Proxy
  */
-function signal (data = {}, name = '') {
+function signal (data = {}, names = '') {
 	data = ['array', 'object'].includes(getType(data)) ? data : {value: data};
-	return new Proxy(data, handler(name, data));
+	return new Proxy(data, handler(names, data));
 }
 
 
